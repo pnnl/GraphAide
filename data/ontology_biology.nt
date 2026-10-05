@@ -1,0 +1,187 @@
+<http://graphaide.org/ontology/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<http://graphaide.org/ontology/Experiment> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Experiment> <http://www.w3.org/2000/01/rdf-schema#label> "Experiment" .
+<http://graphaide.org/ontology/Experiment> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Experiment" .
+<http://graphaide.org/ontology/Chemical> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Chemical> <http://www.w3.org/2000/01/rdf-schema#label> "Chemical" .
+<http://graphaide.org/ontology/Chemical> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Chemical" .
+<http://graphaide.org/ontology/Medium> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Medium> <http://www.w3.org/2000/01/rdf-schema#label> "Medium" .
+<http://graphaide.org/ontology/Medium> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Medium" .
+<http://graphaide.org/ontology/Gene> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Gene> <http://www.w3.org/2000/01/rdf-schema#label> "Gene" .
+<http://graphaide.org/ontology/Gene> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Gene" .
+<http://graphaide.org/ontology/Protein> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Protein> <http://www.w3.org/2000/01/rdf-schema#label> "Protein" .
+<http://graphaide.org/ontology/Protein> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Protein" .
+<http://graphaide.org/ontology/Function> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Function> <http://www.w3.org/2000/01/rdf-schema#label> "Function" .
+<http://graphaide.org/ontology/Function> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Function" .
+<http://graphaide.org/ontology/Organism> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Organism> <http://www.w3.org/2000/01/rdf-schema#label> "Organism" .
+<http://graphaide.org/ontology/Organism> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Organism" .
+<http://graphaide.org/ontology/Pathway> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Pathway> <http://www.w3.org/2000/01/rdf-schema#label> "Pathway" .
+<http://graphaide.org/ontology/Pathway> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Pathway" .
+<http://graphaide.org/ontology/Disease> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Disease> <http://www.w3.org/2000/01/rdf-schema#label> "Disease" .
+<http://graphaide.org/ontology/Disease> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Disease" .
+<http://graphaide.org/ontology/Phenotype> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Phenotype> <http://www.w3.org/2000/01/rdf-schema#label> "Phenotype" .
+<http://graphaide.org/ontology/Phenotype> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Phenotype" .
+<http://graphaide.org/ontology/Mutation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Mutation> <http://www.w3.org/2000/01/rdf-schema#label> "Mutation" .
+<http://graphaide.org/ontology/Mutation> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Mutation" .
+<http://graphaide.org/ontology/Enzyme> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Enzyme> <http://www.w3.org/2000/01/rdf-schema#label> "Enzyme" .
+<http://graphaide.org/ontology/Enzyme> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Enzyme" .
+<http://graphaide.org/ontology/Compound> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Compound> <http://www.w3.org/2000/01/rdf-schema#label> "Compound" .
+<http://graphaide.org/ontology/Compound> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Compound" .
+<http://graphaide.org/ontology/Reaction> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Reaction> <http://www.w3.org/2000/01/rdf-schema#label> "Reaction" .
+<http://graphaide.org/ontology/Reaction> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Reaction" .
+<http://graphaide.org/ontology/Tissue> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Tissue> <http://www.w3.org/2000/01/rdf-schema#label> "Tissue" .
+<http://graphaide.org/ontology/Tissue> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Tissue" .
+<http://graphaide.org/ontology/CellType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/CellType> <http://www.w3.org/2000/01/rdf-schema#label> "CellType" .
+<http://graphaide.org/ontology/CellType> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: CellType" .
+<http://graphaide.org/ontology/Condition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Condition> <http://www.w3.org/2000/01/rdf-schema#label> "Condition" .
+<http://graphaide.org/ontology/Condition> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Condition" .
+<http://graphaide.org/ontology/Publication> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Publication> <http://www.w3.org/2000/01/rdf-schema#label> "Publication" .
+<http://graphaide.org/ontology/Publication> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Publication" .
+<http://graphaide.org/ontology/Method> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Method> <http://www.w3.org/2000/01/rdf-schema#label> "Method" .
+<http://graphaide.org/ontology/Method> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Method" .
+<http://graphaide.org/ontology/Substrate> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Substrate> <http://www.w3.org/2000/01/rdf-schema#label> "Substrate" .
+<http://graphaide.org/ontology/Substrate> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Substrate" .
+<http://graphaide.org/ontology/Product> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Product> <http://www.w3.org/2000/01/rdf-schema#label> "Product" .
+<http://graphaide.org/ontology/Product> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Product" .
+<http://graphaide.org/ontology/Cofactor> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Cofactor> <http://www.w3.org/2000/01/rdf-schema#label> "Cofactor" .
+<http://graphaide.org/ontology/Cofactor> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Cofactor" .
+<http://graphaide.org/ontology/increases> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/increases> <http://www.w3.org/2000/01/rdf-schema#label> "increases" .
+<http://graphaide.org/ontology/increases> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: increases" .
+<http://graphaide.org/ontology/increases> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/increases> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/decreases> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/decreases> <http://www.w3.org/2000/01/rdf-schema#label> "decreases" .
+<http://graphaide.org/ontology/decreases> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: decreases" .
+<http://graphaide.org/ontology/decreases> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/decreases> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/makes> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/makes> <http://www.w3.org/2000/01/rdf-schema#label> "makes" .
+<http://graphaide.org/ontology/makes> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: makes" .
+<http://graphaide.org/ontology/makes> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/makes> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/affects> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/affects> <http://www.w3.org/2000/01/rdf-schema#label> "affects" .
+<http://graphaide.org/ontology/affects> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: affects" .
+<http://graphaide.org/ontology/affects> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/affects> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/partOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/partOf> <http://www.w3.org/2000/01/rdf-schema#label> "partOf" .
+<http://graphaide.org/ontology/partOf> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: partOf" .
+<http://graphaide.org/ontology/partOf> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/partOf> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/regulatedBy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/regulatedBy> <http://www.w3.org/2000/01/rdf-schema#label> "regulatedBy" .
+<http://graphaide.org/ontology/regulatedBy> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: regulatedBy" .
+<http://graphaide.org/ontology/regulatedBy> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/regulatedBy> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/activates> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/activates> <http://www.w3.org/2000/01/rdf-schema#label> "activates" .
+<http://graphaide.org/ontology/activates> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: activates" .
+<http://graphaide.org/ontology/activates> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/activates> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/inhibits> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/inhibits> <http://www.w3.org/2000/01/rdf-schema#label> "inhibits" .
+<http://graphaide.org/ontology/inhibits> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: inhibits" .
+<http://graphaide.org/ontology/inhibits> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/inhibits> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/binds> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/binds> <http://www.w3.org/2000/01/rdf-schema#label> "binds" .
+<http://graphaide.org/ontology/binds> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: binds" .
+<http://graphaide.org/ontology/binds> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/binds> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/catalyzes> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/catalyzes> <http://www.w3.org/2000/01/rdf-schema#label> "catalyzes" .
+<http://graphaide.org/ontology/catalyzes> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: catalyzes" .
+<http://graphaide.org/ontology/catalyzes> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/catalyzes> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/associates> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/associates> <http://www.w3.org/2000/01/rdf-schema#label> "associates" .
+<http://graphaide.org/ontology/associates> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: associates" .
+<http://graphaide.org/ontology/associates> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/associates> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/interactsWith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/interactsWith> <http://www.w3.org/2000/01/rdf-schema#label> "interactsWith" .
+<http://graphaide.org/ontology/interactsWith> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: interactsWith" .
+<http://graphaide.org/ontology/interactsWith> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/interactsWith> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/expresses> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/expresses> <http://www.w3.org/2000/01/rdf-schema#label> "expresses" .
+<http://graphaide.org/ontology/expresses> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: expresses" .
+<http://graphaide.org/ontology/expresses> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/expresses> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/mutated> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/mutated> <http://www.w3.org/2000/01/rdf-schema#label> "mutated" .
+<http://graphaide.org/ontology/mutated> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: mutated" .
+<http://graphaide.org/ontology/mutated> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/mutated> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/hasFunction> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/hasFunction> <http://www.w3.org/2000/01/rdf-schema#label> "hasFunction" .
+<http://graphaide.org/ontology/hasFunction> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: hasFunction" .
+<http://graphaide.org/ontology/hasFunction> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/hasFunction> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/causesDisease> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/causesDisease> <http://www.w3.org/2000/01/rdf-schema#label> "causesDisease" .
+<http://graphaide.org/ontology/causesDisease> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: causesDisease" .
+<http://graphaide.org/ontology/causesDisease> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/causesDisease> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/observedIn> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/observedIn> <http://www.w3.org/2000/01/rdf-schema#label> "observedIn" .
+<http://graphaide.org/ontology/observedIn> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: observedIn" .
+<http://graphaide.org/ontology/observedIn> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/observedIn> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/measuredIn> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/measuredIn> <http://www.w3.org/2000/01/rdf-schema#label> "measuredIn" .
+<http://graphaide.org/ontology/measuredIn> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: measuredIn" .
+<http://graphaide.org/ontology/measuredIn> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/measuredIn> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/usedIn> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/usedIn> <http://www.w3.org/2000/01/rdf-schema#label> "usedIn" .
+<http://graphaide.org/ontology/usedIn> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: usedIn" .
+<http://graphaide.org/ontology/usedIn> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/usedIn> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/references> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/references> <http://www.w3.org/2000/01/rdf-schema#label> "references" .
+<http://graphaide.org/ontology/references> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: references" .
+<http://graphaide.org/ontology/references> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/references> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/requires> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/requires> <http://www.w3.org/2000/01/rdf-schema#label> "requires" .
+<http://graphaide.org/ontology/requires> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: requires" .
+<http://graphaide.org/ontology/requires> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/requires> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/produces> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/produces> <http://www.w3.org/2000/01/rdf-schema#label> "produces" .
+<http://graphaide.org/ontology/produces> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: produces" .
+<http://graphaide.org/ontology/produces> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/produces> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/consumes> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/consumes> <http://www.w3.org/2000/01/rdf-schema#label> "consumes" .
+<http://graphaide.org/ontology/consumes> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: consumes" .
+<http://graphaide.org/ontology/consumes> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/consumes> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/competesFor> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/competesFor> <http://www.w3.org/2000/01/rdf-schema#label> "competesFor" .
+<http://graphaide.org/ontology/competesFor> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: competesFor" .
+<http://graphaide.org/ontology/competesFor> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/competesFor> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .

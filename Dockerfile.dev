@@ -1,0 +1,46 @@
+# GraphAide Dockerfile.dev - Development Image
+# For local development with source code builds and testing dependencies
+# Optimized for layer caching with BuildKit
+
+FROM python:3.12-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies (includes git, build tools for development)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    build-essential \
+    postgresql-client \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy ONLY dependency files FIRST (this layer is cached and rarely invalidated)
+COPY setup.py setup.cfg pyproject.toml README.md LICENSE.txt ./
+
+# Copy source code (needed for package discovery)
+COPY src/ src/
+COPY templates/ templates/
+
+# Install Python dependencies in editable mode with testing dependencies
+# (cached unless setup.py changes)
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -e ".[testing]"
+
+# Copy tests (this layer may change frequently, but pip install is cached)
+COPY tests/ tests/
+
+# Create directories for volumes
+RUN mkdir -p /app/chroma /app/tests
+
+# Expose ports
+EXPOSE 8000 8888
+
+# Default: interactive bash shell for development
+CMD ["bash"]

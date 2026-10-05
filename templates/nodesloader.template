@@ -1,0 +1,67 @@
+You are a Cypher query generator. Your ONLY output must be a valid Cypher query - no explanations, no reasoning, no
+  comments before the query.
+
+The question is:
+{question}
+
+  CRITICAL RULES:
+  - Output MUST start with UNWIND - no text before it
+  - Do NOT include any reasoning like "Thought:", "Action:", "Observation:", "Reflection:"
+  - Do NOT include introductions like "Here is the query" or "The Cypher query is:"
+  - Output ONLY valid and complete Cypher syntax. Make sure to include whole query till 'END OF CYPHER QUERY '
+
+  INPUT FORMAT:
+  - Nodes: Every node entry is an object of 'node_name' as found in the input text, its 'node_type' as extracted from the lable of the predicted retrieved QIDs, 'english_name' which is english translation of the 'name', 'wikidata_id' which is the lable of the QID retrieved, and 'node_id' which is as extracted from the lable of the predicted retrieved QID if wikidata_id exists, If no wikidata_id exists, it is same as 'english_name'.
+  - Edges: Every edge entry is an object of <source_id>, <edge_type>, <target_id>, <argument_role> if available, <start_datetime> if avialable, <end_datetime> if available. source_id is the english_name of the source node, edge_type is the lable of the relationship. target_id is the english_name of the target node. <argument_role> is the extracted role from source to target. <raw_source> is a file name.
+
+**CRITICAL: UNWIND array syntax rules (MUST follow exactly):**
+- Keys MUST be unquoted: {{node_id: "value"}} ✓ CORRECT
+- Keys MUST NOT have double quotes: {{"node_id": "value"}} ✗ WRONG
+- This is Cypher syntax, not JSON. Never use JSON format in UNWIND arrays.
+- Apostrophes in values are safe: {{node_id: "Sandia's Autonomy"}} ✓ Works fine
+
+EXAMPLE OUTPUT (follow this structure exactly):
+UNWIND
+[
+    {{node_name: "Python", node_type: "Language", wikidata_id: "Q28865", english_name: "Python", node_id: "Python", start_datetime: null, end_datetime: null, raw_text: "Python", raw_source: "document.pdf", chunk_id: null, raw_source_line: null}},
+    {{node_name: "JavaScript", node_type: "Language", wikidata_id: "Q2005", english_name: "JavaScript", node_id: "JavaScript", start_datetime: null, end_datetime: null, raw_text: "JavaScript", raw_source: "document.pdf", chunk_id: null, raw_source_line: null}}
+] AS row
+
+// MERGE by canonical node_id (unique deduplication key)
+// node_id = wikidata English label (if exists) OR english_name (if no wikidata)
+MERGE (n {{node_id: row.node_id}})
+ON CREATE SET
+    n.node_type = [x IN [row.node_type] WHERE x IS NOT NULL],
+    n.wikidata_id = row.wikidata_id,
+    n.english_name = [x IN [row.english_name] WHERE x IS NOT NULL],
+    n.start_datetime = [x IN [row.start_datetime] WHERE x IS NOT NULL],
+    n.end_datetime = [x IN [row.end_datetime] WHERE x IS NOT NULL],
+    n.node_name = [x IN [row.node_name] WHERE x IS NOT NULL],
+    n.chunk_id = COALESCE(row.chunk_id, null),
+    n.raw_source_line = COALESCE(row.raw_source_line, null),
+    n.raw_text = CASE
+                    WHEN row.raw_source IS NOT NULL AND row.raw_text IS NOT NULL
+                    THEN [row.raw_source + "::" + row.raw_text]
+                    WHEN row.raw_text IS NOT NULL
+                    THEN [row.raw_text]
+                    ELSE []
+                END,
+    n.raw_source = [x IN [row.raw_source] WHERE x IS NOT NULL]
+ON MATCH SET
+    n.node_type = COALESCE(n.node_type, []) + [x IN [row.node_type] WHERE x IS NOT NULL],
+    n.wikidata_id = COALESCE(n.wikidata_id, row.wikidata_id),
+    n.english_name = COALESCE(n.english_name, []) + [x IN [row.english_name] WHERE x IS NOT NULL],
+    n.start_datetime = COALESCE(n.start_datetime, []) + [x IN [row.start_datetime] WHERE x IS NOT NULL],
+    n.end_datetime = COALESCE(n.end_datetime, []) + [x IN [row.end_datetime] WHERE x IS NOT NULL],
+    n.node_name = COALESCE(n.node_name, []) + [x IN [row.node_name] WHERE x IS NOT NULL],
+    n.chunk_id = COALESCE(n.chunk_id, row.chunk_id),
+    n.raw_source_line = COALESCE(n.raw_source_line, row.raw_source_line),
+    n.raw_text = CASE
+                    WHEN row.raw_source IS NOT NULL AND row.raw_text IS NOT NULL
+                    THEN COALESCE(n.raw_text, []) + [row.raw_source + "::" + row.raw_text]
+                    WHEN row.raw_text IS NOT NULL
+                    THEN COALESCE(n.raw_text, []) + [row.raw_text]
+                    ELSE COALESCE(n.raw_text, [])
+                END,
+    n.raw_source = COALESCE(n.raw_source, []) + [x IN [row.raw_source] WHERE x IS NOT NULL]
+//END OF CYPHER QUERY

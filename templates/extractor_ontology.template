@@ -1,0 +1,11 @@
+1. SYSTEM ARCHITECTURE: Use a Multi-Layered Ontology structure consisting of:
+   - Root Layer: A singular root concept (e.g., `vocab:Entity`).
+   - Domain Macro-Layer: Broad, namespace-prefixed categories grouping related real-world concepts (e.g., `bio:ScientificEntity`, `geo:SpatialEntity`, `org:Agent`).
+   - Leaf/Concept Layer: Concrete, specialized sub-classes matching the exact data schema (e.g., `Entity_Gene`, `Entity_Location`).
+
+2. SUB-CLASS NAMING CONVENTION: 
+   - Never collapse distinct real-world concepts unless they are strict semantic duplicates.
+   - For any sub-class created under a parent class, preserve the hierarchy explicitly in the identifier string using an underscore format: `ParentClass_SubClass` (e.g., if `Entity_Organization_Government` is a subclass of `Entity_Organization`, it must include both parts).
+
+3. DOMAIN & RANGE MAPPING:
+   - Map all object properties (relationships) using these specific domain-level and concept-level classes to enforce strict semantic graph integrity.

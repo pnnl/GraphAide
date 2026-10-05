@@ -1,0 +1,41 @@
+# Docker Compose Override - For Local Development
+#
+# INSTRUCTIONS:
+# 1. Copy this file to docker-compose.override.yml:
+#    cp docker-compose.override.yml.example docker-compose.override.yml
+#
+# 2. This file overrides the main docker-compose.yml to use local builds instead of pre-built images
+#
+# 3. Run: docker-compose up -d
+#
+# Docker will automatically merge this with docker-compose.yml
+# Services here will use local Dockerfile builds instead of Docker Hub images
+
+version: '3.8'
+
+services:
+  graphaide-dev:
+    # Override: build from local Dockerfile.dev instead of pulling image
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    # Remove the image directive when using build
+    image: null
+    # Add source code as volume for live editing
+    volumes:
+      - .:/app
+      - /app/.venv  # Exclude virtual env from mount
+      - /app/__pycache__
+
+  graphaide-prod:
+    # Override: build from local Dockerfile instead of pulling image
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Remove the image directive when using build
+    image: null
+    # Add source code as volume for live editing
+    volumes:
+      - .:/app
+      - /app/.venv  # Exclude virtual env from mount
+      - /app/__pycache__

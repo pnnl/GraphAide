@@ -1,0 +1,19 @@
+include README.md
+include LICENSE.txt
+recursive-include templates *
+include data/PNNL_About.pdf
+include data/experiments.pdf
+include data/cyberkg.txt
+include data/PNNL.txt
+include data/ontology_biology.nt
+include data/ontology_cyber.nt
+include data/business.nt
+
+# Include web demo source (but not node_modules - users run npm install)
+recursive-include src/graphgen/web_demo *.md *.sh *.html *.json *.ts *.tsx *.css *.png
+exclude src/graphgen/web_demo/frontend/node_modules
+
+# Exclude large test data files from PyPI
+exclude wd_UKR14_dict_structured.json
+exclude biotech_wikidata_ontology_*.json
+exclude focused_wikidata_ontology_*.json

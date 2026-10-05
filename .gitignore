@@ -1,0 +1,167 @@
+# Temporary and binary files
+*~
+*.py[cod]
+*.so
+*.cfg
+!.isort.cfg
+!setup.cfg
+*.orig
+*.log
+*.pot
+__pycache__/*
+.cache/*
+.*.swp
+*/.ipynb_checkpoints/*
+.DS_Store
+
+# Project files
+.ropeproject
+.project
+.pydevproject
+.settings
+.idea
+.vscode
+tags
+
+# Package files
+*.egg
+*.eggs/
+.installed.cfg
+*.egg-info
+
+# Unittest and coverage
+htmlcov/*
+.coverage
+.coverage.*
+.tox
+junit*.xml
+coverage.xml
+.pytest_cache/
+
+# Build and docs folder/files
+build/*
+dist/*
+sdist/*
+docs/api/*
+docs/_rst/*
+docs/_build/*
+cover/*
+MANIFEST
+data/*.py
+.tests/notebooks/docs/*
+.tests/notebooks/GA_VDB_PATH/*
+.tests/notebooks/docs/GA_VDB/*
+.tests/notebooks/{ATO*,cybersage*,*TechFest*,vast*,demoGraphAide*}
+.tests/notebooks/*.{npy,nt,json,pdf}
+.tests/docs/chroma/*
+.tests/docs/chroma/chroma.sqlite3
+.claude/*
+./*.{ttl,nt,owl,TODO.md}
+.local_vectorstores*/
+.local_vectorstores/*
+
+# Test ontology files (project root)
+test_*.nt
+test_*.owl
+test_*.ttl
+ontology_test.*
+
+# Large test data files (project root)
+wd_UKR14_dict_structured.json
+biotech_wikidata_ontology_*.json
+focused_wikidata_ontology_*.json
+
+# Old/deprecated example files
+*_updated_example.py
+examples_workflows.py
+run_graph_aide.py
+
+# Vector store databases (local development only, never commit)
+src/graphgen/v2/docs/GA_VDB/
+src/graphgen/v2/docs/chroma.sqlite3
+
+# Per-project virtualenvs
+.venv*/
+.conda*/
+.python-version
+
+# Node.js dependencies and build artifacts
+node_modules/
+*.js
+*.ps1
+*.cmd
+dist/
+build/
+*.min.js
+.next/
+
+.env
+.env.*
+.hideenv
+
+# Configuration files (local/prod specific, never commit)
+config-prod-*.json
+config-dev-*.json
+config.local.py
+
+# Docker Compose local overrides
+docker-compose.override.yml
+
+# Session history files (keep locally, don't commit)
+SESSION_HISTORY_*.md
+SESSION_HISTORY*.md
+
+# Project guidance and test notebooks (local only)
+CLAUDE.md
+demoGraphAide_CORNIFER.ipynb
+
+# Session documentation and demo scripts (local development only)
+BUILD_NOTES.md
+IMPLEMENTATION_SUMMARY.md
+JSONL_INGESTION.md
+JSONL_MULTI_RETRIEVER.md
+MULTI_RETRIEVER_JSONL_EXAMPLES.md
+UNIFIED_API.md
+UNIFIED_API_SUMMARY.md
+VECTOR_STORE_METADATA.md
+LANGFUSE_INTEGRATION.md
+LANGFUSE_IMPLEMENTATION_SUMMARY.md
+LANGFUSE_SETUP_CHECKLIST.txt
+test_langfuse_setup.py
+demo_jsonl_batch.py
+test_jsonl_ingest.py
+
+# Test output files
+tests/notebooks/GraphAide_KG_Extract_*.json
+tests/notebooks/*.log
+tests/test_graphaide_facade.py
+# Test output files - no JSON, NPY, or PNY files in tests/notebooks/
+tests/notebooks/*.json
+tests/notebooks/*.npy
+tests/notebooks/*.npy.metadata.json
+tests/notebooks/*.pny
+tests/notebooks/**/*.json
+tests/notebooks/**/*.npy
+tests/notebooks/**/*.pny
+
+# Notebook test data and temporary databases
+tests/notebooks/docs/
+tests/notebooks/testvdbtmp/
+tests/notebooks/**/*.ipynb
+tests/notebooks/*.ipynb
+
+
+# Chroma vector database (tests folder - use only Sphinx /docs/)
+tests/docs/
+src/graphgen/v2/docs/
+
+
+# Python test scripts in notebooks folder
+tests/notebooks/*.py
+
+
+# Document files in notebooks folder
+tests/notebooks/*.pdf
+tests/notebooks/*.nt
+tests/notebooks/*.txt
+
