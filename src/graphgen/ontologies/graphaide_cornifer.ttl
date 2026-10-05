@@ -1,0 +1,752 @@
+@prefix : <http://example.org/graphaide/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ontology metadata
+<http://example.org/graphaide/ontology> a owl:Ontology ;
+    rdfs:label "GraphAide Knowledge Graph Ontology For CORNIFER Task" ;
+    rdfs:comment "Domain-specific ontology for knowledge graph construction from unstructured text" ;
+    owl:versionInfo "1.0" .
+
+# ============ CLASS HIERARCHY ============
+
+# Top-level classes
+:Thing a owl:Class ;
+    rdfs:label "Thing" ;
+    rdfs:comment "Base class for all entities" .
+
+:Agent a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Agent" ;
+    rdfs:comment "An entity that can act or be acted upon" .
+
+:PhysicalObject a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Physical Object" ;
+    rdfs:comment "Tangible physical entities" .
+
+:Location a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Location" ;
+    rdfs:comment "Geographic or spatial locations" .
+
+:Document a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Document" ;
+    rdfs:comment "Textual or media documents" .
+
+:Activity a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Activity" ;
+    rdfs:comment "Events, projects, and activities" .
+
+:LegalConcept a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Legal Concept" ;
+    rdfs:comment "Legal or regulatory concepts" .
+
+:FinancialConcept a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Financial Concept" ;
+    rdfs:comment "Financial transactions and instruments" .
+
+:Account a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Account" ;
+    rdfs:comment "User or financial accounts" .
+
+# ============ AGENT CLASSES ============
+
+:Person a owl:Class ;
+    rdfs:subClassOf :Agent ;
+    rdfs:label "Person" ;
+    rdfs:comment "A natural person" .
+
+:Organization a owl:Class ;
+    rdfs:subClassOf :Agent ;
+    rdfs:label "Organization" ;
+    rdfs:comment "An organized group or entity" .
+
+:LegalEntity a owl:Class ;
+    rdfs:subClassOf :Agent ;
+    rdfs:label "Legal Entity" ;
+    rdfs:comment "A legal person or entity" .
+
+:Company a owl:Class ;
+    rdfs:subClassOf :LegalEntity ;
+    rdfs:label "Company" ;
+    rdfs:comment "A business company" .
+
+:PublicBody a owl:Class ;
+    rdfs:subClassOf :LegalEntity ;
+    rdfs:label "Public Body" ;
+    rdfs:comment "A governmental or public organization" .
+
+:Associate a owl:Class ;
+    rdfs:subClassOf :Agent ;
+    rdfs:label "Associate" ;
+    rdfs:comment "An associated party or entity" .
+
+:Family a owl:Class ;
+    rdfs:subClassOf :Agent ;
+    rdfs:label "Family" ;
+    rdfs:comment "A family unit" .
+
+# ============ LOCATION CLASSES ============
+
+:Address a owl:Class ;
+    rdfs:subClassOf :Location ;
+    rdfs:label "Address" ;
+    rdfs:comment "A physical address" .
+
+:RealEstate a owl:Class ;
+    rdfs:subClassOf :Location, :PhysicalObject ;
+    rdfs:label "Real Estate" ;
+    rdfs:comment "Real property or land" .
+
+# ============ PHYSICAL OBJECT CLASSES ============
+
+:Asset a owl:Class ;
+    rdfs:subClassOf :PhysicalObject ;
+    rdfs:label "Asset" ;
+    rdfs:comment "A valuable tangible asset" .
+
+:Vehicle a owl:Class ;
+    rdfs:subClassOf :PhysicalObject ;
+    rdfs:label "Vehicle" ;
+    rdfs:comment "A transportation vehicle" .
+
+:Airplane a owl:Class ;
+    rdfs:subClassOf :Vehicle ;
+    rdfs:label "Airplane" ;
+    rdfs:comment "An aircraft" .
+
+:Vessel a owl:Class ;
+    rdfs:subClassOf :Vehicle ;
+    rdfs:label "Vessel" ;
+    rdfs:comment "A watercraft or ship" .
+
+:Package a owl:Class ;
+    rdfs:subClassOf :PhysicalObject ;
+    rdfs:label "Package" ;
+    rdfs:comment "A physical package or container" .
+
+# ============ DOCUMENT CLASSES ============
+
+:Article a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Article" ;
+    rdfs:comment "A written article" .
+
+:Folder a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Folder" ;
+    rdfs:comment "A document folder or collection" .
+
+:Pages a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Document" ;
+    rdfs:comment "A multi-page document" .
+
+:Page a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Page" ;
+    rdfs:comment "A single page" .
+
+:Table a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Table" ;
+    rdfs:comment "A data table" .
+
+:Documentation a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Documentation" ;
+    rdfs:comment "Documentation or manual" .
+
+:Email a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "E-Mail" ;
+    rdfs:comment "An email message" .
+
+:Message a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Message" ;
+    rdfs:comment "A message communication" .
+
+:Note a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Note" ;
+    rdfs:comment "A written note" .
+
+:Mention a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Mention" ;
+    rdfs:comment "A mention or reference in text" .
+
+:Audio a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Audio" ;
+    rdfs:comment "Audio media content" .
+
+:Image a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Image" ;
+    rdfs:comment "An image file" .
+
+:Video a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Video" ;
+    rdfs:comment "A video file" .
+
+:HyperText a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Web page" ;
+    rdfs:comment "A web page or HTML document" .
+
+:PlainText a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Text file" ;
+    rdfs:comment "A plain text file" .
+
+:Workbook a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Workbook" ;
+    rdfs:comment "A spreadsheet workbook" .
+
+:TaxRoll a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Tax roll" ;
+    rdfs:comment "A tax roll or assessment record" .
+
+# ============ ACTIVITY CLASSES ============
+
+:Event a owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "Event" ;
+    rdfs:comment "An event or occurrence" .
+
+:Project a owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "Project" ;
+    rdfs:comment "A project or initiative" .
+
+:ProjectParticipant a owl:Class ;
+    rdfs:subClassOf :Agent ;
+    rdfs:label "Project participant" ;
+    rdfs:comment "A participant in a project" .
+
+:EconomicActivity a owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "Customs declaration" ;
+    rdfs:comment "An economic activity or customs declaration" .
+
+:Trip a owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "Trip" ;
+    rdfs:comment "A trip or journey" .
+
+:Call a owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "Call" ;
+    rdfs:comment "A call or phone call" .
+
+:CallForTenders a owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "Call for tenders" ;
+    rdfs:comment "A call for tenders or bids" .
+
+# ============ LEGAL CONCEPT CLASSES ============
+
+:Contract a owl:Class ;
+    rdfs:subClassOf :LegalConcept ;
+    rdfs:label "Contract" ;
+    rdfs:comment "A contract or agreement" .
+
+:ContractAward a owl:Class ;
+    rdfs:subClassOf :LegalConcept ;
+    rdfs:label "Contract award" ;
+    rdfs:comment "An awarded contract" .
+
+:CourtCase a owl:Class ;
+    rdfs:subClassOf :LegalConcept ;
+    rdfs:label "Court case" ;
+    rdfs:comment "A legal court case" .
+
+:CourtCaseParty a owl:Class ;
+    rdfs:subClassOf :Agent ;
+    rdfs:label "Case party" ;
+    rdfs:comment "A party in a court case" .
+
+:License a owl:Class ;
+    rdfs:subClassOf :LegalConcept ;
+    rdfs:label "License" ;
+    rdfs:comment "A license or permit" .
+
+:Sanction a owl:Class ;
+    rdfs:subClassOf :LegalConcept ;
+    rdfs:label "Sanction" ;
+    rdfs:comment "A sanction or penalty" .
+
+:Risk a owl:Class ;
+    rdfs:subClassOf :LegalConcept ;
+    rdfs:label "Risk" ;
+    rdfs:comment "A risk or threat" .
+
+# ============ FINANCIAL CONCEPT CLASSES ============
+
+:Payment a owl:Class ;
+    rdfs:subClassOf :FinancialConcept ;
+    rdfs:label "Payment" ;
+    rdfs:comment "A payment transaction" .
+
+:Debt a owl:Class ;
+    rdfs:subClassOf :FinancialConcept ;
+    rdfs:label "Debt" ;
+    rdfs:comment "A debt or liability" .
+
+:Security a owl:Class ;
+    rdfs:subClassOf :FinancialConcept ;
+    rdfs:label "Security" ;
+    rdfs:comment "A financial security or instrument" .
+
+:Value a owl:Class ;
+    rdfs:subClassOf :FinancialConcept ;
+    rdfs:label "Value" ;
+    rdfs:comment "A value or valuation" .
+
+# ============ ACCOUNT CLASSES ============
+
+:BankAccount a owl:Class ;
+    rdfs:subClassOf :Account ;
+    rdfs:label "Bank account" ;
+    rdfs:comment "A bank account" .
+
+:UserAccount a owl:Class ;
+    rdfs:subClassOf :Account ;
+    rdfs:label "User account" ;
+    rdfs:comment "A user account" .
+
+:CryptoWallet a owl:Class ;
+    rdfs:subClassOf :Account ;
+    rdfs:label "Cryptocurrency wallet" ;
+    rdfs:comment "A cryptocurrency wallet" .
+
+# ============ CREDENTIAL CLASSES ============
+
+:Identification a owl:Class ;
+    rdfs:subClassOf :Document ;
+    rdfs:label "Identification" ;
+    rdfs:comment "An identification document" .
+
+:Passport a owl:Class ;
+    rdfs:subClassOf :Identification ;
+    rdfs:label "Passport" ;
+    rdfs:comment "A passport document" .
+
+# ============ TEMPORAL AND OTHER CLASSES ============
+
+:Interval a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Interval" ;
+    rdfs:comment "A time interval or period" .
+
+:Analyzable a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Analyzable" ;
+    rdfs:comment "An analyzable entity" .
+
+# ============ RELATIONSHIP NODES ============
+
+:Position a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Position" ;
+    rdfs:comment "A position or role held by a person in an organization" .
+
+:Representation a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Representation" ;
+    rdfs:comment "A representation or advocacy relationship" .
+
+:Interest a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Interest" ;
+    rdfs:comment "An ownership interest or stake" .
+
+:Occupancy a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Occupancy" ;
+    rdfs:comment "An occupancy relationship at a location" .
+
+:Similar a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Similar" ;
+    rdfs:comment "Similar or comparable entities" .
+
+:Succession a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Succession" ;
+    rdfs:comment "A succession or inheritance relationship" .
+
+:Membership a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Membership" ;
+    rdfs:comment "A membership or association relationship" .
+
+:UnknownLink a owl:Class ;
+    rdfs:subClassOf :Thing ;
+    rdfs:label "Other link" ;
+    rdfs:comment "An unspecified or other relationship" .
+
+# ============ OBJECT PROPERTIES (Edge Types with Domain/Range) ============
+
+# Employment relationship
+:employs a owl:ObjectProperty ;
+    rdfs:label "employs" ;
+    rdfs:comment "Organization employs a Person" ;
+    rdfs:domain :Organization ;
+    rdfs:range :Person ;
+    owl:inverseOf :employedBy .
+
+:employedBy a owl:ObjectProperty ;
+    rdfs:label "employed by" ;
+    rdfs:comment "Person is employed by Organization" ;
+    rdfs:domain :Person ;
+    rdfs:range :Organization ;
+    owl:inverseOf :employs .
+
+# Directorship relationship
+:hasBoardMember a owl:ObjectProperty ;
+    rdfs:label "has board member" ;
+    rdfs:comment "Organization has a Person as board member or director" ;
+    rdfs:domain :Organization ;
+    rdfs:range :Person ;
+    owl:inverseOf :directs .
+
+:directs a owl:ObjectProperty ;
+    rdfs:label "directs" ;
+    rdfs:comment "Person directs or sits on board of Organization" ;
+    rdfs:domain :Person ;
+    rdfs:range :Organization ;
+    owl:inverseOf :hasBoardMember .
+
+# Ownership relationship
+:owns a owl:ObjectProperty ;
+    rdfs:label "owns" ;
+    rdfs:comment "Agent owns Asset, RealEstate, Organization, or PhysicalObject" ;
+    rdfs:domain :Agent ;
+    rdfs:range [ owl:unionOf (:Asset :RealEstate :Organization :PhysicalObject) ] ;
+    owl:inverseOf :ownedBy .
+
+:ownedBy a owl:ObjectProperty ;
+    rdfs:label "owned by" ;
+    rdfs:comment "Asset or Entity is owned by Agent" ;
+    rdfs:domain [ owl:unionOf (:Asset :RealEstate :Organization :PhysicalObject) ] ;
+    rdfs:range :Agent ;
+    owl:inverseOf :owns .
+
+# Membership relationship
+:isMemberOf a owl:ObjectProperty ;
+    rdfs:label "is member of" ;
+    rdfs:comment "Person or Agent is member of Organization" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Organization ;
+    owl:inverseOf :hasMember .
+
+:hasMember a owl:ObjectProperty ;
+    rdfs:label "has member" ;
+    rdfs:comment "Organization has a member" ;
+    rdfs:domain :Organization ;
+    rdfs:range :Agent ;
+    owl:inverseOf :isMemberOf .
+
+# Position/Role holding
+:holdsPosition a owl:ObjectProperty ;
+    rdfs:label "holds position" ;
+    rdfs:comment "Person holds a Position in Organization" ;
+    rdfs:domain :Person ;
+    rdfs:range :Position ;
+    owl:inverseOf :heldBy .
+
+:heldBy a owl:ObjectProperty ;
+    rdfs:label "held by" ;
+    rdfs:comment "Position is held by Person" ;
+    rdfs:domain :Position ;
+    rdfs:range :Person ;
+    owl:inverseOf :holdsPosition .
+
+:positionIn a owl:ObjectProperty ;
+    rdfs:label "position in" ;
+    rdfs:comment "Position is in Organization" ;
+    rdfs:domain :Position ;
+    rdfs:range :Organization .
+
+# Representation relationship
+:represents a owl:ObjectProperty ;
+    rdfs:label "represents" ;
+    rdfs:comment "Person or Agent represents another Agent or Organization" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent ;
+    owl:inverseOf :representedBy .
+
+:representedBy a owl:ObjectProperty ;
+    rdfs:label "represented by" ;
+    rdfs:comment "Agent is represented by Person or another Agent" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent ;
+    owl:inverseOf :represents .
+
+# Interest/Investment relationship
+:hasInterestIn a owl:ObjectProperty ;
+    rdfs:label "has interest in" ;
+    rdfs:comment "Agent has financial or other interest in Entity" ;
+    rdfs:domain :Agent ;
+    rdfs:range [ owl:unionOf (:Organization :Project :Asset :Company) ] ;
+    owl:inverseOf :isInterestOf .
+
+:isInterestOf a owl:ObjectProperty ;
+    rdfs:label "is interest of" ;
+    rdfs:comment "Entity has interest held by Agent" ;
+    rdfs:domain [ owl:unionOf (:Organization :Project :Asset :Company) ] ;
+    rdfs:range :Agent ;
+    owl:inverseOf :hasInterestIn .
+
+# Payment relationships
+:paysTo a owl:ObjectProperty ;
+    rdfs:label "pays to" ;
+    rdfs:comment "Payment from one Agent to another Agent" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent ;
+    owl:inverseOf :receivesPaymentFrom .
+
+:receivesPaymentFrom a owl:ObjectProperty ;
+    rdfs:label "receives payment from" ;
+    rdfs:comment "Agent receives payment from another Agent" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent ;
+    owl:inverseOf :paysTo .
+
+:paymentForContract a owl:ObjectProperty ;
+    rdfs:label "payment for contract" ;
+    rdfs:comment "Payment is for a Contract" ;
+    rdfs:domain :Payment ;
+    rdfs:range :Contract .
+
+# Debt relationship
+:owesDebt a owl:ObjectProperty ;
+    rdfs:label "owes debt" ;
+    rdfs:comment "Agent owes Debt to another Agent" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent ;
+    owl:inverseOf :isDebtOf .
+
+:isDebtOf a owl:ObjectProperty ;
+    rdfs:label "is debt of" ;
+    rdfs:comment "Debt is owed by Agent" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent ;
+    owl:inverseOf :owesDebt .
+
+# Location relationships
+:locatedAt a owl:ObjectProperty ;
+    rdfs:label "located at" ;
+    rdfs:comment "Entity is located at Address or Location" ;
+    rdfs:domain :Thing ;
+    rdfs:range :Location ;
+    owl:inverseOf :isLocationOf .
+
+:isLocationOf a owl:ObjectProperty ;
+    rdfs:label "is location of" ;
+    rdfs:comment "Location is where Entity is located" ;
+    rdfs:domain :Location ;
+    rdfs:range :Thing ;
+    owl:inverseOf :locatedAt .
+
+:isInBuilding a owl:ObjectProperty ;
+    rdfs:label "is in building" ;
+    rdfs:comment "Address or RealEstate is contained in another RealEstate" ;
+    rdfs:domain :RealEstate ;
+    rdfs:range :RealEstate ;
+    owl:inverseOf :contains .
+
+:contains a owl:ObjectProperty ;
+    rdfs:label "contains" ;
+    rdfs:comment "RealEstate contains another RealEstate or Address" ;
+    rdfs:domain :RealEstate ;
+    rdfs:range :RealEstate ;
+    owl:inverseOf :isInBuilding .
+
+# Contract relationships
+:contractWith a owl:ObjectProperty ;
+    rdfs:label "contract with" ;
+    rdfs:comment "Agent has a Contract with another Agent" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent .
+
+:isSubjectOf a owl:ObjectProperty ;
+    rdfs:label "is subject of" ;
+    rdfs:comment "Entity is subject of a Contract" ;
+    rdfs:domain [ owl:unionOf (:Agent :Asset :RealEstate) ] ;
+    rdfs:range :Contract .
+
+# Legal/participation relationships
+:participatesIn a owl:ObjectProperty ;
+    rdfs:label "participates in" ;
+    rdfs:comment "Agent participates in Event, Project, or CourtCase" ;
+    rdfs:domain :Agent ;
+    rdfs:range [ owl:unionOf (:Event :Project :CourtCase :Activity) ] ;
+    owl:inverseOf :hasParticipant .
+
+:hasParticipant a owl:ObjectProperty ;
+    rdfs:label "has participant" ;
+    rdfs:comment "Event, Project, or CourtCase has Participant" ;
+    rdfs:domain [ owl:unionOf (:Event :Project :CourtCase :Activity) ] ;
+    rdfs:range :Agent ;
+    owl:inverseOf :participatesIn .
+
+:isSanctioned a owl:ObjectProperty ;
+    rdfs:label "is sanctioned" ;
+    rdfs:comment "Agent is subject to Sanction" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Sanction ;
+    owl:inverseOf :sanctionAppliesTo .
+
+:sanctionAppliesTo a owl:ObjectProperty ;
+    rdfs:label "sanction applies to" ;
+    rdfs:comment "Sanction applies to Agent" ;
+    rdfs:domain :Sanction ;
+    rdfs:range :Agent ;
+    owl:inverseOf :isSanctioned .
+
+# Account relationships
+:accountHeldBy a owl:ObjectProperty ;
+    rdfs:label "account held by" ;
+    rdfs:comment "Account is held by Agent" ;
+    rdfs:domain :Account ;
+    rdfs:range :Agent ;
+    owl:inverseOf :holdsAccount .
+
+:holdsAccount a owl:ObjectProperty ;
+    rdfs:label "holds account" ;
+    rdfs:comment "Agent holds Account" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Account ;
+    owl:inverseOf :accountHeldBy .
+
+# Document/Mention relationships
+:mentions a owl:ObjectProperty ;
+    rdfs:label "mentions" ;
+    rdfs:comment "Document mentions Entity" ;
+    rdfs:domain :Document ;
+    rdfs:range :Thing ;
+    owl:inverseOf :mentionedIn .
+
+:mentionedIn a owl:ObjectProperty ;
+    rdfs:label "mentioned in" ;
+    rdfs:comment "Entity is mentioned in Document" ;
+    rdfs:domain :Thing ;
+    rdfs:range :Document ;
+    owl:inverseOf :mentions .
+
+:referencedBy a owl:ObjectProperty ;
+    rdfs:label "referenced by" ;
+    rdfs:comment "Entity is referenced by Document" ;
+    rdfs:domain :Thing ;
+    rdfs:range :Document .
+
+# Generic relationships
+:relatedTo a owl:ObjectProperty ;
+    rdfs:label "related to" ;
+    rdfs:comment "Generic relationship between entities" ;
+    rdfs:domain :Thing ;
+    rdfs:range :Thing ;
+    owl:inverseOf :relatedTo .
+
+:similarTo a owl:ObjectProperty ;
+    rdfs:label "similar to" ;
+    rdfs:comment "Entity is similar to another Entity" ;
+    rdfs:domain :Thing ;
+    rdfs:range :Thing ;
+    owl:inverseOf :similarTo .
+
+:associatedWith a owl:ObjectProperty ;
+    rdfs:label "associated with" ;
+    rdfs:comment "Entity is associated with another Entity" ;
+    rdfs:domain :Thing ;
+    rdfs:range :Thing ;
+    owl:inverseOf :associatedWith .
+
+# Vehicle/Transport relationships
+:operates a owl:ObjectProperty ;
+    rdfs:label "operates" ;
+    rdfs:comment "Agent operates Vehicle, Vessel, or Airplane" ;
+    rdfs:domain :Agent ;
+    rdfs:range [ owl:unionOf (:Vehicle :Vessel :Airplane) ] ;
+    owl:inverseOf :operatedBy .
+
+:operatedBy a owl:ObjectProperty ;
+    rdfs:label "operated by" ;
+    rdfs:comment "Vehicle is operated by Agent" ;
+    rdfs:domain [ owl:unionOf (:Vehicle :Vessel :Airplane) ] ;
+    rdfs:range :Agent ;
+    owl:inverseOf :operates .
+
+# Occupancy relationship
+:occupies a owl:ObjectProperty ;
+    rdfs:label "occupies" ;
+    rdfs:comment "Agent occupies RealEstate or Address" ;
+    rdfs:domain :Agent ;
+    rdfs:range :RealEstate ;
+    owl:inverseOf :occupiedBy .
+
+:occupiedBy a owl:ObjectProperty ;
+    rdfs:label "occupied by" ;
+    rdfs:comment "RealEstate is occupied by Agent" ;
+    rdfs:domain :RealEstate ;
+    rdfs:range :Agent ;
+    owl:inverseOf :occupies .
+
+# Succession relationship
+:succeedsAs a owl:ObjectProperty ;
+    rdfs:label "succeeds as" ;
+    rdfs:comment "Person succeeds another Person in Position" ;
+    rdfs:domain :Person ;
+    rdfs:range :Person ;
+    owl:inverseOf :succeededBy .
+
+:succeededBy a owl:ObjectProperty ;
+    rdfs:label "succeeded by" ;
+    rdfs:comment "Person is succeeded by another Person" ;
+    rdfs:domain :Person ;
+    rdfs:range :Person ;
+    owl:inverseOf :succeedsAs .
+
+# Family relationship
+:familyOf a owl:ObjectProperty ;
+    rdfs:label "family of" ;
+    rdfs:comment "Person is family member of another Person or Family group" ;
+    rdfs:domain :Person ;
+    rdfs:range [ owl:unionOf (:Person :Family) ] ;
+    owl:inverseOf :familyOf .
+
+# License relationships
+:issuedLicenseTo a owl:ObjectProperty ;
+    rdfs:label "issued license to" ;
+    rdfs:comment "PublicBody or Authority issued License to Agent" ;
+    rdfs:domain :Agent ;
+    rdfs:range :Agent ;
+    owl:inverseOf :holdsIssuedLicense .
+
+:holdsIssuedLicense a owl:ObjectProperty ;
+    rdfs:label "holds issued license" ;
+    rdfs:comment "Agent holds License issued by Authority" ;
+    rdfs:domain :Agent ;
+    rdfs:range :License ;
+    owl:inverseOf :issuedLicenseTo .
+
+:applicableLicense a owl:ObjectProperty ;
+    rdfs:label "applicable license" ;
+    rdfs:comment "License applies to Activity, Asset, or Vehicle" ;
+    rdfs:domain :License ;
+    rdfs:range [ owl:unionOf (:Activity :Asset :Vehicle :RealEstate) ] .

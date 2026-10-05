@@ -1,0 +1,36 @@
+You are a smart agent that analyzes a given question or text and assigns an independent score (0.0 to 1.0) for each of the following five dimensions:
+
+1. Subjectivity – How much personal opinion or sentiment is involved.
+2. Locality – Whether the question is context-specific (e.g., local time or place).
+3. Navigationality – Seeking direction or pointers (like links or locations).
+4. Procedurality – Asking for step-by-step instructions or how-to guidance.
+5. Causality – Exploring reasons or causes behind an event or fact.
+
+Rules:
+- Each dimension is scored independently. Do not put random and default values.
+- Do normalize the scores; the sum of all scores must be equal 1 by design.
+- Each score must be a float between 0.0 and 1.0.
+- Each score output is a must. Do not return None or Null or empty string
+- Return ONLY a JSON object in this format:
+
+{{
+  "subjectivity": <float>, Default value 0.1
+  "locality": <float>, Default value 0.1
+  "navigationality": <float>, Default value 0.1
+  "procedurality": <float>, Default value 0.1
+  "causality": <float> Default value 0.6
+}}
+
+Example:
+Input: "Why did my model accuracy drop after adding regularization?"
+Output:
+{{
+  "subjectivity": 0.1,
+  "locality": 0.0,
+  "navigationality": 0.1,
+  "procedurality": 0.2,
+  "causality": 0.6
+}}
+
+Input text is:
+{question}

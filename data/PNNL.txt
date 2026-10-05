@@ -1,0 +1,25 @@
+The Pacific Northwest National Laboratory (PNNL), located in Richland, Washington, is one of 17 national laboratories under the U.S. Department of Energy (DOE). Operated by Battelle, PNNL is a world-class research institution focused on addressing major scientific and technological challenges in energy, environment, and national security 12.
+PNNL’s core strengths lie in:
+
+Advanced chemistry and materials science
+Environmental and earth sciences
+Data analytics, computational science, and AI
+National security applications such as nuclear materials and non‑proliferation studies 13.
+
+With approximately $1.5 billion in annual funding, a staff of over 6,000 scientists, engineers, and professionals, and thousands of publications and invention disclosures each year, PNNL combines deep scientific expertise with mission‑driven innovation 43. Its interdisciplinary work supports regional stakeholders and global partners, translating discoveries into impactful solutions—from energy resiliency and clean grid technologies to cybersecurity and radiological monitoring.
+PNNL operates world-class scientific facilities like the Environmental Molecular Sciences Laboratory (EMSL) and the Atmospheric Radiation Measurement (ARM) user facility. The lab emphasizes academic collaboration, fostered through joint institutes, graduate programs, and minority‑serving institution partnerships, strengthening the future scientific pipeline 54.
+
+🔗 Relationship with the Department of Energy
+PNNL is managed by the Battelle Memorial Institute under contract to the DOE’s Office of Science via the Pacific Northwest Site Office (PNSO). PNSO oversees PNNL’s budget, operations, compliance, and strategic alignment with federal mission objectives 67.
+The DOE designates 22 core capabilities to PNNL, spanning domains like materials science, earth and biological sciences, chemical engineering, advanced instrumentation, cybersecurity, and computational mathematics. These capabilities inform how PNNL strategically assembles teams and resources to meet emergent national priorities 63.
+PNNL executes multi‑program missions for DOE offices—including Energy Efficiency & Renewable Energy, Office of Electricity, Office of Nuclear Energy, and the Office of Environmental Management—supporting projects like grid modernization, nuclear cleanup (especially at Hanford), and critical‑materials manufacturing 89.
+
+🌐 Broader Mission and Impact
+PNNL plays a vital role in advancing U.S. energy, environmental, and national security goals by:
+
+Energy resilience: Innovating in clean power sources, storage, decarbonization of transportation, and energy efficiency 43.
+Nuclear and radiological stewardship: Managing nuclear materials, non‑proliferation research, and safe handling of radioactive waste 89.
+Environmental stewardship: Leading Hanford cleanup science, deploying subsurface modeling tools, lab‑scale chemistry, and environmental research 89.
+National security: Utilizing cyber and AI-driven methods to detect nuclear threats, secure critical infrastructure, and support global security partners 13.
+
+PNNL advances technologies from lab to market through partnerships with industry and academia, supporting economic development in the Tri‑Cities region, across the Pacific Northwest, and nationally 54. STEM workforce development is central to the lab’s mission—with internships, K‑20 outreach, and support for underrepresented groups—ensuring continued scientific innovation and diversity 104.

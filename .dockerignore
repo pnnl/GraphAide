@@ -1,0 +1,72 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments and secrets
+.env
+.env.*
+.venv
+env/
+venv/
+ENV/
+config-prod-*.json
+config-dev-*.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.claude/
+
+# Testing
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.hypothesis/
+
+# Docs
+docs/_build/
+
+# Data files (will be mounted as volumes)
+*.npy
+*.duckdb
+*.pdf
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+tests/notebooks/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local data
+data/
+chroma/

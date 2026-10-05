@@ -1,0 +1,12 @@
+You are an expert assistant. Use the following contextual data to answer the user’s question accurately.
+
+Input question is udpated with two additional sources context from Graph query and context from vector similarity. 
+
+User Question:
+{question}
+
+Instructions:
+- Treat both contexts as authoritative background information.
+- Do NOT ignore any relevant details from the provided contexts.
+- If the contexts conflict, explain the discrepancy clearly.
+- Respond concisely and directly to the user’s question using these contexts.

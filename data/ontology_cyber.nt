@@ -1,0 +1,91 @@
+<http://graphaide.org/ontology/ontology> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<http://graphaide.org/ontology/Asset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Asset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Asset> <http://www.w3.org/2000/01/rdf-schema#label> "Asset"@en .
+<http://graphaide.org/ontology/Asset> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Asset"@en .
+<http://graphaide.org/ontology/Identity> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Identity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Identity> <http://www.w3.org/2000/01/rdf-schema#label> "Identity"@en .
+<http://graphaide.org/ontology/Identity> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Identity"@en .
+<http://graphaide.org/ontology/ThreatActor> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/ThreatActor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/ThreatActor> <http://www.w3.org/2000/01/rdf-schema#label> "ThreatActor"@en .
+<http://graphaide.org/ontology/ThreatActor> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: ThreatActor"@en .
+<http://graphaide.org/ontology/Vulnerability> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Vulnerability> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Vulnerability> <http://www.w3.org/2000/01/rdf-schema#label> "Vulnerability"@en .
+<http://graphaide.org/ontology/Vulnerability> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Vulnerability"@en .
+<http://graphaide.org/ontology/AttackTechnique> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/AttackTechnique> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/AttackTechnique> <http://www.w3.org/2000/01/rdf-schema#label> "AttackTechnique"@en .
+<http://graphaide.org/ontology/AttackTechnique> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: AttackTechnique"@en .
+<http://graphaide.org/ontology/Control> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Control> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Control> <http://www.w3.org/2000/01/rdf-schema#label> "Control"@en .
+<http://graphaide.org/ontology/Control> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Control"@en .
+<http://graphaide.org/ontology/Event> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Event> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Event> <http://www.w3.org/2000/01/rdf-schema#label> "Event"@en .
+<http://graphaide.org/ontology/Event> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Event"@en .
+<http://graphaide.org/ontology/Network> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Network> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Network> <http://www.w3.org/2000/01/rdf-schema#label> "Network"@en .
+<http://graphaide.org/ontology/Network> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Network"@en .
+<http://graphaide.org/ontology/Service> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/Service> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Service> <http://www.w3.org/2000/01/rdf-schema#label> "Service"@en .
+<http://graphaide.org/ontology/Service> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: Service"@en .
+<http://graphaide.org/ontology/DataFlow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<http://graphaide.org/ontology/DataFlow> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/DataFlow> <http://www.w3.org/2000/01/rdf-schema#label> "DataFlow"@en .
+<http://graphaide.org/ontology/DataFlow> <http://www.w3.org/2000/01/rdf-schema#comment> "Entity type: DataFlow"@en .
+<http://graphaide.org/ontology/Targets> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Targets> <http://www.w3.org/2000/01/rdf-schema#label> "Targets"@en .
+<http://graphaide.org/ontology/Targets> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Targets"@en .
+<http://graphaide.org/ontology/Targets> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Targets> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Exploits> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Exploits> <http://www.w3.org/2000/01/rdf-schema#label> "Exploits"@en .
+<http://graphaide.org/ontology/Exploits> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Exploits"@en .
+<http://graphaide.org/ontology/Exploits> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Exploits> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Affects> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Affects> <http://www.w3.org/2000/01/rdf-schema#label> "Affects"@en .
+<http://graphaide.org/ontology/Affects> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Affects"@en .
+<http://graphaide.org/ontology/Affects> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Affects> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Accesses> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Accesses> <http://www.w3.org/2000/01/rdf-schema#label> "Accesses"@en .
+<http://graphaide.org/ontology/Accesses> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Accesses"@en .
+<http://graphaide.org/ontology/Accesses> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Accesses> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Handles> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Handles> <http://www.w3.org/2000/01/rdf-schema#label> "Handles"@en .
+<http://graphaide.org/ontology/Handles> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Handles"@en .
+<http://graphaide.org/ontology/Handles> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Handles> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Protects> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Protects> <http://www.w3.org/2000/01/rdf-schema#label> "Protects"@en .
+<http://graphaide.org/ontology/Protects> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Protects"@en .
+<http://graphaide.org/ontology/Protects> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Protects> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Mitigates> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Mitigates> <http://www.w3.org/2000/01/rdf-schema#label> "Mitigates"@en .
+<http://graphaide.org/ontology/Mitigates> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Mitigates"@en .
+<http://graphaide.org/ontology/Mitigates> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Mitigates> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Triggers> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Triggers> <http://www.w3.org/2000/01/rdf-schema#label> "Triggers"@en .
+<http://graphaide.org/ontology/Triggers> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Triggers"@en .
+<http://graphaide.org/ontology/Triggers> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Triggers> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Connects> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Connects> <http://www.w3.org/2000/01/rdf-schema#label> "Connects"@en .
+<http://graphaide.org/ontology/Connects> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Connects"@en .
+<http://graphaide.org/ontology/Connects> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Connects> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Communicates> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<http://graphaide.org/ontology/Communicates> <http://www.w3.org/2000/01/rdf-schema#label> "Communicates"@en .
+<http://graphaide.org/ontology/Communicates> <http://www.w3.org/2000/01/rdf-schema#comment> "Relationship type: Communicates"@en .
+<http://graphaide.org/ontology/Communicates> <http://www.w3.org/2000/01/rdf-schema#domain> <http://www.w3.org/2002/07/owl#Thing> .
+<http://graphaide.org/ontology/Communicates> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/07/owl#Thing> .

@@ -1,0 +1,7 @@
+{
+    "vector_db": {
+        "provider": "ChromaDB",
+        "store_name": "LONGROOM_FOCUS",
+        "store_path": "/docs"
+    }
+}

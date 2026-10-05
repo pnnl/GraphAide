@@ -1,0 +1,24 @@
+{
+    "model": {
+        "provider": "openai",
+        "model_name": "gpt-4o",
+        "max_tokens": 8192,
+        "temperature": 0.0
+    },
+    "vector_db": {
+        "provider": "ChromaDB",
+        "store_name": "GA_VDB",
+        "store_path": "./chroma"
+    },
+    "graph_db": {
+        "provider": "neo4j",
+        "uri": "bolt://localhost:7687",
+        "username": "neo4j",
+        "database": "neo4j"
+    },
+    "defaults": {
+        "ontology_path": null,
+        "max_tokens_per_segment": 4096,
+        "retry_max_attempts": 3
+    }
+}

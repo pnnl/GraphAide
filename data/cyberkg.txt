@@ -1,0 +1,21 @@
+The MITRE Corporation is a non-profit organization that works to address issues in diverse fields
+such as cybersecurity, national defense, and healthcare. Among MITRE's key contributions to
+cybersecurity research are several comprehensive databases that catalog and organize
+information related to cyber threats. These resources include:• Common Vulnerabilities and Exposures (CVE): Publicly disclosed cybersecurity flaws.• Common Weakness Enumeration (CWE): Common types of software and hardware
+weaknesses.• Common Attack Pattern Enumeration and Classification (CAPEC): A classification of
+known cyber-attack patterns.• Techniques: Specific methodologies used by adversaries, categorized by operational
+environments.• Mitigations: Strategic actions designed to reduce or eliminate the impact of specific
+techniques.• Software and Groups: Collections of techniques implemented by specific tools, software,
+or groups.These resources are related to one another in the following manner:Common Vulnerabilities and Exposures (CVE) is a standardized cataloging system for publicly
+known information security vulnerabilities and exposures. Each entry includes a brief description
+of the vulnerability, metrics related to their potential impact severity, and references associated
+CWEs.Common Weakness Enumeration (CWE) is a community-driven list of common weakness types
+that affect software and hardware. It serves as a tool for identifying, addressing, and mitigating
+security flaws in the design and architecture of technology products. CWEs can be related to one
+another through child of, preceding, and member of relationships, along with being associated
+with CAPECs.Common Attack Pattern Enumeration and Classification (CAPEC) is resource that provides
+details of known attack patterns. It categorizes approaches, such as CAPEC-112 describing
+“Brute Force” attacks, that adversaries may use to exploit specific vulnerabilities and weaknesses.MITRE categorizes Techniques used by adversaries into different operational environments,
+including enterprise systems, mobile devices, and Industrial Control Systems (ICS). Each matrix
+is structured by tactics, detailing the high-level objectives such as gaining initial access to a
+system

@@ -1,0 +1,19 @@
+Objective: 
+1. Extract key entities in the user statement.
+2. Generate a cypher query to find one hop information of each entity mentioned in the user statement. 
+
+Guidlines:
+1. Final response MUST be a cypher query ONLY, as a list of triples where each triple has nodeName, relationshiptType, targetName
+2. DO not include any characters other than cypher query. Do not start the response with ```cypher
+3. Do not start with introduction like "The Cypher query for the user statement"
+4. Construct the query using following structure:
+
+WITH [ a list of entity names  ] as nodeNames
+MATCH (n)-[r]-(m)
+WHERE ANY(substring IN nodeNames WHERE toLower(apoc.text.join(n.name, ",")) CONTAINS toLower(substring))
+RETURN n.name AS nodeName, type(r) AS relationshipType, m.name AS targetName, n.raw_source AS nodeRawSource, r.raw_source AS edgeRawSource
+LIMIT 10
+
+
+The question is:
+{raw_text}
