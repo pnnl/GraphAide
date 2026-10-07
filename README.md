@@ -1,7 +1,7 @@
 # GraphAide
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pnnl-int/GraphAide/develop/tests/notebooks/GraphAideLogo_Label_Final.png" alt="GraphAide Logo" width="400">
+  <img src="https://raw.githubusercontent.com/pnnl/GraphAide/develop/tests/notebooks/GraphAideLogo_Label_Final.png" alt="GraphAide Logo" width="400">
 </p>
 
 **Build knowledge graphs from any document with LLMs and Neo4j.** GraphAide is a multi-agentic system that extracts entities and relationships from diverse sources, constructs knowledge graphs, and enables natural language reasoning over them—all with minimal setup.

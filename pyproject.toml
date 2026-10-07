@@ -1,3 +1,111 @@
 [build-system]
-requires = ["setuptools>=46.1.0"]
+requires = ["setuptools>=61.0", "setuptools-scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "graphaide"
+version = "0.5.15"
+description = "Multi-agentic knowledge graph construction and reasoning system"
+readme = "README.md"
+requires-python = ">=3.11,<3.15"
+license = {text = "MIT"}
+keywords = ["knowledge-graph", "llm", "neo4j", "multi-agent", "rag"]
+authors = [
+    {name = "Sumit Purohit", email = "sumit.purohit@pnnl.gov"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "importlib-metadata==8.7.1",
+    "openai==2.15.0",
+    "langfuse>=4.0.0",
+    "langchain>=1.0.7,<1.2.0",
+    "sentence_transformers==5.2.1",
+    "langchain_community",
+    "langchain_openai",
+    "langchain-chroma",
+    "langgraph==1.0.8",
+    "langgraph-prebuilt==1.0.7",
+    "langchain-aws",
+    "botocore[crt]>=1.42.0",
+    "boto3>=1.42.0",
+    "langchain-anthropic",
+    "langchain_google_genai",
+    "langchain-mcp-adapters",
+    "langchain-neo4j==0.8.0",
+    "fastmcp==2.14.5",
+    "neo4j==6.1.0",
+    "ragas==0.4.3",
+    "pathlib==1.0.1",
+    "pypdf==6.6.2",
+    "pydantic==2.12.5",
+    "rdflib>=6.0.0",
+    "numba==0.68.0",
+    "umap-learn==0.5.11",
+    "plotly==6.5.2",
+    "kaleido==0.2.1",
+    "pandas==3.0.0",
+    "numpy==2.3.3",
+    "matplotlib==3.10.8",
+    "dash==3.4.0",
+    "py2neo==2021.2.4",
+    "autogen-agentchat==0.7.5",
+    "autogen-ext[openai]==0.7.5",
+    "python-dotenv==1.2.1",
+    "ipykernel==7.1.0",
+    "jupyterlab==4.5.3",
+    "webencodings==0.5.1",
+    "langchain-text-splitters==1.1.0",
+    "typer[all]>=0.9.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "rich>=13.0.0",
+    "qdrant-client>=1.18.0,<=1.18.0",
+    "langchain-qdrant>=0.1.0",
+    "pillow>=10.0.0",
+    "pdf2image>=1.16.0",
+]
+
+[project.optional-dependencies]
+testing = [
+    "setuptools",
+    "pytest",
+    "pytest-cov",
+]
+
+[project.urls]
+Homepage = "https://github.com/pnnl/GraphAide"
+Source = "https://github.com/pnnl/GraphAide/tree/develop"
+Documentation = "https://github.com/pnnl/GraphAide#quickstart"
+Tracker = "https://github.com/pnnl/GraphAide/issues"
+License = "https://github.com/pnnl/GraphAide/blob/develop/LICENSE.txt"
+
+[project.scripts]
+graphaide = "graphgen.cli:main"
+
+[tool.setuptools]
+zip-safe = false
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["graphaide*"]
+
+[tool.pytest.ini_options]
+addopts = "--cov graphaide --cov-report term-missing --verbose"
+norecursedirs = ["dist", "build", ".tox"]
+testpaths = ["tests"]
+
+# Versioning handled by importlib.metadata at runtime
+# No need for generated _version.py file

@@ -66,6 +66,9 @@ def extract(
     max_output_tokens: Optional[int] = typer.Option(
         None, "--max-output-tokens", help="Max output tokens for LLM (default: from globalconfig). Overrides config file value"
     ),
+    temperature: float = typer.Option(
+        1.0, "--temperature", help="Temperature for LLM (0.0-2.0, default: 1.0). Use -1 to skip"
+    ),
     filter_by_ontology: bool = typer.Option(
         True, "--filter-by-ontology/--no-filter", help="Filter extracted entities by ontology types (default: True)"
     ),
@@ -144,9 +147,10 @@ def extract(
             "model": {
                 "provider": provider.lower(),
                 "model_name": model,
-                "temperature": 1.0,
             }
         }
+        # Set temperature: None if -1 (skip for models that don't support it), else the value
+        config_data["model"]["temperature"] = None if temperature == -1 else temperature
 
         if embedding_model:
             config_data["model"]["embedding_model_name"] = embedding_model
@@ -219,6 +223,9 @@ def extract_merge(
     ),
     max_output_tokens: Optional[int] = typer.Option(
         None, "--max-output-tokens", help="Max output tokens for LLM (default: from globalconfig). Overrides config file value"
+    ),
+    temperature: float = typer.Option(
+        1.0, "--temperature", help="Temperature for LLM (0.0-2.0, default: 1.0). Use -1 to skip"
     ),
     filter_by_ontology: bool = typer.Option(
         True, "--filter-by-ontology/--no-filter", help="Filter extracted entities by ontology types (default: True)"
@@ -295,9 +302,10 @@ def extract_merge(
             "model": {
                 "provider": provider.lower(),
                 "model_name": model,
-                "temperature": 1.0,
             }
         }
+        # Set temperature: None if -1 (skip for models that don't support it), else the value
+        config_data["model"]["temperature"] = None if temperature == -1 else temperature
 
         if embedding_model:
             config_data["model"]["embedding_model_name"] = embedding_model
@@ -367,6 +375,9 @@ def ingest(
     ),
     max_output_tokens: Optional[int] = typer.Option(
         None, "--max-output-tokens", help="Max output tokens for LLM (default: from globalconfig). Overrides config file value"
+    ),
+    temperature: float = typer.Option(
+        1.0, "--temperature", help="Temperature for LLM (0.0-2.0, default: 1.0). Use -1 to skip"
     ),
     filter_by_ontology: bool = typer.Option(
         True, "--filter-by-ontology/--no-filter", help="Filter extracted entities by ontology types (default: True)"
@@ -438,9 +449,10 @@ def ingest(
             "model": {
                 "provider": provider.lower(),
                 "model_name": model,
-                "temperature": 1.0,
             }
         }
+        # Set temperature: None if -1 (skip for models that don't support it), else the value
+        config_data["model"]["temperature"] = None if temperature == -1 else temperature
 
         if embedding_model:
             config_data["model"]["embedding_model_name"] = embedding_model

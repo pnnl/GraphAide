@@ -16,6 +16,11 @@ from graphgen.v2.LangFuseManager import get_langfuse_callback
 logger = logging.getLogger("graphgen.v2.modelmanager")
 
 
+def _should_set_temperature(temp) -> bool:
+    """Check if temperature should be passed to model (skip if None)."""
+    return temp is not None
+
+
 # ModelConfig: Controls LLM output limits
 # For input chunk/segment size, see max_tokens_per_segment in CLI (--max-tokens-per-segment) or workflows
 class ModelConfig(BaseModel):
@@ -23,7 +28,7 @@ class ModelConfig(BaseModel):
     model_name: str
     api_key: str | None = None
     base_url: str | None = None
-    temperature: float = 0.0
+    temperature: float | None = Field(default=1.0)  # None = skip temperature (for models that don't support it)
     max_output_tokens_limit_llm: int = globalconfig.DEFAULT_MAX_OUTPUT_TOKENS_LIMIT_LLM  # LLM output token limit. For input chunk size, see max_tokens_per_segment in workflows
     embedding_model_name: str | None = Field(default="text-embedding-3-small-project")
     service_name: str | None = (
@@ -116,37 +121,43 @@ class ModelFactory:
             # TODO: _model behaves different than vector store and graphdb store beuase it is an object of settings rather a dict of vector driver (in vector manager) or graph driver (in graph manager). We should streamline this in the future to avoid confusion. Maybe we can have a _model_settings and then we create the model instance in get_model() method based on the settings, similar to how we do in vector and graph manager.
 
             if model_config.provider == "openai":
-                model = ChatOpenAI(
-                    model=model_config.model_name,
-                    api_key=model_config.api_key,
-                    openai_api_base=model_config.base_url,
-                    base_url=model_config.base_url,
-                    temperature=model_config.temperature,
-                    max_tokens=model_config.max_output_tokens_limit_llm,
-                )
+                kwargs = {
+                    "model": model_config.model_name,
+                    "api_key": model_config.api_key,
+                    "openai_api_base": model_config.base_url,
+                    "base_url": model_config.base_url,
+                    "max_tokens": model_config.max_output_tokens_limit_llm,
+                }
+                if _should_set_temperature(model_config.temperature):
+                    kwargs["temperature"] = model_config.temperature
+                model = ChatOpenAI(**kwargs)
                 if self._langfuse_client:
                     logger.debug(f"🔍 [ModelFactory] Attaching LangFuse callbacks to OpenAI model")
                     model = model.with_config(callbacks=[self._langfuse_client])
                 self._model_objects[MODEL_OBJECT_KEY] = model
             elif model_config.provider == "anthropic":
-                model = ChatAnthropic(
-                    model=model_config.model_name,
-                    api_key=model_config.api_key,
-                    anthropic_api_base=model_config.base_url,
-                    temperature=model_config.temperature,
-                    max_tokens=model_config.max_output_tokens_limit_llm,
-                )
+                kwargs = {
+                    "model": model_config.model_name,
+                    "api_key": model_config.api_key,
+                    "anthropic_api_base": model_config.base_url,
+                    "max_tokens": model_config.max_output_tokens_limit_llm,
+                }
+                if _should_set_temperature(model_config.temperature):
+                    kwargs["temperature"] = model_config.temperature
+                model = ChatAnthropic(**kwargs)
                 if self._langfuse_client:
                     logger.debug(f"🔍 [ModelFactory] Attaching LangFuse callbacks to Anthropic model")
                     model = model.with_config(callbacks=[self._langfuse_client])
                 self._model_objects[MODEL_OBJECT_KEY] = model
             elif model_config.provider == "google":
-                model = ChatGoogleGenerativeAI(
-                    model=model_config.model_name,
-                    api_key=model_config.api_key,
-                    temperature=model_config.temperature,
-                    max_output_tokens=model_config.max_output_tokens_limit_llm,
-                )
+                kwargs = {
+                    "model": model_config.model_name,
+                    "api_key": model_config.api_key,
+                    "max_output_tokens": model_config.max_output_tokens_limit_llm,
+                }
+                if _should_set_temperature(model_config.temperature):
+                    kwargs["temperature"] = model_config.temperature
+                model = ChatGoogleGenerativeAI(**kwargs)
                 if self._langfuse_client:
                     logger.debug(f"🔍 [ModelFactory] Attaching LangFuse callbacks to Google model")
                     model = model.with_config(callbacks=[self._langfuse_client])
@@ -156,11 +167,14 @@ class ModelFactory:
                     service_name=model_config.service_name,
                     region_name=model_config.region_name,
                 )
+                model_kwargs = {}
+                if _should_set_temperature(model_config.temperature):
+                    model_kwargs["temperature"] = model_config.temperature
                 model = ChatBedrock(
                     client=bedrock_runtime,
                     model_id=model_config.model_name,
                     max_tokens=model_config.max_output_tokens_limit_llm,
-                    model_kwargs={"temperature": model_config.temperature},
+                    model_kwargs=model_kwargs,
                 )
                 if self._langfuse_client:
                     logger.debug(f"🔍 [ModelFactory] Attaching LangFuse callbacks to Bedrock model")
@@ -168,13 +182,15 @@ class ModelFactory:
                 self._model_objects[MODEL_OBJECT_KEY] = model
             elif model_config.provider == "lmstudio":
                 base_url = model_config.base_url or "http://localhost:1234/v1"
-                model = ChatOpenAI(
-                    model=model_config.model_name,
-                    api_key=model_config.api_key or "lm-studio",
-                    base_url=base_url,
-                    temperature=model_config.temperature,
-                    max_tokens=model_config.max_output_tokens_limit_llm,
-                )
+                kwargs = {
+                    "model": model_config.model_name,
+                    "api_key": model_config.api_key or "lm-studio",
+                    "base_url": base_url,
+                    "max_tokens": model_config.max_output_tokens_limit_llm,
+                }
+                if _should_set_temperature(model_config.temperature):
+                    kwargs["temperature"] = model_config.temperature
+                model = ChatOpenAI(**kwargs)
                 if self._langfuse_client:
                     logger.debug(f"🔍 [ModelFactory] Attaching LangFuse callbacks to LMStudio model")
                     model = model.with_config(callbacks=[self._langfuse_client])
