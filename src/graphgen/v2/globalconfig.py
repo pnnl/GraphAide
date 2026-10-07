@@ -29,13 +29,13 @@ AGENT_CONFIG_PATH = PROJECT_ROOT / "agent_config.json"
 
 ENV_PATH = PROJECT_ROOT / ".env"
 
-VECTOR_STORE_BASEDIR = Path(
-    os.getenv("VECTOR_STORE_PATH", PROJECT_ROOT / ".local_vectorstores/")
-)
+VECTOR_STORE_BASEDIR = Path(os.getenv("VECTOR_STORE_PATH", PROJECT_ROOT / ".local_vectorstores/"))
 
 DEFAULT_K = 10
 
-DEFAULT_MAX_OUTPUT_TOKENS_LIMIT_LLM = 128000  # LLM output token limit. For input chunk size, see max_tokens_per_segment in CLI/workflows
+DEFAULT_MAX_OUTPUT_TOKENS_LIMIT_LLM = (
+    128000  # LLM output token limit. For input chunk size, see max_tokens_per_segment in CLI/workflows
+)
 
 DEFAULT_EXTERNAL_METADATA = None
 
