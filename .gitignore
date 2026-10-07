@@ -80,10 +80,12 @@ run_graph_aide.py
 src/graphgen/v2/docs/GA_VDB/
 src/graphgen/v2/docs/chroma.sqlite3
 
-# Per-project virtualenvs
+# Per-project virtualenvs and package managers
 .venv*/
 .conda*/
 .python-version
+uv.lock
+uvpylatest/
 
 # Node.js dependencies and build artifacts
 node_modules/
@@ -165,3 +167,6 @@ tests/notebooks/*.pdf
 tests/notebooks/*.nt
 tests/notebooks/*.txt
 
+
+test_lm*.py
+test_*.txt
