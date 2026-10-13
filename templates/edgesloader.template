@@ -12,6 +12,10 @@ CRITICAL RULES:
 INPUT FORMAT:
 - Edges: Every edge entry is an object of 'source_id', 'edge_type', 'target_id', 'argument_role' if available, 'start_datetime' if available, 'end_datetime' if available, 'raw_source' if available.
 
+IMPORTANT: Do NOT include 'character_span' or 'token_span' fields in the Cypher query.
+Only use the fields shown in the EXAMPLE OUTPUT (source_id, edge_type, target_id, argument_role, start_datetime, end_datetime, raw_source).
+If these fields appear in the input, ignore them completely.
+
 **CRITICAL: UNWIND array syntax rules (MUST follow exactly):**
 - Keys MUST be unquoted: {{source_id: "value"}} ✓ CORRECT
 - Keys MUST NOT have double quotes: {{"source_id": "value"}} ✗ WRONG

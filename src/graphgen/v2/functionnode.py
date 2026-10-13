@@ -97,8 +97,8 @@ def make_segment_dispatcher(target_node: str):
                     "raw_text": segment,
                     "file_path": file_path,
                     "segments": [segment],
-                    "rag_context": state.get("rag_context"),
-                    "vector_store_configs": state.get("vector_store_configs"),  # Preserve for multi-retriever
+                    "rag_context_summary": state.get("rag_context_summary"),  # NEW: static, shared summary (not accumulated)
+                    "vector_store_configs": state.get("vector_store_configs"),  # For fresh per-chunk retrieval
                     "messages": [
                         f"Successfully sent segment for extraction. total segments: {len(segments)}"
                     ],
@@ -164,8 +164,8 @@ def jsonl_segment_dispatcher(state: KGGenerationState) -> list[Send]:
                 "jsonl_line_numbers": chunk_line_nums,
                 "jsonl_field_name": jsonl_field_name,
                 "jsonl_tracking": state.get("jsonl_tracking", True),
-                "vector_store_configs": state.get("vector_store_configs", []),
-                "rag_context": state.get("rag_context"),
+                "vector_store_configs": state.get("vector_store_configs", []),  # Each chunk retrieves fresh
+                "rag_context_summary": state.get("rag_context_summary"),  # NEW: static, shared summary (not duplicated)
                 "messages": [f"Dispatched {len(chunk_lines)} lines for extraction"],
             }
         )

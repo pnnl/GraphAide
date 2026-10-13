@@ -1,5 +1,25 @@
 # GraphAide Refactoring TODO
 
+## 🔴 PERFORMANCE: Parallel Extraction Redundant Vector Retrieval (2026-10-09)
+
+**Issue:** When running parallel extractors (e.g., 8 batches of 2 lines), each extractor independently:
+- Creates retrievers from vector_store_configs
+- Builds retrieval context (queries vector store)
+- Concatenates context with local batch text
+
+**Impact:** 8x redundant retrieval work. All parallel jobs retrieve same context, then add their local text.
+
+**Solution:** Build context once before dispatching to parallel extractors:
+1. Move retrieval to workflow dispatcher (before Send)
+2. Pass built context via rag_context in state
+3. Each extractor uses pre-built context instead of building independently
+
+**Timeline:** This would be part of Tier 3 "Streaming Batch Pattern" improvements
+
+---
+
+# GraphAide Refactoring TODO
+
 ## Code Duplication Analysis
 - **File:** `src/graphgen/v2/graphaide_api.py` (672 LOC)
 - **Duplication:** ~144 lines (18% of endpoint code)
@@ -50,6 +70,19 @@
 - [ ] Integration tests for ingest() with all parameter combinations
 - [ ] JSONL tests with merge=True/False
 - [ ] Vector store tests with/without configs
+
+---
+
+## Phase 2.5: Debug & Observability (1 hour, LOW RISK)
+
+### 🐛 Task 2.5.1: Cache LangFuse callback globally
+- [ ] **Label:** `debug`
+- [ ] **Issue:** LangFuse callback initialized multiple times (once in ModelFactory, once in every agent)
+- [ ] **Location:** `ModelManager.py` line 73, `agents/base.py` line 54
+- [ ] **Symptom:** Duplicate "Initializing LangFuse CallbackHandler" debug logs
+- [ ] **Solution:** Initialize LangFuse once in `LangFuseManager.get_langfuse_callback()`, cache globally, reuse across all agents
+- [ ] **Impact:** Cleaner debug logs, no functional change
+- [ ] **Testing:** Run with DEBUG log level, verify single LangFuse init message
 
 ---
 

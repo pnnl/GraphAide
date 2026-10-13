@@ -85,13 +85,26 @@ def make_vectorstore_retriever(
 
         try:
             # Key similarity search using the vector store
+            query_preview = query[:100] + ("..." if len(query) > 100 else "")
+            logger.debug(f"Retriever: Similarity search with query: '{query_preview}' (len={len(query)})")
+            logger.debug(f"  Collection: {vector_store_config.collection_name}, retrieve_type: {vector_store_config.retrieve_type}")
+            logger.debug(f"  Searching with k={globalconfig.DEFAULT_K}")
+
             docs = vector_store.similarity_search(query, k=globalconfig.DEFAULT_K)
-            logger.debug(
-                f"Retrieved {len(docs)} docs from {vector_store_config.collection_name} (retrieve_type={vector_store_config.retrieve_type})"
+
+            logger.info(
+                f"✓ Retriever {vector_store_config.retrieve_type}: Retrieved {len(docs)} docs from {vector_store_config.collection_name} (k={globalconfig.DEFAULT_K})"
             )
+            if docs:
+                for i, doc in enumerate(docs, 1):
+                    preview = doc.page_content[:80] + ("..." if len(doc.page_content) > 80 else "")
+                    logger.debug(f"  [{i}] {preview}")
+            else:
+                logger.warning(f"⚠ Retriever {vector_store_config.retrieve_type}: No results found (empty collection or no match)")
+
         except Exception as e:
             logger.error(
-                f"Retriever {vector_store_config.retrieve_type} failed: {e}",
+                f"✗ Retriever {vector_store_config.retrieve_type} failed: {e}",
                 exc_info=True,
             )
             return {
