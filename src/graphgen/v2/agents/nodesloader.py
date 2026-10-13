@@ -82,6 +82,8 @@ class NodesLoaderAgent(GraphAideAgent):
         # 3. Prepare input (NO escaping - Neo4j driver handles it via UNWIND row.* binding)
         # Send raw values so LLM doesn't see escape chars and get confused
         nodes_data = [n.model_dump() if hasattr(n, "model_dump") else dict(n) for n in nodes]
+        # Filter out character_span and token_span to prevent LLM from including them in Cypher
+        nodes_data = [{k: v for k, v in node.items() if k not in ["character_span", "token_span"]} for node in nodes_data]
         inputtext = json.dumps({"nodes": nodes_data, "edges": str(edges)})
 
         logger.info(f"Loading {len(nodes)} nodes (batch {state.get('batch_index', 'all')}/{state.get('total_batches', 'all')})")

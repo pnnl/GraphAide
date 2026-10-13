@@ -55,8 +55,12 @@ class KGExtractInput(BaseModel):
         alias="ontology_file_path",
     )
     max_tokens_per_segment: int = Field(
-        4096,
-        description="Max tokens per text segment. Reduce if LLM calls fail (e.g., 2048)",
+        8192,
+        description="Max tokens per text segment. Presets: small=4096, medium=8192, large=16384, xlarge=32768. Reduce if LLM calls fail.",
+    )
+    context_window_mode: str = Field(
+        "medium",
+        description="Preset context window size: small (4096), medium (8192, default), large (16384), xlarge (32768).",
     )
     vector_stores: Optional[List[VectorStoreConfig]] = Field(
         None,
@@ -130,8 +134,12 @@ class KGExtractMergeInput(BaseModel):
         alias="ontology_file_path",
     )
     max_tokens_per_segment: int = Field(
-        4096,
-        description="Max tokens per text segment. Reduce if LLM calls fail (e.g., 2048)",
+        8192,
+        description="Max tokens per text segment. Presets: small=4096, medium=8192, large=16384, xlarge=32768. Reduce if LLM calls fail.",
+    )
+    context_window_mode: str = Field(
+        "medium",
+        description="Preset context window size: small (4096), medium (8192, default), large (16384), xlarge (32768).",
     )
     vector_stores: Optional[List[VectorStoreConfig]] = Field(
         None,
@@ -200,8 +208,12 @@ class KGIngestInput(BaseModel):
         alias="ontology_file_path",
     )
     max_tokens_per_segment: int = Field(
-        4096,
-        description="Max tokens per text segment. Reduce if LLM calls fail (e.g., 2048)",
+        8192,
+        description="Max tokens per text segment. Presets: small=4096, medium=8192, large=16384, xlarge=32768. Reduce if LLM calls fail.",
+    )
+    context_window_mode: str = Field(
+        "medium",
+        description="Preset context window size: small (4096), medium (8192, default), large (16384), xlarge (32768).",
     )
     clear_existing: bool = Field(
         False,

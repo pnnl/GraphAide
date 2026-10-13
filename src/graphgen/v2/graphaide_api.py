@@ -160,9 +160,106 @@ class GraphAide:
         if self.vector_configs:
             # Set first config as primary for backwards compatibility
             self.workflow_config.vector_config = self.vector_configs[0]
+            # Store all configs for multi-store retrieval
+            self.workflow_config.vector_configs = self.vector_configs
 
         # Initialize internal WorkflowManager
         self.manager = WorkflowManager(global_config=self.workflow_config)
+
+        # DEBUG: Print configuration values on initialization
+        logger.info("=" * 80)
+        logger.info("GraphAide Initialization - Configuration Summary")
+        logger.info("=" * 80)
+        logger.info(f"LLM Provider: {self.model_config.provider}")
+        logger.info(f"LLM Model: {self.model_config.model_name}")
+        logger.info(f"Max Output Tokens (LLM): {self.model_config.max_output_tokens_limit_llm}")
+        logger.info(f"Embedding Model: {self.model_config.embedding_model_name}")
+        logger.info(f"Temperature: {self.model_config.temperature}")
+        logger.info(f"Vector Store(s): {len(self.vector_configs) if self.vector_configs else 0}")
+        if self.vector_configs:
+            from pathlib import Path
+            for i, vconf in enumerate(self.vector_configs, 1):
+                if vconf.store_path:
+                    full_path = str(Path(vconf.store_path).expanduser() / vconf.store_name)
+                else:
+                    full_path = vconf.store_name
+                collection_name = vconf.collection_name or "langchain"
+                logger.info(f"  [{i}] {vconf.provider} - {vconf.store_name}")
+                logger.info(f"      Path: {full_path}")
+                logger.info(f"      Collection: {collection_name}")
+                doc_count = self._get_vector_store_doc_count(vconf)
+                logger.info(f"      Documents: {doc_count}")
+        logger.info("=" * 80)
+
+    def _get_vector_store_doc_count(self, vconf: VectorDBConfig) -> int:
+        """Get document count from vector store without modifying it.
+
+        Uses same initialization pattern as VectorFactory.get_store() to ensure
+        consistent path handling and persistence.
+        """
+        try:
+            from pathlib import Path
+            from langchain_chroma import Chroma
+            import chromadb
+
+            if vconf.provider.lower() == "chromadb":
+                # Use exact same path construction as VectorFactory
+                path_obj = (
+                    Path(vconf.store_path).expanduser()
+                    / vconf.store_name
+                )
+
+                # Log detailed diagnostic info
+                logger.info(f"[VectorStore Count Debug]")
+                logger.info(f"  Store Name: {vconf.store_name}")
+                logger.info(f"  Store Path Config: {vconf.store_path}")
+                logger.info(f"  Expanded Full Path: {path_obj}")
+
+                import os
+                logger.info(f"  Path Exists: {path_obj.exists()}")
+                if path_obj.exists():
+                    contents = os.listdir(path_obj)
+                    logger.info(f"  Directory Contents: {contents}")
+
+                collection_name = vconf.collection_name  # None uses Chroma's default ("langchain")
+                logger.info(f"  Querying Collection Name: {collection_name or 'langchain (Chroma default)'}")
+
+                # List all available collections in this store
+                try:
+                    client = chromadb.PersistentClient(path=str(path_obj))
+                    all_collections = client.list_collections()
+                    logger.info(f"  Available Collections in Store:")
+                    for col in all_collections:
+                        logger.info(f"    - {col.name} ({col.count()} docs)")
+                except Exception as e:
+                    logger.info(f"  Could not list collections: {e}")
+
+                # Use same Chroma initialization as VectorFactory
+                chroma_kwargs = {
+                    "persist_directory": path_obj,
+                    "embedding_function": self.manager.model_factory.get_embeddings(),
+                    "collection_name": vconf.collection_name or "langchain",  # Explicit default
+                }
+
+                store = Chroma(**chroma_kwargs)
+                count = store._collection.count()
+                logger.info(f"  ✓ Found: {count} documents in '{collection_name}'")
+                return count
+
+            elif vconf.provider.lower() == "qdrant":
+                from langchain_qdrant import QdrantVectorStore
+
+                vector_store = QdrantVectorStore.from_url(
+                    url=getattr(vconf, "url", None),
+                    collection_name=vconf.collection_name,
+                    embedding=self.manager.model_factory.get_embeddings(),
+                )
+                return vector_store._client.count(collection_name=vconf.collection_name).count
+        except Exception as e:
+            logger.debug(f"Could not count documents in {vconf.provider} ({vconf.store_name}): {e}")
+            import traceback
+            logger.debug(f"Traceback: {traceback.format_exc()}")
+        return 0
 
     def extract(
         self,
@@ -260,6 +357,8 @@ class GraphAide:
         # Build vector_stores list from vector_configs if provided (used by all workflows)
         vector_stores = None
         logger.debug(f"GraphAide.extract: self.vector_configs = {self.vector_configs}")
+        logger.debug(f"GraphAide.extract: self.vector_configs is None? {self.vector_configs is None}")
+        logger.debug(f"GraphAide.extract: self.vector_configs length = {len(self.vector_configs) if self.vector_configs else 0}")
         if self.vector_configs:
             from graphgen.v2.workflows.schemas import VectorStoreConfig
             from pathlib import Path
@@ -390,7 +489,9 @@ class GraphAide:
             ontology_path: Path to ontology file (OWL, TTL, NT, RDF/XML).
             max_tokens_per_segment: Maximum tokens per segment. Default 4096.
             use_chunk_aware: If True, create SourceDocument and ChunkParagraph nodes
-                in Neo4j and link extracted entities to their source chunks.
+                in Neo4j and link extracted entities to their source chunks via edges.
+                Creates additional chunk nodes for document provenance tracking.
+                Every extracted entity gets attached to its source chunk via "FROM_CHUNK" edge.
                 Enables queries like "Show all entities from document.pdf chunk#5".
                 Default False.
             filter_by_ontology: If True, filter extracted nodes/edges to match ontology types.

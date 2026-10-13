@@ -14,6 +14,10 @@ The question is:
   - Nodes: Every node entry is an object of 'node_name' as found in the input text, its 'node_type' as extracted from the lable of the predicted retrieved QIDs, 'english_name' which is english translation of the 'name', 'wikidata_id' which is the lable of the QID retrieved, and 'node_id' which is as extracted from the lable of the predicted retrieved QID if wikidata_id exists, If no wikidata_id exists, it is same as 'english_name'.
   - Edges: Every edge entry is an object of <source_id>, <edge_type>, <target_id>, <argument_role> if available, <start_datetime> if avialable, <end_datetime> if available. source_id is the english_name of the source node, edge_type is the lable of the relationship. target_id is the english_name of the target node. <argument_role> is the extracted role from source to target. <raw_source> is a file name.
 
+IMPORTANT: Do NOT include 'character_span' or 'token_span' fields in the Cypher query.
+Only use the fields shown in the EXAMPLE OUTPUT (node_name, node_type, wikidata_id, english_name, node_id, start_datetime, end_datetime, raw_text, raw_source, chunk_id, raw_source_line).
+If these fields appear in the input, ignore them completely.
+
 **CRITICAL: UNWIND array syntax rules (MUST follow exactly):**
 - Keys MUST be unquoted: {{node_id: "value"}} ✓ CORRECT
 - Keys MUST NOT have double quotes: {{"node_id": "value"}} ✗ WRONG
