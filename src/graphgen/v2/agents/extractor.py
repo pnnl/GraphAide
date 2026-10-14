@@ -267,18 +267,13 @@ class ExtractorAgent(GraphAideAgent):
             f"ExtractorAgent: vector_store_configs from state = {vector_store_configs}"
         )
 
-        # Get embeddings for all retrieval scenarios (both multi-retriever and fallback)
-        embeddings = (
-            self.model.model.embedding_function
-            if hasattr(self.model, "model")
-            else None
-        )
-        logger.debug(
-            f"ExtractorAgent: embeddings from model = {type(embeddings).__name__ if embeddings else None}"
-        )
+        # Get embeddings for all retrieval scenarios
+        # Note: ChatOpenAI doesn't have embedding_function attribute, so we skip that
+        embeddings = None
+        logger.debug("ExtractorAgent: Getting embeddings from factory...")
 
-        # If we don't have embeddings from model, get from agent factory
-        if not embeddings:
+        # Get embeddings from agent factory/model_config
+        if True:
             logger.debug(
                 "ExtractorAgent: No embeddings from model, getting from factory..."
             )

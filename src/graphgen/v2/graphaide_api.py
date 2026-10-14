@@ -392,7 +392,7 @@ class GraphAide:
             logger.debug(f"Converted {len(vector_stores)} vector_configs to VectorStoreConfig")
 
         # Auto-detect JSONL files and route to parallel extraction
-        if file_path and file_path.lower().endswith(".jsonl"):
+        if file_path and str(file_path).lower().endswith(".jsonl"):
             logger.info(f"Detected JSONL file in extract: {file_path}")
             logger.debug(
                 f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}, merge={merge}"
@@ -414,6 +414,7 @@ class GraphAide:
                     "merge_output": merge,  # Flag for result_packer to output only merged nodes
                     **kwargs,
                 },
+                config_overrides=self.workflow_config,
             )
 
             # Flush any pending LangFuse traces to ensure they reach the cloud
@@ -445,6 +446,7 @@ class GraphAide:
                 "merge_output": merge,
                 **kwargs,
             },
+            config_overrides=self.workflow_config,
         )
 
         # Flush any pending LangFuse traces to ensure they reach the cloud
@@ -582,7 +584,7 @@ class GraphAide:
             logger.debug(f"Converted {len(vector_stores)} vector_configs to VectorStoreConfig")
 
         # Auto-detect JSONL files and route to parallel ingestion
-        if file_path and file_path.lower().endswith(".jsonl"):
+        if file_path and str(file_path).lower().endswith(".jsonl"):
             logger.info(f"Detected JSONL file: {file_path}")
             logger.debug(
                 f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}"
