@@ -6,8 +6,9 @@ from pydantic import BaseModel, Field
 from graphgen.v2 import globalconfig
 
 from ..ontology_utils import build_enriched_ontology_context
-from ..state import Edge, KGGenerationState, Node
+from ..state import Edge, KGGenerationState, Node, RetrievalResultType, RAGContextSummary
 from .base import GraphAideAgent
+from .contextbuilder import build_chunk_context
 
 logger = logging.getLogger("graphgen.extractor")
 
@@ -246,7 +247,6 @@ class ExtractorAgent(GraphAideAgent):
         )
 
     def __call__(self, state: KGGenerationState) -> dict:
-        from graphgen.v2.state import RetrievalResultType
         from graphgen.v2.workflows.retriever_factory import make_vectorstore_retriever
         from graphgen.v2 import globalconfig
 
@@ -258,26 +258,22 @@ class ExtractorAgent(GraphAideAgent):
             f"ExtractorAgent.__call__: State keys present: {list(state.keys())}"
         )
 
-        # 1. Run dynamic retrievers if vector_store_configs are present
+        # PHASE 1: Fresh per-chunk retrieval (NOT accumulated)
+        # =====================================================
+        # Each chunk independently retrieves from vector stores
+        # This avoids context duplication across N parallel chunks
         vector_store_configs = state.get("vector_store_configs", [])
         logger.debug(
             f"ExtractorAgent: vector_store_configs from state = {vector_store_configs}"
         )
-        logger.debug(
-            f"ExtractorAgent: vector_store_configs type = {type(vector_store_configs)}, len = {len(vector_store_configs) if vector_store_configs else 0}"
-        )
-        # Get embeddings for all retrieval scenarios (both multi-retriever and fallback)
-        embeddings = (
-            self.model.model.embedding_function
-            if hasattr(self.model, "model")
-            else None
-        )
-        logger.debug(
-            f"ExtractorAgent: embeddings from model = {type(embeddings).__name__ if embeddings else None}"
-        )
 
-        # If we don't have embeddings from model, get from agent factory
-        if not embeddings:
+        # Get embeddings for all retrieval scenarios
+        # Note: ChatOpenAI doesn't have embedding_function attribute, so we skip that
+        embeddings = None
+        logger.debug("ExtractorAgent: Getting embeddings from factory...")
+
+        # Get embeddings from agent factory/model_config
+        if True:
             logger.debug(
                 "ExtractorAgent: No embeddings from model, getting from factory..."
             )
@@ -299,10 +295,10 @@ class ExtractorAgent(GraphAideAgent):
                 agent_factory = get_agent_factory(workflow_config)
                 embeddings = agent_factory.model_factory.get_embeddings()
 
+        # Fresh retrieval per chunk (not accumulated from previous chunks)
+        chunk_retrieval_results = []
         if vector_store_configs:
-            # Run each configured retriever
-            logger.info(f"Multi-retrieval: {len(vector_store_configs)} retriever(s)")
-            all_retrieval_results = []
+            logger.info(f"Multi-retrieval: {len(vector_store_configs)} retriever(s) for THIS chunk")
 
             for config in vector_store_configs:
                 try:
@@ -310,9 +306,9 @@ class ExtractorAgent(GraphAideAgent):
                     result_dict = retriever_func(state)
                     if "retrieval_results" in result_dict:
                         results = result_dict["retrieval_results"]
-                        all_retrieval_results.extend(results)
+                        chunk_retrieval_results.extend(results)  # FRESH results (not accumulated)
                         logger.info(
-                            f"✓ {len(results)} result(s) from {config.collection_name}"
+                            f"✓ {len(results)} result(s) from {config.collection_name} (this chunk)"
                         )
                     else:
                         logger.warning(f"✗ No results from {config.collection_name}")
@@ -321,29 +317,10 @@ class ExtractorAgent(GraphAideAgent):
                         f"Retriever {config.retrieve_type} failed: {e}", exc_info=True
                     )
 
-            # Get or create rag_context (from OntologyLoader or build new)
-            rag_context = state.get("rag_context")
-            if not rag_context:
-                from graphgen.v2.state import RAGContext
-
-                rag_context = RAGContext(
-                    ontology_node_types=[],
-                    ontology_edge_types=[],
-                    retrieval_results=[],
-                )
-
-            # Safety: ensure retrieval_results is a list
-            if rag_context.retrieval_results is None:
-                rag_context.retrieval_results = []
-
-            # Add retriever results to rag_context
-            rag_context.retrieval_results.extend(all_retrieval_results)
-            state["rag_context"] = rag_context
-
             # Summary log
-            if all_retrieval_results:
+            if chunk_retrieval_results:
                 by_type = {}
-                for result in all_retrieval_results:
+                for result in chunk_retrieval_results:
                     rtype = (
                         result.result_type.value
                         if hasattr(result.result_type, "value")
@@ -351,92 +328,26 @@ class ExtractorAgent(GraphAideAgent):
                     )
                     by_type[rtype] = by_type.get(rtype, 0) + 1
                 logger.info(
-                    f"✓ {len(all_retrieval_results)} total: {', '.join([f'{c} {t}' for t, c in by_type.items()])}"
+                    f"✓ {len(chunk_retrieval_results)} total (this chunk): {', '.join([f'{c} {t}' for t, c in by_type.items()])}"
                 )
 
-        # 2. Build context from RAGContext and retrieval_results
-        context = "\n"
-        rag_context = state.get("rag_context")
+        # PHASE 2: Build deduplicated context using RAGContextSummary
+        # ===========================================================
+        # Use static summary (shared) + fresh chunk retrieval results
+        summary = state.get("rag_context_summary")  # Static, shared ontology
+
         logger.debug(
-            f"ExtractorAgent: Building context, rag_context present? {rag_context is not None}"
+            f"ExtractorAgent: rag_context_summary present? {summary is not None}"
         )
 
-        # Add ontology types from RAGContext (handle None safely)
-        node_types = (rag_context.ontology_node_types if rag_context else None) or []
-        edge_types = (rag_context.ontology_edge_types if rag_context else None) or []
-        logger.debug(
-            f"  From rag_context: {len(node_types)} node types, {len(edge_types)} edge types"
-        )
-
-        # Process retrieval_results (extract ontology types and add to context)
-        retrieval_results = (rag_context.retrieval_results if rag_context else None) or []
-        logger.debug(f"  retrieval_results from rag_context: {len(retrieval_results)} items")
-
-        # Extract ontology types from TYPES results
-        for result in retrieval_results:
-            if result.result_type == RetrievalResultType.TYPES:
-                if result.ontology_node_types:
-                    node_types.extend(result.ontology_node_types)
-                if result.ontology_edge_types:
-                    edge_types.extend(result.ontology_edge_types)
-
-        # Remove duplicates
-        node_types = list(set(node_types))
-        edge_types = list(set(edge_types))
-
-        if node_types and edge_types:
-            logger.info(
-                f"Ontology - {len(node_types)} node types, {len(edge_types)} edge types"
-            )
-            logger.debug(f"Node types: {node_types}")
-            logger.debug(f"Edge types: {edge_types}")
-
-            # Use enriched context with definitions and examples if available
-            if rag_context:
-                enriched_context = build_enriched_ontology_context(rag_context)
-                context += enriched_context
-                logger.debug(
-                    "Using enriched ontology context with definitions and examples"
-                )
-            else:
-                # Fallback to simple context if no RAGContext
-                context += f"Ontology Node Types: {', '.join(node_types)}\n"
-                context += f"Ontology Edge Types: {', '.join(edge_types)}\n"
-                context += "Make sure to assign node types and edge types from the list above.\n"
-
-        # Add entities and documents to context
-        for result in retrieval_results:
-            logger.debug(f"Processing result: type={result.result_type}, has_wikidata={bool(result.wikidata_context)}, has_docs={bool(result.documents)}")
-
-            if result.store_description:
-                context += (
-                    f"\n[Vector Store: {result.source}]\n{result.store_description}\n"
-                )
-
-            # Use description to infer actual data type if provided (e.g., "ontology types in QID format")
-            actual_type = result.result_type
-
-            if actual_type == RetrievalResultType.ENTITIES:
-                if result.wikidata_context:
-                    for qid, entity_data in result.wikidata_context.items():
-                        label = entity_data.get("label", "")
-                        context += f"QID={qid} Label={label}\n"
-
-            elif actual_type == RetrievalResultType.DOCUMENTS:
-                if result.documents:
-                    context += f"# Context from {result.source}:\n"
-                    for j, doc_text in enumerate(result.documents[:2], 1):
-                        context += f"[Doc {j}] {doc_text[:200]}...\n"
-
-            elif actual_type == RetrievalResultType.CUSTOM:
-                if result.custom_data:
-                    context += f"# {result.source}:\n{result.custom_data}\n"
+        # Build optimized, deduplicated context for this chunk
+        context = build_chunk_context(summary, chunk_retrieval_results, include_token_count=True)
 
         logger.info(f"Context ready ({len(context)} chars)")
         logger.debug(f"ExtractorAgent: Full Context = {context}")
 
         # 4. Fallback: if no retrieval results, use single default store
-        if not retrieval_results:
+        if not chunk_retrieval_results:
             logger.warning("No retrieval results, falling back to default vector store")
             vector_store = self.settings.get("vector_store")
             if not vector_store:
@@ -604,9 +515,12 @@ class ExtractorAgent(GraphAideAgent):
                     import json
                     from datetime import datetime
 
-                    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")[:-3]  # Include milliseconds
+                    batch_info = ""
+                    if state.get("batch_index") is not None:
+                        batch_info = f"_Batch{state.get('batch_index')}"
                     pre_filter_filename = (
-                        f"GraphAide_KG_Extract_PreFilter_{timestamp}.json"
+                        f"GraphAide_KG_Extract_PreFilter_{timestamp}{batch_info}.json"
                     )
 
                     # Convert to dict for JSON serialization

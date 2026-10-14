@@ -54,9 +54,33 @@ class KGExtractInput(BaseModel):
         description="Optional path to ontology file (.owl, .ttl, .nt)",
         alias="ontology_file_path",
     )
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate_paths
+
+    @classmethod
+    def validate_paths(cls, v):
+        """Convert Path objects to strings."""
+        if v is None:
+            return v
+        # Convert any PathLike object to string
+        return v
+
+    def __init__(self, **data):
+        """Convert Path objects to strings before validation."""
+        from pathlib import Path
+        for key in ['file_path', 'ontology_path']:
+            if key in data and isinstance(data[key], Path):
+                data[key] = str(data[key])
+        super().__init__(**data)
     max_tokens_per_segment: int = Field(
-        4096,
-        description="Max tokens per text segment. Reduce if LLM calls fail (e.g., 2048)",
+        8192,
+        description="Max tokens per text segment. Presets: small=4096, medium=8192, large=16384, xlarge=32768. Reduce if LLM calls fail.",
+    )
+    context_window_mode: str = Field(
+        "medium",
+        description="Preset context window size: small (4096), medium (8192, default), large (16384), xlarge (32768).",
     )
     vector_stores: Optional[List[VectorStoreConfig]] = Field(
         None,
@@ -130,8 +154,12 @@ class KGExtractMergeInput(BaseModel):
         alias="ontology_file_path",
     )
     max_tokens_per_segment: int = Field(
-        4096,
-        description="Max tokens per text segment. Reduce if LLM calls fail (e.g., 2048)",
+        8192,
+        description="Max tokens per text segment. Presets: small=4096, medium=8192, large=16384, xlarge=32768. Reduce if LLM calls fail.",
+    )
+    context_window_mode: str = Field(
+        "medium",
+        description="Preset context window size: small (4096), medium (8192, default), large (16384), xlarge (32768).",
     )
     vector_stores: Optional[List[VectorStoreConfig]] = Field(
         None,
@@ -186,6 +214,14 @@ class KGIngestInput(BaseModel):
         None,
         description="Path to JSONL file for parallel batch ingestion. Either file_path, input_text, or jsonl_file_path must be provided."
     )
+
+    def __init__(self, **data):
+        """Convert Path objects to strings before validation."""
+        from pathlib import Path
+        for key in ['file_path', 'jsonl_file_path', 'ontology_path']:
+            if key in data and isinstance(data[key], Path):
+                data[key] = str(data[key])
+        super().__init__(**data)
     jsonl_field_name: str = Field(
         "text",
         description="Field name to extract from each JSONL line (used only if jsonl_file_path is provided)"
@@ -200,8 +236,12 @@ class KGIngestInput(BaseModel):
         alias="ontology_file_path",
     )
     max_tokens_per_segment: int = Field(
-        4096,
-        description="Max tokens per text segment. Reduce if LLM calls fail (e.g., 2048)",
+        8192,
+        description="Max tokens per text segment. Presets: small=4096, medium=8192, large=16384, xlarge=32768. Reduce if LLM calls fail.",
+    )
+    context_window_mode: str = Field(
+        "medium",
+        description="Preset context window size: small (4096), medium (8192, default), large (16384), xlarge (32768).",
     )
     clear_existing: bool = Field(
         False,

@@ -20,6 +20,7 @@ class WorkflowConfig:
         model_config: LLM configuration (provider, model name, etc.)
         graphdb_config: Graph database connection config (Neo4j, Neptune)
         vector_config: Vector store config (ChromaDB path, etc.)
+        vector_configs: List of vector store configs (for multi-store retrieval)
         clear_existing_graph: Whether to clear existing graph before ingest
         max_segments: Limit number of segments to process
         retry_max_attempts: Max retry attempts for failed operations
@@ -30,6 +31,7 @@ class WorkflowConfig:
     model_config: Optional[ModelConfig] = None
     graphdb_config: Optional[GraphDBConfig] = None
     vector_config: Optional[VectorDBConfig] = None
+    vector_configs: Optional[list] = None
 
     clear_existing_graph: bool = False
     max_segments: Optional[int] = None
@@ -55,6 +57,7 @@ class WorkflowConfig:
             model_config=other.model_config or self.model_config,
             graphdb_config=other.graphdb_config or self.graphdb_config,
             vector_config=other.vector_config or self.vector_config,
+            vector_configs=other.vector_configs or self.vector_configs,
             clear_existing_graph=other.clear_existing_graph or self.clear_existing_graph,
             max_segments=other.max_segments or self.max_segments,
             retry_max_attempts=other.retry_max_attempts if other.retry_max_attempts != 3 else self.retry_max_attempts,

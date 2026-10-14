@@ -1,0 +1,117 @@
+{
+  "source_file": "PNNL_About.pdf",
+  "file_path": "C:\\Users\\puro755\\localcode\\GraphAideV2\\graphaide_public_uv\\src\\graphgen\\data\\PNNL_About.pdf",
+  "ontology_file_path": "C:\\Users\\puro755\\localcode\\GraphAideV2\\graphaide_public_uv\\src\\graphgen\\data\\ontology_cyber.nt",
+  "segments_processed": 3,
+  "filtering_applied": false,
+  "filter_stats": null,
+  "nodes": [
+    {
+      "node_name": "Albert Einstein",
+      "node_type": "Person",
+      "english_name": "Albert Einstein",
+      "wikidata_id": "Q937",
+      "node_id": "Albert Einstein",
+      "raw_source": null,
+      "character_span": {
+        "start": 0,
+        "end": 15
+      },
+      "token_span": {
+        "start": 0,
+        "end": 2
+      },
+      "chunk_id": null,
+      "raw_source_line": "Albert Einstein was a theoretical physicist."
+    },
+    {
+      "node_name": "theoretical physicist",
+      "node_type": "Profession",
+      "english_name": "theoretical physicist",
+      "wikidata_id": null,
+      "node_id": "theoretical physicist",
+      "raw_source": null,
+      "character_span": {
+        "start": 22,
+        "end": 42
+      },
+      "token_span": {
+        "start": 4,
+        "end": 6
+      },
+      "chunk_id": null,
+      "raw_source_line": "Albert Einstein was a theoretical physicist."
+    },
+    {
+      "node_name": "Artificial Intelligence",
+      "node_type": "Technology",
+      "english_name": "Artificial Intelligence",
+      "wikidata_id": null,
+      "node_id": "Artificial Intelligence",
+      "raw_source": null,
+      "character_span": null,
+      "token_span": null,
+      "chunk_id": "abc123456789",
+      "raw_source_line": "Artificial Intelligence is a rapidly evolving field that impacts various sectors."
+    },
+    {
+      "node_name": "Machine Learning",
+      "node_type": "Subfield",
+      "english_name": "Machine Learning",
+      "wikidata_id": "Q2539",
+      "node_id": "Machine Learning",
+      "raw_source": null,
+      "character_span": null,
+      "token_span": null,
+      "chunk_id": "abc123456789",
+      "raw_source_line": "Through techniques such as machine learning, computers can learn from data."
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "Albert Einstein",
+      "target_id": "theoretical physicist",
+      "edge_type": "occupation",
+      "argument_role": null,
+      "start_datetime": null,
+      "end_datetime": null,
+      "raw_source": null,
+      "character_span": {
+        "start": 16,
+        "end": 21
+      },
+      "token_span": {
+        "start": 3,
+        "end": 3
+      },
+      "chunk_id": null,
+      "raw_source_line": "Albert Einstein was a theoretical physicist."
+    },
+    {
+      "source_id": "Artificial Intelligence",
+      "target_id": "Machine Learning",
+      "edge_type": "is_subfield_of",
+      "argument_role": "categorization",
+      "start_datetime": null,
+      "end_datetime": null,
+      "raw_source": null,
+      "character_span": null,
+      "token_span": null,
+      "chunk_id": "abc123456789",
+      "raw_source_line": "Artificial Intelligence and Machine Learning are closely interconnected fields."
+    },
+    {
+      "source_id": "Machine Learning",
+      "target_id": "Artificial Intelligence",
+      "edge_type": "belongs_to",
+      "argument_role": "relation",
+      "start_datetime": null,
+      "end_datetime": null,
+      "raw_source": null,
+      "character_span": null,
+      "token_span": null,
+      "chunk_id": "abc123456789",
+      "raw_source_line": "Machine Learning is a crucial component of Artificial Intelligence."
+    }
+  ]
+}

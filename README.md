@@ -8,13 +8,17 @@
 
 ## 30-Second Example
 
+### Simplest (Recommended)
 ```python
-from graphaide import GraphAide, ModelConfig, GraphDBConfig, get_sample_data_path
+from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
-# Setup (once)
+# Setup (once) - uses default Neo4j at localhost:7687
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o"),
-    graphdb_config=GraphDBConfig(uri="neo4j://localhost:7687", username="neo4j", password="password"),
+    model_config=ModelConfig(
+        provider="openai", 
+        model_name="gpt-4o",
+        api_key="sk-..."
+    )
 )
 
 # Extract from sample document
@@ -22,13 +26,21 @@ sample_pdf = get_sample_data_path("PNNL_About.pdf")
 sample_ontology = get_sample_data_path("ontology_cyber.nt")
 result = graphaide.extract(file_path=sample_pdf, ontology_path=sample_ontology)
 print(f"✓ Extracted {len(result.nodes)} entities, {len(result.edges)} relationships")
+```
 
-# Load to Neo4j
-graphaide.ingest(file_path=sample_pdf, ontology_path=sample_ontology)
+### With Custom Neo4j
+```python
+from graphaide import GraphAide, ModelConfig, GraphDBConfig, get_sample_data_path
 
-# Query the graph
+graphaide = GraphAide(
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-..."),
+    graphdb_config=GraphDBConfig(uri="neo4j://my-server:7687", username="neo4j", password="password"),
+)
+
+sample_pdf = get_sample_data_path("PNNL_About.pdf")
+result = graphaide.extract(file_path=sample_pdf)
+graphaide.ingest(file_path=sample_pdf)
 answer = graphaide.query("What organizations are mentioned?")
-print(f"✓ Answer: {answer.answer}")
 ```
 
 ## What It Does
@@ -47,10 +59,13 @@ print(f"✓ Answer: {answer.answer}")
 
 ## Documentation
 
-📚 **Quick links:**
-- **[QUICKSTART.md](https://github.com/pnnl-int/GraphAide/blob/develop/QUICKSTART.md)** — 5-minute setup and CLI examples
-- **[ARCHITECTURE.md](https://github.com/pnnl-int/GraphAide/blob/develop/ARCHITECTURE.md)** — Technical deep dive (agents, workflows, patterns)
-- **[REFERENCE.md](https://github.com/pnnl-int/GraphAide/blob/develop/REFERENCE.md)** — Complete API/CLI reference
+📚 **Full documentation:** https://pnnl.github.io/GraphAide
+
+**Quick links:**
+- **[Installation](https://pnnl.github.io/GraphAide/installation/)** — Get started in minutes
+- **[Configuration](https://pnnl.github.io/GraphAide/configuration/)** — Set up LLMs, databases, embeddings
+- **[Extraction Guide](https://pnnl.github.io/GraphAide/extraction/)** — Learn entity/relationship extraction
+- **[API Reference](https://pnnl.github.io/GraphAide/api/)** — Complete API documentation
 
 ## Install
 
@@ -137,9 +152,21 @@ Pacific Northwest National Laboratory is a multiprogram
 national laboratory operated for the US Department of Energy
 (DOE) by Battelle Memorial Institute under Contract No. DEAC05-76RL01830. PNNL Information Release PNNL-SA205147.
 
-## License
-Please refer LICENSE and DISCLAIMER files for details.
+## License & Legal
 
+GraphAide is licensed under the **BSD 2-Clause License** (Simplified BSD).
+
+**Important:** Please review the following legal documents:
+
+- **[LICENSE.txt](LICENSE.txt)** — Full license terms
+- **[DISCLAIMER](DISCLAIMER)** — Limitations and use restrictions
+- **[ACKNOWLEDGMENT](ACKNOWLEDGMENT)** — Credits, funding, citations
+- **[NOTICE](NOTICE)** — Software identification and legal notices
+
+See the [Legal section](https://pnnl.github.io/GraphAide/legal/) in documentation for more details.
 
 ## Project status
-Active development
+
+**Status:** Active development  
+**Version:** 0.5.29  
+**Last Updated:** October 2026
