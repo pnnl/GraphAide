@@ -45,7 +45,10 @@ from graphgen.v2.graphaide_api import GraphAide
 
 # Sample data access
 from pathlib import Path
-import sys
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 def get_sample_data_path(filename: str = None) -> Path:
     """Get path to sample data files for demonstrations.
@@ -66,26 +69,17 @@ def get_sample_data_path(filename: str = None) -> Path:
         # Get specific file
         pdf_path = get_sample_data_path("PNNL_About.pdf")
     """
-    # Check multiple locations: env root → site-packages → project root
-    candidates = [
-        Path(sys.prefix) / "data",           # Installed via data_files
-        Path(sys.prefix) / "sample_data",    # Alternative install location
-        Path(__file__).parent.parent.parent / "data",  # Local project root
-    ]
-
-    sample_dir = None
-    for candidate in candidates:
-        if candidate.exists():
-            sample_dir = candidate
-            break
-
-    if not sample_dir:
-        # Fallback to project root (for development)
-        sample_dir = Path(__file__).parent.parent.parent / "data"
+    try:
+        # Use importlib.resources - works with wheels, editable installs, zipped packages
+        data_traversable = files('graphgen') / 'data'
+        data_dir = Path(str(data_traversable))
+    except Exception:
+        # Fallback for development: src/graphgen/data
+        data_dir = Path(__file__).parent.parent / "graphgen" / "data"
 
     if filename:
-        return sample_dir / filename
-    return sample_dir
+        return data_dir / filename
+    return data_dir
 
 try:
     from importlib.metadata import version

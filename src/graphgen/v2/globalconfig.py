@@ -12,7 +12,7 @@ PROJECT_ROOT = global_config_path.parent.parent.parent.parent
 
 # Templates: check mounted path (Docker) → package path → environment root → project root
 _mounted_templates = Path("/app/templates")
-_package_templates = global_config_path.parent / "templates"
+_package_templates = global_config_path.parent.parent / "templates"
 _env_templates = Path(sys.prefix) / "templates"
 _root_templates = PROJECT_ROOT / "templates"
 

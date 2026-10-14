@@ -70,7 +70,7 @@ class GraphAide:
     def __init__(
         self,
         model_config: ModelConfig,
-        graphdb_config: GraphDBConfig,
+        graphdb_config: GraphDBConfig | None = None,
         vector_configs: VectorDBConfig | list[VectorDBConfig] | None = None,
         workflow_config: WorkflowConfig | None = None,
     ):
@@ -80,8 +80,10 @@ class GraphAide:
             model_config: LLM configuration (required).
                 Specifies provider (openai, anthropic, google, bedrock),
                 model name, API key, and embedding model.
-            graphdb_config: Neo4j database configuration (required).
+            graphdb_config: Neo4j database configuration (optional).
                 Specifies URI, username, password, and database name.
+                If not provided, defaults to localhost:7687 with neo4j:password.
+                Graph operations will gracefully skip if Neo4j is not available.
             vector_configs: Vector store configuration(s) (optional).
                 Can be a single VectorDBConfig or a list of VectorDBConfig objects.
                 For multi-retriever RAG with multiple vector stores.
@@ -92,7 +94,7 @@ class GraphAide:
                 Use this to customize WorkflowManager behavior.
 
         Raises:
-            ValueError: If model_config or graphdb_config is None.
+            ValueError: If model_config is None.
 
         Example - Single vector store:
             from graphaide import VectorDBConfig, RetrieveType
@@ -134,8 +136,17 @@ class GraphAide:
         """
         if model_config is None:
             raise ValueError("model_config is required")
+
+        # Use default Neo4j config if not provided
         if graphdb_config is None:
-            raise ValueError("graphdb_config is required")
+            graphdb_config = GraphDBConfig(
+                provider="neo4j",
+                uri="neo4j://localhost:7687",
+                username="neo4j",
+                password="password",
+                database="neo4j",
+            )
+            logger.info("Using default Neo4j configuration: neo4j://localhost:7687")
 
         self.model_config = model_config
         self.graphdb_config = graphdb_config
@@ -392,7 +403,7 @@ class GraphAide:
             logger.debug(f"Converted {len(vector_stores)} vector_configs to VectorStoreConfig")
 
         # Auto-detect JSONL files and route to parallel extraction
-        if file_path and file_path.lower().endswith(".jsonl"):
+        if file_path and str(file_path).lower().endswith(".jsonl"):
             logger.info(f"Detected JSONL file in extract: {file_path}")
             logger.debug(
                 f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}, merge={merge}"
@@ -414,6 +425,7 @@ class GraphAide:
                     "merge_output": merge,  # Flag for result_packer to output only merged nodes
                     **kwargs,
                 },
+                config_overrides=self.workflow_config,
             )
 
             # Flush any pending LangFuse traces to ensure they reach the cloud
@@ -445,6 +457,7 @@ class GraphAide:
                 "merge_output": merge,
                 **kwargs,
             },
+            config_overrides=self.workflow_config,
         )
 
         # Flush any pending LangFuse traces to ensure they reach the cloud
@@ -582,7 +595,7 @@ class GraphAide:
             logger.debug(f"Converted {len(vector_stores)} vector_configs to VectorStoreConfig")
 
         # Auto-detect JSONL files and route to parallel ingestion
-        if file_path and file_path.lower().endswith(".jsonl"):
+        if file_path and str(file_path).lower().endswith(".jsonl"):
             logger.info(f"Detected JSONL file: {file_path}")
             logger.debug(
                 f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}"
