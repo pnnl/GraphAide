@@ -34,6 +34,8 @@ Whether you work with PDFs, text files, images, or web data, GraphAide can:
 **1. Install GraphAide:**
 ```bash
 pip install graphaide
+# Or for faster installation with uv:
+# uv pip install graphaide
 ```
 
 **2. Extract knowledge graph:**
