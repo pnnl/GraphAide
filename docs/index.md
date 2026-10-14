@@ -4,8 +4,6 @@
   <img src="assets/logo.png" alt="GraphAide Logo" width="300">
 </div>
 
-## What is GraphAide?
-
 **GraphAide** is a multi-agentic platform for building intelligent applications powered by Large Language Models (LLMs). Knowledge graph construction is one powerful example—transforming documents into queryable knowledge graphs by extracting entities and relationships. But GraphAide's capabilities extend far beyond KGs.
 
 Whether you work with PDFs, text files, images, or web data, GraphAide can:
