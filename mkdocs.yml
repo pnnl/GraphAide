@@ -1,0 +1,82 @@
+site_name: GraphAide
+site_description: Build knowledge graphs from any document with LLMs and Neo4j
+site_author: Sumit Purohit
+site_url: https://pnnl.github.io/GraphAide
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+  icon:
+    logo: material/database-outline
+  palette:
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/lightbulb
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - toc.follow
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: google
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:pymdownx.emoji.twemoji
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - tables
+  - attr_list
+
+nav:
+  - Home: index.md
+  - Installation: installation/index.md
+  - Configuration: configuration/index.md
+  - Extraction:
+      - Getting Started: extraction/index.md
+      - Using Ontology: extraction/ontology.md
+  - Ingestion: ingestion/index.md
+  - Vector Stores:
+      - Setup & Loading: vector-stores/setup.md
+      - Using in Extraction: vector-stores/usage.md
+  - Resources: resources.md
+  - API Reference: api.md
+  - Legal: legal/index.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/pnnl/GraphAide
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/graphaide
+
+copyright: Copyright &copy; 2024 Pacific Northwest National Laboratory. All rights reserved.

@@ -59,10 +59,13 @@ answer = graphaide.query("What organizations are mentioned?")
 
 ## Documentation
 
-📚 **Quick links:**
-- **[QUICKSTART.md](https://github.com/pnnl-int/GraphAide/blob/develop/QUICKSTART.md)** — 5-minute setup and CLI examples
-- **[ARCHITECTURE.md](https://github.com/pnnl-int/GraphAide/blob/develop/ARCHITECTURE.md)** — Technical deep dive (agents, workflows, patterns)
-- **[REFERENCE.md](https://github.com/pnnl-int/GraphAide/blob/develop/REFERENCE.md)** — Complete API/CLI reference
+📚 **Full documentation:** https://pnnl.github.io/GraphAide
+
+**Quick links:**
+- **[Installation](https://pnnl.github.io/GraphAide/installation/)** — Get started in minutes
+- **[Configuration](https://pnnl.github.io/GraphAide/configuration/)** — Set up LLMs, databases, embeddings
+- **[Extraction Guide](https://pnnl.github.io/GraphAide/extraction/)** — Learn entity/relationship extraction
+- **[API Reference](https://pnnl.github.io/GraphAide/api/)** — Complete API documentation
 
 ## Install
 
@@ -149,9 +152,21 @@ Pacific Northwest National Laboratory is a multiprogram
 national laboratory operated for the US Department of Energy
 (DOE) by Battelle Memorial Institute under Contract No. DEAC05-76RL01830. PNNL Information Release PNNL-SA205147.
 
-## License
-Please refer LICENSE and DISCLAIMER files for details.
+## License & Legal
 
+GraphAide is licensed under the **BSD 2-Clause License** (Simplified BSD).
+
+**Important:** Please review the following legal documents:
+
+- **[LICENSE.txt](LICENSE.txt)** — Full license terms
+- **[DISCLAIMER](DISCLAIMER)** — Limitations and use restrictions
+- **[ACKNOWLEDGMENT](ACKNOWLEDGMENT)** — Credits, funding, citations
+- **[NOTICE](NOTICE)** — Software identification and legal notices
+
+See the [Legal section](https://pnnl.github.io/GraphAide/legal/) in documentation for more details.
 
 ## Project status
-Active development
+
+**Status:** Active development  
+**Version:** 0.5.29  
+**Last Updated:** October 2026
