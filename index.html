@@ -509,17 +509,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#with-custom-neo4j" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With Custom Neo4j
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -552,6 +541,17 @@
     <span class="md-ellipsis">
       
         Get Help
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
       
     </span>
   </a>
@@ -1013,17 +1013,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#with-custom-neo4j" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With Custom Neo4j
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1056,6 +1045,17 @@
     <span class="md-ellipsis">
       
         Get Help
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
       
     </span>
   </a>
@@ -1164,19 +1164,6 @@
 <span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">sample_pdf</span><span class="p">,</span> <span class="n">ontology_path</span><span class="o">=</span><span class="n">sample_ontology</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Extracted </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="si">}</span><span class="s2"> entities, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span><span class="si">}</span><span class="s2"> relationships"</span><span class="p">)</span>
 </code></pre></div></p>
-<h3 id="with-custom-neo4j">With Custom Neo4j</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphAide</span><span class="p">,</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">GraphDBConfig</span><span class="p">,</span> <span class="n">get_sample_data_path</span>
-
-<span class="n">graphaide</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span>
-    <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"openai"</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">"gpt-4o"</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">"..."</span><span class="p">),</span>
-    <span class="n">graphdb_config</span><span class="o">=</span><span class="n">GraphDBConfig</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">"neo4j://my-server:7687"</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s2">"neo4j"</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">"password"</span><span class="p">),</span>
-<span class="p">)</span>
-
-<span class="n">sample_pdf</span> <span class="o">=</span> <span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"PNNL_About.pdf"</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">sample_pdf</span><span class="p">)</span>
-<span class="n">graphaide</span><span class="o">.</span><span class="n">ingest</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">sample_pdf</span><span class="p">)</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What organizations are mentioned?"</span><span class="p">)</span>
-</code></pre></div>
 <h2 id="use-cases">Use Cases</h2>
 <ul>
 <li><strong>Knowledge Management</strong> — Build searchable knowledge graphs from company documents</li>
@@ -1200,6 +1187,17 @@
 <li>🐛 Report issues on <a href="https://github.com/pnnl/GraphAide/issues">GitHub Issues</a></li>
 <li>💬 Ask questions via <a href="https://github.com/pnnl/GraphAide/discussions">GitHub Discussions</a></li>
 </ul>
+<h2 id="citation">Citation</h2>
+<p>If you use GraphAide in your research, please cite:</p>
+<div class="highlight"><pre><span></span><code><span class="nc">@inproceedings</span><span class="p">{</span><span class="nl">purohit2024graphaide</span><span class="p">,</span>
+<span class="w">  </span><span class="na">title</span><span class="p">=</span><span class="s">{GraphAide: Advanced Graph-Assisted Query and Reasoning System}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">author</span><span class="p">=</span><span class="s">{Purohit, Sumit and Chin, George and Mackey, Patrick S and Cottam, Joseph A}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">booktitle</span><span class="p">=</span><span class="s">{2024 IEEE International Conference on Big Data (BigData)}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">pages</span><span class="p">=</span><span class="s">{3485--3493}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">year</span><span class="p">=</span><span class="s">{2024}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">organization</span><span class="p">=</span><span class="s">{IEEE}</span>
+<span class="p">}</span>
+</code></pre></div>
 <h2 id="legal">Legal</h2>
 <p>Please review the important legal documents:</p>
 <ul>
