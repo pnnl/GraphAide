@@ -170,3 +170,14 @@ tests/notebooks/*.txt
 
 test_lm*.py
 test_*.txt
+
+# MkDocs build output
+site/
+
+# Temporary/experimental documentation files
+ARCHITECTURE_DIAGRAM.md
+QUICK_REFERENCE.md
+GraphAideV3.md
+diagramV3.svg
+tests/graphaide_platform_dark.svg
+GraphAide_KG_Extract_Merged_*.json
