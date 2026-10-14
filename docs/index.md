@@ -32,7 +32,7 @@ Whether you have PDFs, text files, images, or web data, GraphAide can:
 ```python
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
-# Setup (once) - uses default Neo4j at localhost:7687
+# Initialize GraphAide with your LLM
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
