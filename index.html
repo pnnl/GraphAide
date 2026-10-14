@@ -1096,41 +1096,46 @@
 </div>
 
 <h2 id="what-is-graphaide">What is GraphAide?</h2>
-<p><strong>GraphAide</strong> is a powerful, multi-agentic system that transforms your documents into queryable knowledge graphs using Large Language Models (LLMs) and Neo4j.</p>
-<p>Whether you have PDFs, text files, images, or web data, GraphAide can:
-- <strong>Extract</strong> entities and relationships automatically
-- <strong>Ground</strong> data to external sources like Wikidata for enrichment
-- <strong>Load</strong> everything into Neo4j for graph queries
-- <strong>Reason</strong> over your knowledge graph with natural language
-- <strong>Track</strong> where information came from with full provenance</p>
+<p><strong>GraphAide</strong> is a multi-agentic platform for building intelligent applications powered by Large Language Models (LLMs). Knowledge graph construction is one powerful example—transforming documents into queryable knowledge graphs by extracting entities and relationships. But GraphAide's capabilities extend far beyond KGs.</p>
+<p>Whether you work with PDFs, text files, images, or web data, GraphAide can:
+- <strong>Extract</strong> structured information and entities from any source
+- <strong>Process</strong> diverse data with multiple LLM providers and models
+- <strong>Ground</strong> information to external knowledge bases and sources
+- <strong>Build</strong> intelligent workflows with minimal setup
+- <strong>Track</strong> data provenance and attribution throughout
+- <strong>Scale</strong> from single documents to large datasets</p>
 <h2 id="why-graphaide">Why GraphAide?</h2>
 <table>
 <thead>
 <tr>
-<th>Feature</th>
+<th>Capability</th>
 <th>Benefit</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Multi-Model Support</strong></td>
-<td>Use OpenAI, Anthropic, Google, AWS Bedrock, or local models</td>
+<td><strong>Flexible LLM Support</strong></td>
+<td>Use OpenAI, Anthropic, Google, AWS Bedrock, or local models—choose what works for you</td>
 </tr>
 <tr>
-<td><strong>Flexible Configuration</strong></td>
-<td>Customize LLMs, embeddings, vector stores, and databases</td>
+<td><strong>Extensible Architecture</strong></td>
+<td>Build custom agents and workflows beyond KG construction</td>
 </tr>
 <tr>
 <td><strong>Multi-Retriever RAG</strong></td>
-<td>Enhance extraction with multiple knowledge sources simultaneously</td>
+<td>Combine multiple knowledge sources for richer, more accurate results</td>
+</tr>
+<tr>
+<td><strong>Any Data Source</strong></td>
+<td>Extract from PDFs, text, images, APIs, databases, or web data</td>
 </tr>
 <tr>
 <td><strong>Production Ready</strong></td>
-<td>Deploy as CLI, Docker, Python library, or REST API</td>
+<td>Deploy as CLI, Docker, Python library, REST API, or embedded</td>
 </tr>
 <tr>
-<td><strong>Enterprise Ready</strong></td>
-<td>Track provenance, support compliance and auditing</td>
+<td><strong>Enterprise Grade</strong></td>
+<td>Track provenance, ensure compliance, audit all operations</td>
 </tr>
 </tbody>
 </table>
@@ -1138,7 +1143,7 @@
 <h3 id="30-second-example-simplest">30-Second Example (Simplest)</h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphAide</span><span class="p">,</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">get_sample_data_path</span>
 
-
+<span class="c1"># Initialize GraphAide with your LLM.</span>
 <span class="n">graphaide</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span>
     <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="p">(</span>
         <span class="n">provider</span><span class="o">=</span><span class="s2">"openai"</span><span class="p">,</span> 
