@@ -8,13 +8,17 @@
 
 ## 30-Second Example
 
+### Simplest (Recommended)
 ```python
-from graphaide import GraphAide, ModelConfig, GraphDBConfig, get_sample_data_path
+from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
-# Setup (once)
+# Setup (once) - uses default Neo4j at localhost:7687
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o"),
-    graphdb_config=GraphDBConfig(uri="neo4j://localhost:7687", username="neo4j", password="password"),
+    model_config=ModelConfig(
+        provider="openai", 
+        model_name="gpt-4o",
+        api_key="sk-..."
+    )
 )
 
 # Extract from sample document
@@ -22,13 +26,21 @@ sample_pdf = get_sample_data_path("PNNL_About.pdf")
 sample_ontology = get_sample_data_path("ontology_cyber.nt")
 result = graphaide.extract(file_path=sample_pdf, ontology_path=sample_ontology)
 print(f"✓ Extracted {len(result.nodes)} entities, {len(result.edges)} relationships")
+```
 
-# Load to Neo4j
-graphaide.ingest(file_path=sample_pdf, ontology_path=sample_ontology)
+### With Custom Neo4j
+```python
+from graphaide import GraphAide, ModelConfig, GraphDBConfig, get_sample_data_path
 
-# Query the graph
+graphaide = GraphAide(
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-..."),
+    graphdb_config=GraphDBConfig(uri="neo4j://my-server:7687", username="neo4j", password="password"),
+)
+
+sample_pdf = get_sample_data_path("PNNL_About.pdf")
+result = graphaide.extract(file_path=sample_pdf)
+graphaide.ingest(file_path=sample_pdf)
 answer = graphaide.query("What organizations are mentioned?")
-print(f"✓ Answer: {answer.answer}")
 ```
 
 ## What It Does
