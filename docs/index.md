@@ -29,12 +29,18 @@ Whether you work with PDFs, text files, images, or web data, GraphAide can:
 
 ## Quick Start
 
-### 30-Second Example (Simplest)
+### Basic Usage
 
+**1. Install GraphAide:**
+```bash
+pip install graphaide
+```
+
+**2. Extract knowledge graph:**
 ```python
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
-# Initialize GraphAide with your LLM.
+# Initialize GraphAide with your LLM
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
