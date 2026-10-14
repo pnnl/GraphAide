@@ -134,65 +134,6 @@ print(f"Processed {result.segments_processed} documents")
 
 ## Querying Your Knowledge Graph
 
-### Basic Neo4j Queries
-
-After ingesting, query your graph in Neo4j Browser at `http://localhost:7474`:
-
-```cypher
-// Find all organizations
-MATCH (n:Organization) RETURN n
-
-// Find relationships between people and organizations
-MATCH (p:Person)-[r:worksFor]->(o:Organization)
-RETURN p.name, o.name
-
-// Find all entities of a type
-MATCH (n:Technology) RETURN n.name, COUNT(*) as mentions
-
-// Complex: find people working for organizations in a specific location
-MATCH (p:Person)-[:worksFor]->(o:Organization)
-WHERE o.location = "Seattle"
-RETURN p.name, o.name
-
-// Find connected components (subgraphs)
-MATCH (n)-[r*]-(m)
-RETURN n, r, m
-LIMIT 50
-```
-
-### Using GraphAide Query Function
-
-```python
-answer = graphaide.query("What organizations are mentioned?")
-print(answer)
-
-answer = graphaide.query("Who works for PNNL?")
-print(answer)
-
-answer = graphaide.query("What technologies are used?")
-print(answer)
-```
-
-## LLM Provider Comparison
-
-| Provider | Cost | Speed | Quality | Setup |
-|----------|------|-------|---------|-------|
-| **OpenAI** | Moderate | Fast | Excellent | Easy (API key) |
-| **Anthropic** | Moderate | Fast | Excellent | Easy (API key) |
-| **Google** | Low | Medium | Good | Moderate |
-| **AWS Bedrock** | Low | Medium | Good | Complex (AWS creds) |
-| **LM Studio** | Free | Slow | Fair | Hard (local server) |
-
-### Recommended Combinations
-
-| Scenario | Provider | Model | Why |
-|----------|----------|-------|-----|
-| **Quick Start** | OpenAI | gpt-4o | Best quality, fast setup |
-| **Cost Conscious** | OpenAI | gpt-4o-mini | Good quality, lower cost |
-| **Privacy** | LMStudio | Gemma 27B | Local, no API calls |
-| **Enterprise** | AWS Bedrock | Claude 3.5 | Cost-effective at scale |
-| **Local** | Anthropic | Claude 3.5 | Fast, no local infrastructure |
-
 ## Vector Store Comparison
 
 | Store | Speed | Memory | Features | Production |

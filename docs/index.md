@@ -58,22 +58,6 @@ result = graphaide.extract(file_path=sample_pdf, ontology_path=sample_ontology)
 print(f"✓ Extracted {len(result.nodes)} entities, {len(result.edges)} relationships")
 ```
 
-### With Custom Neo4j
-
-```python
-from graphaide import GraphAide, ModelConfig, GraphDBConfig, get_sample_data_path
-
-graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
-    graphdb_config=GraphDBConfig(uri="neo4j://my-server:7687", username="neo4j", password="password"),
-)
-
-sample_pdf = get_sample_data_path("PNNL_About.pdf")
-result = graphaide.extract(file_path=sample_pdf)
-graphaide.ingest(file_path=sample_pdf)
-answer = graphaide.query("What organizations are mentioned?")
-```
-
 ## Use Cases
 
 - **Knowledge Management** — Build searchable knowledge graphs from company documents
@@ -97,6 +81,21 @@ Start with **[Installation](installation/index.md)** to get GraphAide running, t
 - 📖 Check [Resources](resources.md) for tutorials and examples
 - 🐛 Report issues on [GitHub Issues](https://github.com/pnnl/GraphAide/issues)
 - 💬 Ask questions via [GitHub Discussions](https://github.com/pnnl/GraphAide/discussions)
+
+## Citation
+
+If you use GraphAide in your research, please cite:
+
+```bibtex
+@inproceedings{purohit2024graphaide,
+  title={GraphAide: Advanced Graph-Assisted Query and Reasoning System},
+  author={Purohit, Sumit and Chin, George and Mackey, Patrick S and Cottam, Joseph A},
+  booktitle={2024 IEEE International Conference on Big Data (BigData)},
+  pages={3485--3493},
+  year={2024},
+  organization={IEEE}
+}
+```
 
 ## Legal
 
