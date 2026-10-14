@@ -1,41 +1,10 @@
-<style>
-  .hero-section {
-    display: flex;
-    align-items: center;
-    gap: 40px;
-    margin-bottom: 40px;
-  }
-  .hero-text {
-    flex: 1;
-  }
-  .hero-logo {
-    flex: 0 0 300px;
-    text-align: center;
-  }
-  .hero-logo img {
-    width: 100%;
-    max-width: 300px;
-  }
-  h1 {
-    color: rgb(226, 166, 67);
-    font-weight: bold;
-    font-size: 2.5em;
-  }
-  .primary-accent {
-    color: rgb(226, 166, 67);
-  }
-</style>
+# Welcome to GraphAide
 
-<div class="hero-section">
-  <div class="hero-text">
-    <h1>Welcome to GraphAide</h1>
-  </div>
-  <div class="hero-logo">
-    <img src="assets/logo.png" alt="GraphAide Logo">
-  </div>
+<div align="center">
+  <img src="assets/logo.png" alt="GraphAide Logo" width="300">
 </div>
 
-## <span class="primary-accent">What is GraphAide?</span>
+## What is GraphAide?
 
 **GraphAide** is a multi-agentic platform for building intelligent applications powered by Large Language Models (LLMs). Knowledge graph construction is one powerful example—transforming documents into queryable knowledge graphs by extracting entities and relationships. But GraphAide's capabilities extend far beyond KGs.
 
