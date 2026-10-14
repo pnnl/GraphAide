@@ -69,7 +69,6 @@ nav:
       - Setup & Loading: vector-stores/setup.md
       - Using in Extraction: vector-stores/usage.md
   - Resources: resources.md
-  - API Reference: api.md
   - Legal: legal/index.md
 
 extra:

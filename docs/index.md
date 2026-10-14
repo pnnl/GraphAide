@@ -74,13 +74,13 @@ answer = graphaide.query("What organizations are mentioned?")
 
 ## What You'll Learn
 
-Start with **[Installation](installation/)** to get GraphAide running, then explore:
+Start with **[Installation](installation/index.md)** to get GraphAide running, then explore:
 
-1. **[Configuration](configuration/)** — Set up models, databases, and vector stores
-2. **[Extraction](extraction/)** — Extract entities and relationships from documents
+1. **[Configuration](configuration/index.md)** — Set up models, databases, and vector stores
+2. **[Extraction](extraction/index.md)** — Extract entities and relationships from documents
 3. **[Ontologies](extraction/ontology.md)** — Use domain knowledge to guide extraction
-4. **[Ingestion](ingestion/)** — Load extracted data into Neo4j
-5. **[Vector Stores](vector-stores/)** — Enhance extraction with semantic search
+4. **[Ingestion](ingestion/index.md)** — Load extracted data into Neo4j
+5. **[Vector Stores](vector-stores/setup.md)** — Enhance extraction with semantic search
 
 ## Get Help
 
@@ -96,4 +96,4 @@ Please review the important legal documents:
 
 ---
 
-**Ready to build your first knowledge graph?** Start with [Installation](installation/).
+**Ready to build your first knowledge graph?** Start with [Installation](installation/index.md).
