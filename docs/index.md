@@ -6,24 +6,26 @@
 
 ## What is GraphAide?
 
-**GraphAide** is a powerful, multi-agentic system that transforms your documents into queryable knowledge graphs using Large Language Models (LLMs) and Neo4j.
+**GraphAide** is a multi-agentic platform for building intelligent applications powered by Large Language Models (LLMs). Knowledge graph construction is one powerful example—transforming documents into queryable knowledge graphs by extracting entities and relationships. But GraphAide's capabilities extend far beyond KGs.
 
-Whether you have PDFs, text files, images, or web data, GraphAide can:
-- **Extract** entities and relationships automatically
-- **Ground** data to external sources like Wikidata for enrichment
-- **Load** everything into Neo4j for graph queries
-- **Reason** over your knowledge graph with natural language
-- **Track** where information came from with full provenance
+Whether you work with PDFs, text files, images, or web data, GraphAide can:
+- **Extract** structured information and entities from any source
+- **Process** diverse data with multiple LLM providers and models
+- **Ground** information to external knowledge bases and sources
+- **Build** intelligent workflows with minimal setup
+- **Track** data provenance and attribution throughout
+- **Scale** from single documents to large datasets
 
 ## Why GraphAide?
 
-| Feature | Benefit |
-|---------|---------|
-| **Multi-Model Support** | Use OpenAI, Anthropic, Google, AWS Bedrock, or local models |
-| **Flexible Configuration** | Customize LLMs, embeddings, vector stores, and databases |
-| **Multi-Retriever RAG** | Enhance extraction with multiple knowledge sources simultaneously |
-| **Production Ready** | Deploy as CLI, Docker, Python library, or REST API |
-| **Enterprise Ready** | Track provenance, support compliance and auditing |
+| Capability | Benefit |
+|----------|---------|
+| **Flexible LLM Support** | Use OpenAI, Anthropic, Google, AWS Bedrock, or local models—choose what works for you |
+| **Extensible Architecture** | Build custom agents and workflows beyond KG construction |
+| **Multi-Retriever RAG** | Combine multiple knowledge sources for richer, more accurate results |
+| **Any Data Source** | Extract from PDFs, text, images, APIs, databases, or web data |
+| **Production Ready** | Deploy as CLI, Docker, Python library, REST API, or embedded |
+| **Enterprise Grade** | Track provenance, ensure compliance, audit all operations |
 
 ## Quick Start
 
@@ -32,7 +34,7 @@ Whether you have PDFs, text files, images, or web data, GraphAide can:
 ```python
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
-# Initialize GraphAide with your LLM
+# Initialize GraphAide with your LLM.
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
