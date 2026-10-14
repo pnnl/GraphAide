@@ -32,12 +32,12 @@ Whether you have PDFs, text files, images, or web data, GraphAide can:
 ```python
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
-# Setup - uses default Neo4j at localhost:7687
+
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
         model_name="gpt-4o",
-        api_key="sk-..."
+        api_key="..."
     )
 )
 
@@ -54,7 +54,7 @@ print(f"✓ Extracted {len(result.nodes)} entities, {len(result.edges)} relation
 from graphaide import GraphAide, ModelConfig, GraphDBConfig, get_sample_data_path
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-..."),
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
     graphdb_config=GraphDBConfig(uri="neo4j://my-server:7687", username="neo4j", password="password"),
 )
 

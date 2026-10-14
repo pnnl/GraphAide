@@ -22,7 +22,7 @@ graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
         model_name="gpt-4o",
-        api_key="sk-..."
+        api_key="..."
     )
 )
 
