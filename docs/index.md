@@ -4,40 +4,72 @@
   <img src="assets/logo.png" alt="GraphAide Logo" width="300">
 </div>
 
-## What is GraphAide?
+**GraphAide** is a multi-agentic platform for building intelligent applications powered by Large Language Models (LLMs). Knowledge graph construction is one powerful example—transforming documents into queryable knowledge graphs by extracting entities and relationships. But GraphAide's capabilities extend far beyond KGs.
 
-**GraphAide** is a powerful, multi-agentic system that transforms your documents into queryable knowledge graphs using Large Language Models (LLMs) and Neo4j.
-
-Whether you have PDFs, text files, images, or web data, GraphAide can:
-- **Extract** entities and relationships automatically
-- **Ground** data to external sources like Wikidata for enrichment
-- **Load** everything into Neo4j for graph queries
-- **Reason** over your knowledge graph with natural language
-- **Track** where information came from with full provenance
+Whether you work with PDFs, text files, images, or web data, GraphAide can:
+- **Extract** structured information and entities from any source
+- **Process** diverse data with multiple LLM providers and models
+- **Ground** information to external knowledge bases and sources
+- **Build** intelligent workflows with minimal setup
+- **Track** data provenance and attribution throughout
+- **Scale** from single documents to large datasets
 
 ## Why GraphAide?
 
-| Feature | Benefit |
-|---------|---------|
-| **Multi-Model Support** | Use OpenAI, Anthropic, Google, AWS Bedrock, or local models |
-| **Flexible Configuration** | Customize LLMs, embeddings, vector stores, and databases |
-| **Multi-Retriever RAG** | Enhance extraction with multiple knowledge sources simultaneously |
-| **Production Ready** | Deploy as CLI, Docker, Python library, or REST API |
-| **Enterprise Ready** | Track provenance, support compliance and auditing |
+| Capability | Benefit |
+|----------|---------|
+| **Flexible LLM Support** | Use OpenAI, Anthropic, Google, AWS Bedrock, or local models—choose what works for you |
+| **Extensible Architecture** | Build custom agents and workflows beyond KG construction |
+| **Multi-Retriever RAG** | Combine multiple knowledge sources for richer, more accurate results |
+| **Any Data Source** | Extract from PDFs, text, images, APIs, databases, or web data |
+| **Production Ready** | Deploy as CLI, Docker, Python library, REST API, or embedded |
+| **Enterprise Grade** | Track provenance, ensure compliance, audit all operations |
 
 ## Quick Start
 
-### 30-Second Example (Simplest)
+### Setup Virtual Environment (Recommended)
 
+Before installing GraphAide, create an isolated environment to manage dependencies:
+
+**Option 1: Using uv (Fastest)** ⚡
+```bash
+uv venv graphaide-env
+# On macOS/Linux:
+source graphaide-env/bin/activate
+# On Windows:
+graphaide-env\Scripts\activate
+```
+
+**Option 2: Using Conda**
+```bash
+conda create -n graphaide python=3.12
+conda activate graphaide
+```
+
+### Basic Usage
+
+**1. Install GraphAide (latest version 0.6.2):**
+
+We recommend **uv** for fast, reliable installation:
+```bash
+uv pip install graphaide==0.6.2
+```
+
+Or use pip:
+```bash
+pip install graphaide==0.6.2
+```
+
+**2. Extract knowledge graph:**
 ```python
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
-# Setup - uses default Neo4j at localhost:7687
+# Initialize GraphAide with your LLM
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
-        model_name="gpt-4o",
-        api_key="sk-..."
+        model_name="gpt-4o-luna",
+        api_key="..."
     )
 )
 
@@ -46,22 +78,6 @@ sample_pdf = get_sample_data_path("PNNL_About.pdf")
 sample_ontology = get_sample_data_path("ontology_cyber.nt")
 result = graphaide.extract(file_path=sample_pdf, ontology_path=sample_ontology)
 print(f"✓ Extracted {len(result.nodes)} entities, {len(result.edges)} relationships")
-```
-
-### With Custom Neo4j
-
-```python
-from graphaide import GraphAide, ModelConfig, GraphDBConfig, get_sample_data_path
-
-graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-..."),
-    graphdb_config=GraphDBConfig(uri="neo4j://my-server:7687", username="neo4j", password="password"),
-)
-
-sample_pdf = get_sample_data_path("PNNL_About.pdf")
-result = graphaide.extract(file_path=sample_pdf)
-graphaide.ingest(file_path=sample_pdf)
-answer = graphaide.query("What organizations are mentioned?")
 ```
 
 ## Use Cases
@@ -74,19 +90,34 @@ answer = graphaide.query("What organizations are mentioned?")
 
 ## What You'll Learn
 
-Start with **[Installation](installation/)** to get GraphAide running, then explore:
+Start with **[Installation](installation/index.md)** to get GraphAide running, then explore:
 
-1. **[Configuration](configuration/)** — Set up models, databases, and vector stores
-2. **[Extraction](extraction/)** — Extract entities and relationships from documents
+1. **[Configuration](configuration/index.md)** — Set up models, databases, and vector stores
+2. **[Extraction](extraction/index.md)** — Extract entities and relationships from documents
 3. **[Ontologies](extraction/ontology.md)** — Use domain knowledge to guide extraction
-4. **[Ingestion](ingestion/)** — Load extracted data into Neo4j
-5. **[Vector Stores](vector-stores/)** — Enhance extraction with semantic search
+4. **[Ingestion](ingestion/index.md)** — Load extracted data into Neo4j
+5. **[Vector Stores](vector-stores/setup.md)** — Enhance extraction with semantic search
 
 ## Get Help
 
 - 📖 Check [Resources](resources.md) for tutorials and examples
 - 🐛 Report issues on [GitHub Issues](https://github.com/pnnl/GraphAide/issues)
 - 💬 Ask questions via [GitHub Discussions](https://github.com/pnnl/GraphAide/discussions)
+
+## Citation
+
+If you use GraphAide in your research, please cite:
+
+```bibtex
+@inproceedings{purohit2024graphaide,
+  title={GraphAide: Advanced Graph-Assisted Query and Reasoning System},
+  author={Purohit, Sumit and Chin, George and Mackey, Patrick S and Cottam, Joseph A},
+  booktitle={2024 IEEE International Conference on Big Data (BigData)},
+  pages={3485--3493},
+  year={2024},
+  organization={IEEE}
+}
+```
 
 ## Legal
 
@@ -96,4 +127,4 @@ Please review the important legal documents:
 
 ---
 
-**Ready to build your first knowledge graph?** Start with [Installation](installation/).
+**Ready to build your first knowledge graph?** Start with [Installation](installation/index.md).

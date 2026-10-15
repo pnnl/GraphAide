@@ -167,38 +167,48 @@ def build_chunk_context(
     """
     context_parts: List[str] = []
 
-    # 1. Ontology types (deduplicated as sets)
+    # 1. Get types and definitions
     node_types, edge_types = deduplicate_types(summary, retrieval_results)
-
-    if node_types or edge_types:
-        context_parts.append("# Ontology Context")
-        context_parts.append(f"Node Types: {', '.join(sorted(node_types))}")
-        context_parts.append(f"Edge Types: {', '.join(sorted(edge_types))}")
-        context_parts.append("Make sure to assign node types and edge types from the lists above.\n")
-
-    # 2. Definitions (deduplicated as dicts)
     node_definitions, edge_definitions = deduplicate_definitions(summary, retrieval_results)
+    node_examples = summary.ontology_node_examples if summary else {}
+    edge_examples = summary.ontology_edge_examples if summary else {}
+
+    # 2. Node and Edge Types with Definitions and Examples (no separate list)
+    if node_definitions or edge_definitions:
+        context_parts.append("# Node and Edge Types")
+        context_parts.append("Below are the node and edge types with their definitions and examples. Extract entities and relationships using ONLY these types.")
+        context_parts.append("Note: Type names are listed without brackets. In examples, text in [brackets] represents specific instances of that type.\n")
 
     if node_definitions:
-        context_parts.append("# Node Type Definitions")
+        context_parts.append("## Node Types")
         for node_type, definition in sorted(node_definitions.items()):
-            context_parts.append(f"- {node_type}: {definition}")
+            line = f"- {node_type}: {definition}"
+            # Append examples (text snippets with bracketed entity names)
+            if node_type in node_examples:
+                examples_text = "; ".join(node_examples[node_type][:3])
+                line += f" (Examples: {examples_text})"
+            context_parts.append(line)
         context_parts.append("")
 
     if edge_definitions:
-        context_parts.append("# Edge Type Definitions")
+        context_parts.append("## Edge Types")
         for edge_type, definition in sorted(edge_definitions.items()):
-            context_parts.append(f"- {edge_type}: {definition}")
+            line = f"- {edge_type}: {definition}"
+            # Append examples (text snippets showing relationships)
+            if edge_type in edge_examples:
+                examples_text = "; ".join(edge_examples[edge_type][:3])
+                line += f" (Examples: {examples_text})"
+            context_parts.append(line)
         context_parts.append("")
 
-    # 3. Add store descriptions
+    # 5. Add store descriptions
     for result in retrieval_results:
         if result.store_description:
             context_parts.append(f"[Vector Store: {result.source}]")
             context_parts.append(result.store_description)
             context_parts.append("")
 
-    # 4. Entities (deduplicated)
+    # 6. Entities (deduplicated)
     entities = deduplicate_entities(retrieval_results)
 
     if entities:
@@ -210,7 +220,7 @@ def build_chunk_context(
             context_parts.append(f"{qid}: {label}{desc_suffix}")
         context_parts.append("")
 
-    # 5. Documents (deduplicated)
+    # 7. Documents (deduplicated)
     docs = deduplicate_documents(retrieval_results, max_docs=2)
 
     if docs:

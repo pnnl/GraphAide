@@ -26,7 +26,7 @@ graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
         model_name="gpt-4o",
-        api_key="sk-..."
+        api_key="..."
     ),
     vectordb_config=VectorDBConfig(
         provider="chromadb",
@@ -216,7 +216,7 @@ ModelConfig(
     provider="openai",
     model_name="gpt-4o",
     embedding_model="text-embedding-3-small",
-    api_key="sk-..."
+    api_key="..."
 )
 ```
 
@@ -227,7 +227,7 @@ ModelConfig(
     provider="openai",
     model_name="gpt-4o",
     embedding_model="sentence-transformers/all-MiniLM-L6-v2",
-    api_key="sk-..."
+    api_key="..."
 )
 ```
 
@@ -251,7 +251,7 @@ from graphaide import GraphAide, ModelConfig, VectorDBConfig
 
 # Setup
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-..."),
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
     vectordb_config=VectorDBConfig(provider="chromadb", path="./knowledge_base")
 )
 
@@ -294,7 +294,7 @@ graphaide = GraphAide(
         provider="openai",
         model_name="gpt-4o",
         embedding_model="text-embedding-3-small",
-        api_key="sk-..."
+        api_key="..."
     ),
     vectordb_config=VectorDBConfig(
         provider="qdrant",
@@ -350,7 +350,7 @@ VectorDBConfig(
 ModelConfig(
     provider="openai",
     embedding_model="text-embedding-3-small",  # Valid model
-    api_key="sk-..."  # Valid key
+    api_key="..."  # Valid key
 )
 ```
 
