@@ -68,7 +68,7 @@ from graphaide import GraphAide, ModelConfig, get_sample_data_path
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
-        model_name="gpt-4o",
+        model_name="gpt-4o-luna",
         api_key="..."
     )
 )
