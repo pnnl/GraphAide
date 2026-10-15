@@ -298,7 +298,7 @@ class ExtractorAgent(GraphAideAgent):
         # Fresh retrieval per chunk (not accumulated from previous chunks)
         chunk_retrieval_results = []
         if vector_store_configs:
-            logger.info(f"Multi-retrieval: {len(vector_store_configs)} retriever(s) for THIS chunk")
+            logger.debug(f"Multi-retrieval: {len(vector_store_configs)} retriever(s) for THIS chunk")
 
             for config in vector_store_configs:
                 try:
@@ -307,11 +307,8 @@ class ExtractorAgent(GraphAideAgent):
                     if "retrieval_results" in result_dict:
                         results = result_dict["retrieval_results"]
                         chunk_retrieval_results.extend(results)  # FRESH results (not accumulated)
-                        logger.info(
-                            f"✓ {len(results)} result(s) from {config.collection_name} (this chunk)"
-                        )
                     else:
-                        logger.warning(f"✗ No results from {config.collection_name}")
+                        logger.debug(f"No results from {config.collection_name}")
                 except Exception as e:
                     logger.error(
                         f"Retriever {config.retrieve_type} failed: {e}", exc_info=True

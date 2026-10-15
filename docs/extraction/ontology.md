@@ -45,7 +45,7 @@ GraphAide supports standard semantic web formats:
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
 )
 
 # Extract using ontology

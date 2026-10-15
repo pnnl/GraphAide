@@ -17,7 +17,7 @@ graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
         model_name="gpt-4o",
-        api_key="sk-..."
+        api_key="..."
     )
 )
 
@@ -216,7 +216,7 @@ import os
 from graphaide import GraphAide, ModelConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
 )
 
 # Ingest all PDFs in folder

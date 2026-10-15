@@ -8,10 +8,10 @@ All legal documents are maintained in the repository root for authenticity and t
 
 | Document | Purpose | Location |
 |----------|---------|----------|
-| **[LICENSE.txt](../../LICENSE.txt)** | BSD 2-Clause License | Repository root |
-| **[DISCLAIMER](../../DISCLAIMER)** | Government disclaimer & liability limitations | Repository root |
-| **[ACKNOWLEDGMENT](../../ACKNOWLEDGMENT)** | Credits, funding, citations | Repository root |
-| **[NOTICE](../../NOTICE)** | Software identification & legal notices | Repository root |
+| **[LICENSE.txt](https://github.com/pnnl/GraphAide/blob/develop/LICENSE.txt)** | BSD 2-Clause License | Repository root |
+| **[DISCLAIMER](https://github.com/pnnl/GraphAide/blob/develop/DISCLAIMER)** | Government disclaimer & liability limitations | Repository root |
+| **[ACKNOWLEDGMENT](https://github.com/pnnl/GraphAide/blob/develop/ACKNOWLEDGMENT)** | Credits, funding, citations | Repository root |
+| **[NOTICE](https://github.com/pnnl/GraphAide/blob/develop/NOTICE)** | Software identification & legal notices | Repository root |
 
 ## Quick Overview
 

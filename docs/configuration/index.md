@@ -13,7 +13,7 @@ graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
         model_name="gpt-4o",
-        api_key="sk-..."
+        api_key="..."
     )
 )
 ```
@@ -78,7 +78,7 @@ model_config=ModelConfig(
 from graphaide import GraphAide, ModelConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="sk-...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
     # No graphdb_config needed - uses localhost:7687 with neo4j:password
 )
 ```
@@ -155,7 +155,7 @@ graphaide = GraphAide(
         provider="openai",
         model_name="gpt-4o",
         embedding_model="text-embedding-3-small",
-        api_key="sk-..."
+        api_key="..."
     )
 )
 ```
@@ -167,7 +167,7 @@ model_config=ModelConfig(
     provider="openai",
     model_name="gpt-4o",
     embedding_model="sentence-transformers/all-MiniLM-L6-v2",
-    api_key="sk-..."
+    api_key="..."
 )
 ```
 
@@ -229,7 +229,7 @@ Set configuration via environment variables:
 
 ```bash
 # .env file
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=...
 GRAPHAIDE_NEO4J_URI=neo4j://localhost:7687
 GRAPHAIDE_NEO4J_USER=neo4j
 GRAPHAIDE_NEO4J_PASSWORD=password
@@ -265,7 +265,7 @@ graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
         model_name="gpt-4o",
-        api_key="sk-...",
+        api_key="...",
         embedding_model="text-embedding-3-small",
         temperature=0.3,
         max_output_tokens_limit_llm=16000
