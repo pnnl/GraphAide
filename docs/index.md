@@ -27,13 +27,37 @@ Whether you work with PDFs, text files, images, or web data, GraphAide can:
 
 ## Quick Start
 
+### Setup Virtual Environment (Recommended)
+
+Before installing GraphAide, create an isolated environment to manage dependencies:
+
+**Option 1: Using uv (Fastest)** ⚡
+```bash
+uv venv graphaide-env
+# On macOS/Linux:
+source graphaide-env/bin/activate
+# On Windows:
+graphaide-env\Scripts\activate
+```
+
+**Option 2: Using Conda**
+```bash
+conda create -n graphaide python=3.12
+conda activate graphaide
+```
+
 ### Basic Usage
 
-**1. Install GraphAide:**
+**1. Install GraphAide (latest version 0.6.2):**
+
+We recommend **uv** for fast, reliable installation:
 ```bash
-pip install graphaide
-# Or for faster installation with uv:
-# uv pip install graphaide
+uv pip install graphaide==0.6.2
+```
+
+Or use pip:
+```bash
+pip install graphaide==0.6.2
 ```
 
 **2. Extract knowledge graph:**
@@ -44,7 +68,7 @@ from graphaide import GraphAide, ModelConfig, get_sample_data_path
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
-        model_name="gpt-5.6-luna",
+        model_name="gpt-4o",
         api_key="..."
     )
 )
