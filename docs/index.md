@@ -48,16 +48,16 @@ conda activate graphaide
 
 ### Basic Usage
 
-**1. Install GraphAide (latest version 0.6.2):**
+**1. Install GraphAide (latest version 0.6.3):**
 
 We recommend **uv** for fast, reliable installation:
 ```bash
-uv pip install graphaide==0.6.2
+uv pip install graphaide==0.6.3
 ```
 
 Or use pip:
 ```bash
-pip install graphaide==0.6.2
+pip install graphaide==0.6.3
 ```
 
 **2. Extract knowledge graph:**
@@ -68,7 +68,7 @@ from graphaide import GraphAide, ModelConfig, get_sample_data_path
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai", 
-        model_name="gpt-4o-luna",
+        model_name="gpt-5.6-luna",
         api_key="..."
     )
 )
