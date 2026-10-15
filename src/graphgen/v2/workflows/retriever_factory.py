@@ -95,11 +95,12 @@ def make_vectorstore_retriever(
             logger.info(
                 f"✓ Retriever {vector_store_config.retrieve_type}: Retrieved {len(docs)} docs from {vector_store_config.collection_name} (k={globalconfig.DEFAULT_K})"
             )
-            if docs:
+            # Skip generic preview for entities—they get detailed logging below
+            if docs and vector_store_config.retrieve_type != "entities":
                 for i, doc in enumerate(docs, 1):
                     preview = doc.page_content[:80] + ("..." if len(doc.page_content) > 80 else "")
                     logger.debug(f"  [{i}] {preview}")
-            else:
+            elif not docs:
                 logger.warning(f"⚠ Retriever {vector_store_config.retrieve_type}: No results found (empty collection or no match)")
 
         except Exception as e:

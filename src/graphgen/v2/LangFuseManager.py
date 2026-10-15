@@ -9,6 +9,10 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger("graphgen.langfuse")
 
+# Global cache to avoid repeated initialization
+_langfuse_callback_cache = None
+_langfuse_callback_initialized = False
+
 
 class LangFuseConfig(BaseModel):
     """Configuration for LangFuse observability integration."""
@@ -84,7 +88,7 @@ class LangFuseConfig(BaseModel):
 
 
 def get_langfuse_callback():
-    """Create and return LangFuse CallbackHandler if configured.
+    """Create and return LangFuse CallbackHandler if configured (cached globally).
 
     Returns the LangFuse CallbackHandler for attaching to LangChain models.
     This enables tracing for all model invocations, including custom endpoints.
@@ -96,13 +100,26 @@ def get_langfuse_callback():
 
     Supports both Langfuse v3 and v4+ APIs for forward compatibility.
 
+    IMPORTANT: Callback is cached globally to avoid repeated initialization logs
+    during parallel extraction (e.g., JSONL with multiple Send() calls).
+
     Returns:
-        CallbackHandler if configured, None otherwise.
+        CallbackHandler if configured, None otherwise. Cached after first call.
     """
+    global _langfuse_callback_cache, _langfuse_callback_initialized
+
+    # Return cached result (including None if previously determined to be disabled)
+    if _langfuse_callback_initialized:
+        return _langfuse_callback_cache
+
+    # Mark as initialized to prevent re-entry
+    _langfuse_callback_initialized = True
+
     config = LangFuseConfig.from_env()
 
     if not config.enabled:
         logger.debug("LangFuse not enabled - missing credentials")
+        _langfuse_callback_cache = None
         return None
 
     try:
@@ -158,6 +175,7 @@ def get_langfuse_callback():
             f"Base URL: {config.base_url}, "
             f"Session: {config.session_name}"
         )
+        _langfuse_callback_cache = callback
         return callback
 
     except ImportError as ie:
@@ -166,6 +184,7 @@ def get_langfuse_callback():
             "Install with: pip install 'langfuse>=4.0.0'"
         )
         logger.debug(f"Import error details: {ie}")
+        _langfuse_callback_cache = None
         return None
     except TypeError as te:
         logger.error(
@@ -173,9 +192,11 @@ def get_langfuse_callback():
             f"This may indicate a version mismatch between langfuse and langchain.",
             exc_info=True
         )
+        _langfuse_callback_cache = None
         return None
     except Exception as e:
         logger.error(f"✗ Failed to initialize LangFuse CallbackHandler: {e}", exc_info=True)
+        _langfuse_callback_cache = None
         return None
 
 
