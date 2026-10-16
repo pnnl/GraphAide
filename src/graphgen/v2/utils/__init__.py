@@ -135,6 +135,60 @@ def get_chain_verbose() -> bool:
     return graphaide_logger.level == logging.DEBUG
 
 
+# ============================================================================
+# PHASE 2: LOGGING UTILITIES FOR CLEANER OPERATION LOGS
+# ============================================================================
+
+# Global tracking for workflow operation messages (3-5 per workflow)
+_workflow_message_count = {}
+
+def reset_workflow_counter(workflow_name):
+    """Reset message counter for a new workflow execution."""
+    _workflow_message_count[workflow_name] = 0
+
+def log_workflow_info(message, workflow_name, max_messages=3):
+    """Conditionally log INFO message, allowing N messages per workflow.
+
+    Args:
+        message (str): Message to log
+        workflow_name (str): Unique workflow identifier
+        max_messages (int): Max INFO messages allowed per workflow (default 3)
+    """
+    if workflow_name not in _workflow_message_count:
+        _workflow_message_count[workflow_name] = 0
+
+    if _workflow_message_count[workflow_name] < max_messages:
+        logger = logging.getLogger("graphgen")
+        logger.info(message)
+        _workflow_message_count[workflow_name] += 1
+
+def should_log_batch_progress(batch_num, total_batches):
+    """Determine if batch progress should be logged (first and last only).
+
+    Args:
+        batch_num (int): Current batch number (1-indexed)
+        total_batches (int): Total number of batches
+
+    Returns:
+        bool: True if this is first or last batch
+    """
+    return batch_num == 1 or batch_num == total_batches
+
+def mask_api_key(api_key, show_chars=4):
+    """Mask API key for display, showing only last N characters.
+
+    Args:
+        api_key (str): API key to mask
+        show_chars (int): Number of characters to show at end (default 4)
+
+    Returns:
+        str: Masked key in format: ***...abcd
+    """
+    if not api_key or len(api_key) <= show_chars:
+        return "***"
+    return "***" + api_key[-show_chars:]
+
+
 def setup_logging(log_level="INFO", log_file=None):
     """Configure logging for entire workflow.
 

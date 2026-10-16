@@ -47,6 +47,48 @@ result = graphaide.ingest_vectors(
 )
 ```
 
+
+### Visualizing Vector Embeddings
+
+After loading documents into your vector store, you can inspect the vector space and create 2D visualizations using UMAP (Uniform Manifold Approximation and Projection).
+
+#### Check Document Count and Visualize
+
+```python
+from graphaide import GraphAide, ModelConfig, VectorDBConfig, get_sample_data_path
+from pathlib import Path
+
+# Check how many documents are stored
+doc_count = graphaide._get_vector_store_doc_count()
+print(f"✓ Vector store contains {doc_count} documents")
+
+# Create 2D UMAP projection and interactive visualization
+viz_result = graphaide.project_vectors(
+    output_dir="./visualizations",
+    reuse_embedding=False,  # Compute new projection
+    category_field="source"  # Color points by source document
+)
+
+print(f"✓ Projected {viz_result.stats['num_embeddings_projected']} embeddings")
+print(f"✓ Visualization saved to: {viz_result.stats['visualization_image_path']}")
+```
+
+#### Reuse Existing Projections
+
+If you've already created a 2D projection and want to recreate the visualization with different settings:
+
+```python
+# Reuse previous UMAP projection (faster, no recomputation)
+viz_result = graphaide.project_vectors(
+    output_dir="./visualizations",
+    reuse_embedding=True,  # Skip UMAP, reuse .npy file
+    save_png=True,  # Save as static PNG image
+    category_field="metadata_filter"  # Different coloring
+)
+```
+
+The visualization is interactive—hover over points to see metadata, zoom, pan, and toggle categories.
+
 ## ChromaDB Configuration
 
 ### With Store Name and Path (Recommended)
@@ -284,80 +326,6 @@ graphaide.ingest_vectors(
 )
 ```
 
-## Visualizing Vector Embeddings
-
-After loading documents into your vector store, you can inspect the vector space and create 2D visualizations using UMAP (Uniform Manifold Approximation and Projection).
-
-### Check Document Count and Visualize
-
-```python
-from graphaide import GraphAide, ModelConfig, VectorDBConfig, get_sample_data_path
-from pathlib import Path
-
-home = Path.home()
-
-# Setup GraphAide with vector store
-graphaide = GraphAide(
-    model_config=ModelConfig(
-        provider="openai",
-        model_name="gpt-5.6-luna",
-        api_key="..."
-    ),
-    vector_configs=VectorDBConfig(
-        provider="chromadb",
-        store_name="GVD",
-        store_path=home / "GVD"
-    )
-)
-
-# Load sample documents
-cyber_file = get_sample_data_path("cyberkg.txt")
-pdf_file = get_sample_data_path("PNNL_About.pdf")
-
-result = graphaide.ingest_vectors(
-    file_paths=[str(cyber_file), str(pdf_file)],
-    split_docs=True,
-    append=False
-)
-
-# Check how many documents are stored
-doc_count = graphaide._get_vector_store_doc_count()
-print(f"✓ Vector store contains {doc_count} documents")
-
-# Create 2D UMAP projection and interactive visualization
-viz_result = graphaide.project_vectors(
-    output_dir="./visualizations",
-    reuse_embedding=False,  # Compute new projection
-    category_field="source"  # Color points by source document
-)
-
-print(f"✓ Projected {viz_result.stats['num_embeddings_projected']} embeddings")
-print(f"✓ Visualization saved to: {viz_result.stats['visualization_image_path']}")
-```
-
-### Reuse Existing Projections
-
-If you've already created a 2D projection and want to recreate the visualization with different settings:
-
-```python
-# Reuse previous UMAP projection (faster, no recomputation)
-viz_result = graphaide.project_vectors(
-    output_dir="./visualizations",
-    reuse_embedding=True,  # Skip UMAP, reuse .npy file
-    save_png=True,  # Save as static PNG image
-    category_field="metadata_filter"  # Different coloring
-)
-```
-
-### Understanding the Output
-
-After running `project_vectors()`, you get:
-- **projection_file_path** (.npy) - Raw 2D coordinates from UMAP
-- **visualization_image_path** (.html) - Interactive plot (open in browser)
-- **projection_metadata_path** (.json) - Metadata about the projection
-- **num_embeddings_projected** - Count of points in the visualization
-
-The visualization is interactive—hover over points to see metadata, zoom, pan, and toggle categories.
 
 ## Troubleshooting
 

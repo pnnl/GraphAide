@@ -398,10 +398,15 @@ class WorkflowManager:
                 logger.info(f"Node batches: {len(node_batches)}, Edge batches: {len(edge_batches)}")
 
                 # Process node batches sequentially
+                from graphgen.v2.utils import should_log_batch_progress
                 accumulated_nodes = []
                 kg_load_json_result_state = None
+                logger.info(f"Loading {len(node_batches)} node batches into Neo4j")
                 for batch_idx, node_batch in enumerate(node_batches):
-                    logger.info(f"Processing node batch {batch_idx + 1}/{len(node_batches)} ({len(node_batch)} nodes)")
+                    if should_log_batch_progress(batch_idx + 1, len(node_batches)):
+                        logger.info(f"  Batch {batch_idx + 1}/{len(node_batches)}")
+                    else:
+                        logger.debug(f"Processing node batch {batch_idx + 1}/{len(node_batches)} ({len(node_batch)} nodes)")
                     initial_state = init_kg_generation_state(
                         file_path=json_path,
                         nodes=node_batch,
@@ -413,8 +418,12 @@ class WorkflowManager:
 
                 # Process edge batches sequentially (after all nodes loaded)
                 accumulated_edges = []
+                logger.info(f"Loading {len(edge_batches)} edge batches into Neo4j")
                 for batch_idx, edge_batch in enumerate(edge_batches):
-                    logger.info(f"Processing edge batch {batch_idx + 1}/{len(edge_batches)} ({len(edge_batch)} edges)")
+                    if should_log_batch_progress(batch_idx + 1, len(edge_batches)):
+                        logger.info(f"  Batch {batch_idx + 1}/{len(edge_batches)}")
+                    else:
+                        logger.debug(f"Processing edge batch {batch_idx + 1}/{len(edge_batches)} ({len(edge_batch)} edges)")
                     initial_state = init_kg_generation_state(
                         file_path=json_path,
                         nodes=[],  # No nodes - already in Neo4j, nodes will be matched from Neo4j

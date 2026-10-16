@@ -133,88 +133,6 @@ result = graphaide.ingest(
 )
 ```
 
-### Merge Output
-
-Automatically deduplicate entities during ingestion:
-
-```python
-result = graphaide.ingest(
-    file_path="document.pdf",
-    merge_output=True  # Combine duplicate entities
-)
-```
-
-## Query Your Knowledge Graph
-
-After ingestion, query your data in Neo4j:
-
-### Using GraphAide Query
-
-```python
-answer = graphaide.query("What organizations are mentioned?")
-print(answer)
-```
-
-### Using Neo4j Browser
-
-Visit `http://localhost:7474` (default Neo4j web interface):
-
-```cypher
-// Find all organizations
-MATCH (n:Organization) 
-RETURN n.name, count(*)
-ORDER BY count(*) DESC
-
-// Find relationships
-MATCH (p:Person)-[r:worksFor]->(o:Organization)
-RETURN p.name, o.name
-
-// Complex query: people and organizations
-MATCH (p:Person)-[r:worksFor]->(o:Organization)
-RETURN p, r, o
-```
-
-## Understanding Graph Structure
-
-GraphAide creates nodes and edges in Neo4j:
-
-### Nodes (Entities)
-
-```python
-{
-    "id": "unique-identifier",
-    "type": "Organization",           # Entity type from extraction
-    "label": "GraphAide",              # Display name
-    "properties": {
-        "description": "A knowledge graph system",
-        "source": "PNNL_About.pdf"
-    }
-}
-```
-
-In Neo4j:
-```cypher
-(n:Organization {name: "GraphAide", source: "PNNL_About.pdf"})
-```
-
-### Edges (Relationships)
-
-```python
-{
-    "type": "worksFor",                # Relationship type
-    "source": "sumit",                 # From node
-    "target": "pnnl",                  # To node
-    "properties": {
-        "role": "Developer"
-    }
-}
-```
-
-In Neo4j:
-```cypher
-(p:Person)-[r:worksFor {role: "Developer"}]->(o:Organization)
-```
-
 ## Ingestion Workflow
 
 Here's what happens internally:
@@ -321,18 +239,9 @@ result = graphaide.ingest(
 )
 ```
 
-### Duplicate Entities
-
-```python
-# Use merge_output to deduplicate
-result = graphaide.ingest(
-    file_path="doc.pdf",
-    merge_output=True  # Combines similar entities
-)
-```
 
 ## Next Steps
 
-- **[Query Your Graph](../resources.md#querying)** — Learn advanced Cypher queries
+- **[Query Your Graph](../query/index.md)** — Learn to query your knowledge graph
 - **[Enhance Extraction](../vector-stores/usage.md)** — Use vector stores for better results
 - **[See Examples](../resources.md)** — Learn from real-world use cases

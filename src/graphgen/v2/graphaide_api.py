@@ -177,17 +177,16 @@ class GraphAide:
         # Initialize internal WorkflowManager
         self.manager = WorkflowManager(global_config=self.workflow_config)
 
-        # DEBUG: Print configuration values on initialization
+        # Print initialization summary with masked API keys
+        from graphgen.v2.utils import mask_api_key
         logger.info("=" * 80)
         logger.info("GraphAide Initialization - Configuration Summary")
         logger.info("=" * 80)
-        logger.info(f"LLM Provider: {self.model_config.provider}")
-        logger.info(f"LLM Model: {self.model_config.model_name}")
-        logger.info(f"Max Output Tokens (LLM): {self.model_config.max_output_tokens_limit_llm}")
-        logger.info(f"Embedding Model: {self.model_config.embedding_model_name}")
-        logger.info(f"Temperature: {self.model_config.temperature}")
-        logger.info(f"Vector Store(s): {len(self.vector_configs) if self.vector_configs else 0}")
+        masked_key = mask_api_key(self.model_config.api_key)
+        logger.info(f"LLM: {self.model_config.provider} / {self.model_config.model_name} (key: {masked_key})")
+        logger.info(f"Embedding: {self.model_config.embedding_model_name}")
         if self.vector_configs:
+            logger.info(f"Vector Stores: {len(self.vector_configs)}")
             from pathlib import Path
             for i, vconf in enumerate(self.vector_configs, 1):
                 if vconf.store_path:
@@ -195,11 +194,8 @@ class GraphAide:
                 else:
                     full_path = vconf.store_name
                 collection_name = vconf.collection_name or "langchain"
-                logger.info(f"  [{i}] {vconf.provider} - {vconf.store_name}")
-                logger.info(f"      Path: {full_path}")
-                logger.info(f"      Collection: {collection_name}")
                 doc_count = self._get_vector_store_doc_count(vconf)
-                logger.info(f"      Documents: {doc_count}")
+                logger.info(f"  [{i}] {vconf.provider} ({doc_count} docs) @ {full_path}")
         logger.info("=" * 80)
 
     def _get_vector_store_doc_count(self, vconf: VectorDBConfig) -> int:
@@ -221,38 +217,29 @@ class GraphAide:
                 )
 
                 # Log detailed diagnostic info
-                logger.info(f"[VectorStore Count Debug]")
-                logger.info(f"  Store Name: {vconf.store_name}")
-                logger.info(f"  Store Path Config: {vconf.store_path}")
-                logger.info(f"  Expanded Full Path: {path_obj}")
+                logger.debug(f"VectorStore: {vconf.store_name} @ {path_obj}")
 
                 import os
-                logger.info(f"  Path Exists: {path_obj.exists()}")
-                if path_obj.exists():
-                    contents = os.listdir(path_obj)
-                    logger.info(f"  Directory Contents: {contents}")
+                logger.debug(f"  Path exists: {path_obj.exists()}")
 
-                collection_name = vconf.collection_name  # None uses Chroma's default ("langchain")
-                logger.info(f"  Querying Collection Name: {collection_name or 'langchain (Chroma default)'}")
+                collection_name = vconf.collection_name or "langchain"
 
                 # Get collection directly without needing embeddings
                 client = chromadb.PersistentClient(path=str(path_obj))
-                collection_name_to_query = vconf.collection_name or "langchain"
 
                 try:
-                    collection = client.get_collection(name=collection_name_to_query)
+                    collection = client.get_collection(name=collection_name)
                     count = collection.count()
-                    logger.info(f"  ✓ Found: {count} documents in '{collection_name_to_query}'")
+                    logger.debug(f"  Found {count} documents in '{collection_name}'")
                     return count
                 except Exception as e:
-                    logger.debug(f"  Could not get collection '{collection_name_to_query}': {e}")
+                    logger.debug(f"  Could not get collection '{collection_name}': {e}")
 
                     # List available collections for debugging
                     try:
                         all_collections = client.list_collections()
-                        logger.info(f"  Available Collections in Store:")
-                        for col in all_collections:
-                            logger.info(f"    - {col.name} ({col.count()} docs)")
+                        col_names = [col.name for col in all_collections]
+                        logger.debug(f"  Available collections: {col_names}")
                     except Exception as e2:
                         logger.debug(f"  Could not list collections: {e2}")
                     return 0

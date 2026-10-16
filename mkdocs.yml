@@ -69,6 +69,7 @@ nav:
       - Setup & Loading: vector-stores/setup.md
       - Using in Extraction: vector-stores/usage.md
   - Ingestion: ingestion/index.md
+  - Query: query/index.md
   - Resources: resources.md
   - Legal: legal/index.md
 
