@@ -28,12 +28,12 @@ home = Path.home()
 vectordb_config = VectorDBConfig(
     provider="chromadb",
     store_name="GVD",
-    store_path=home / "GVD"
+    store_path=str(home / "GVD")  # Path must be a string
 )
 
 graphaide = GraphAide(
     model_config=model_config,
-    vectordb_config=vectordb_config
+    vector_configs=vectordb_config
 )
 
 # Load sample documents into vector store
@@ -59,7 +59,7 @@ from graphaide import GraphAide, ModelConfig, VectorDBConfig, get_sample_data_pa
 from pathlib import Path
 
 # Check how many documents are stored
-doc_count = graphaide._get_vector_store_doc_count()
+doc_count = graphaide._get_vector_store_doc_count(vectordb_config)
 print(f"✓ Vector store contains {doc_count} documents")
 
 # Create 2D UMAP projection and interactive visualization
@@ -100,7 +100,7 @@ home = Path.home()
 VectorDBConfig(
     provider="chromadb",
     store_name="GVD",
-    store_path=home / "GVD"
+    store_path=str(home / "GVD")  # Path must be a string
 )
 ```
 
@@ -210,13 +210,13 @@ general_config = VectorDBConfig(
 )
 
 # Load different data into each
-graphaide1 = GraphAide(..., vectordb_config=gvd_config)
+graphaide1 = GraphAide(..., vector_configs=gvd_config)
 graphaide1.ingest_vectors(
     file_paths=[get_sample_data_path("cyberkg.txt")],
     append=False
 )
 
-graphaide2 = GraphAide(..., vectordb_config=general_config)
+graphaide2 = GraphAide(..., vector_configs=general_config)
 graphaide2.ingest_vectors(
     file_paths=[get_sample_data_path("PNNL_About.pdf")],
     append=False

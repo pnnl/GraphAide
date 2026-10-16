@@ -156,7 +156,11 @@ Check that:
 
 ```python
 # Verify data exists
-doc_count = graphaide._get_vector_store_doc_count() if graphaide.vector_configs else "N/A"
+if graphaide.vector_configs:
+    vector_config = graphaide.vector_configs if isinstance(graphaide.vector_configs, VectorDBConfig) else graphaide.vector_configs[0]
+    doc_count = graphaide._get_vector_store_doc_count(vector_config)
+else:
+    doc_count = "N/A"
 print(f"Documents in vector store: {doc_count}")
 
 # Try a simpler query
