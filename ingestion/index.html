@@ -801,10 +801,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#one-step-extraction-and-ingestion" class="md-nav__link">
+  <a href="#configure-neo4j-connection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        One-Step Extraction and Ingestion
+        Configure Neo4j Connection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initialize-graphaide-with-neo4j" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialize GraphAide with Neo4j
       
     </span>
   </a>
@@ -1239,10 +1250,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#one-step-extraction-and-ingestion" class="md-nav__link">
+  <a href="#configure-neo4j-connection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        One-Step Extraction and Ingestion
+        Configure Neo4j Connection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initialize-graphaide-with-neo4j" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialize GraphAide with Neo4j
       
     </span>
   </a>
@@ -1587,15 +1609,37 @@
 <h2 id="what-is-ingestion">What is Ingestion?</h2>
 <p>Ingestion is the process of taking extracted entities and relationships and loading them into a Neo4j graph database, where you can query and analyze them.</p>
 <h2 id="quick-start-ingest-to-neo4j">Quick Start: Ingest to Neo4j</h2>
-<h3 id="one-step-extraction-and-ingestion">One-Step Extraction and Ingestion</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphAide</span><span class="p">,</span> <span class="n">ModelConfig</span>
+<h3 id="configure-neo4j-connection">Configure Neo4j Connection</h3>
+<p>First, set up your Neo4j database configuration:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphDBConfig</span>
 
+<span class="n">graphdb_config</span> <span class="o">=</span> <span class="n">GraphDBConfig</span><span class="p">(</span>
+    <span class="n">uri</span><span class="o">=</span><span class="s2">"neo4j://localhost:7687"</span><span class="p">,</span>      <span class="c1"># Neo4j server address</span>
+    <span class="n">username</span><span class="o">=</span><span class="s2">"neo4j"</span><span class="p">,</span>                   <span class="c1"># Neo4j username</span>
+    <span class="n">password</span><span class="o">=</span><span class="s2">"password"</span>                 <span class="c1"># Neo4j password</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="initialize-graphaide-with-neo4j">Initialize GraphAide with Neo4j</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphAide</span><span class="p">,</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">GraphDBConfig</span>
+
+<span class="c1"># Setup LLM</span>
+<span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">"openai"</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">"gpt-5.6-luna"</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="s2">"..."</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup Neo4j</span>
+<span class="n">graphdb_config</span> <span class="o">=</span> <span class="n">GraphDBConfig</span><span class="p">(</span>
+    <span class="n">uri</span><span class="o">=</span><span class="s2">"neo4j://localhost:7687"</span><span class="p">,</span>
+    <span class="n">username</span><span class="o">=</span><span class="s2">"neo4j"</span><span class="p">,</span>
+    <span class="n">password</span><span class="o">=</span><span class="s2">"password"</span>
+<span class="p">)</span>
+
+<span class="c1"># Initialize GraphAide with both configs</span>
 <span class="n">graphaide</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span>
-    <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="p">(</span>
-        <span class="n">provider</span><span class="o">=</span><span class="s2">"openai"</span><span class="p">,</span>
-        <span class="n">model_name</span><span class="o">=</span><span class="s2">"gpt-5.6-luna"</span><span class="p">,</span>
-        <span class="n">api_key</span><span class="o">=</span><span class="s2">"..."</span>
-    <span class="p">)</span>
+    <span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">,</span>
+    <span class="n">graphdb_config</span><span class="o">=</span><span class="n">graphdb_config</span>
 <span class="p">)</span>
 
 <span class="c1"># Extract AND ingest to Neo4j in one call</span>
