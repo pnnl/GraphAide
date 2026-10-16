@@ -505,10 +505,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-1-pip-recommended" class="md-nav__link">
+  <a href="#setup-virtual-environment-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 1: pip (Recommended)
+        Setup Virtual Environment (Recommended)
       
     </span>
   </a>
@@ -516,10 +516,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-2-using-graphaide-as-a-python-library" class="md-nav__link">
+  <a href="#method-1-uv-recommended-for-speed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 2: Using GraphAide as a Python Library
+        Method 1: uv (Recommended for Speed)
       
     </span>
   </a>
@@ -527,10 +527,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-3-docker" class="md-nav__link">
+  <a href="#method-2-pip" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 3: Docker
+        Method 2: pip
       
     </span>
   </a>
@@ -538,10 +538,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-4-development-setup" class="md-nav__link">
+  <a href="#method-3-using-graphaide-as-a-python-library" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 4: Development Setup
+        Method 3: Using GraphAide as a Python Library
       
     </span>
   </a>
@@ -549,10 +549,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-5-using-uv-advanced" class="md-nav__link">
+  <a href="#method-4-docker" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 5: Using UV (Advanced)
+        Method 4: Docker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-5-development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method 5: Development Setup
       
     </span>
   </a>
@@ -1004,10 +1015,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-1-pip-recommended" class="md-nav__link">
+  <a href="#setup-virtual-environment-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 1: pip (Recommended)
+        Setup Virtual Environment (Recommended)
       
     </span>
   </a>
@@ -1015,10 +1026,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-2-using-graphaide-as-a-python-library" class="md-nav__link">
+  <a href="#method-1-uv-recommended-for-speed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 2: Using GraphAide as a Python Library
+        Method 1: uv (Recommended for Speed)
       
     </span>
   </a>
@@ -1026,10 +1037,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-3-docker" class="md-nav__link">
+  <a href="#method-2-pip" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 3: Docker
+        Method 2: pip
       
     </span>
   </a>
@@ -1037,10 +1048,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-4-development-setup" class="md-nav__link">
+  <a href="#method-3-using-graphaide-as-a-python-library" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 4: Development Setup
+        Method 3: Using GraphAide as a Python Library
       
     </span>
   </a>
@@ -1048,10 +1059,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#method-5-using-uv-advanced" class="md-nav__link">
+  <a href="#method-4-docker" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Method 5: Using UV (Advanced)
+        Method 4: Docker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-5-development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method 5: Development Setup
       
     </span>
   </a>
@@ -1144,14 +1166,34 @@
 <li><strong>Neo4j:</strong> 4.4 or later (optional for basic usage)</li>
 <li><strong>LLM API:</strong> OpenAI, Anthropic, Google, or AWS Bedrock account</li>
 </ul>
-<h2 id="method-1-pip-recommended">Method 1: pip (Recommended)</h2>
-<p>The simplest way to install GraphAide for most users.</p>
+<h2 id="setup-virtual-environment-recommended">Setup Virtual Environment (Recommended)</h2>
+<p>Before installing GraphAide, create an isolated environment to manage dependencies:</p>
+<p><strong>Option 1: Using uv (Fastest)</strong> ⚡
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>venv<span class="w"> </span>graphaide-env
+<span class="c1"># On macOS/Linux:</span>
+<span class="nb">source</span><span class="w"> </span>graphaide-env/bin/activate
+<span class="c1"># On Windows:</span>
+graphaide-env<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+</code></pre></div></p>
+<p><strong>Option 2: Using Conda</strong>
+<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>graphaide<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
+conda<span class="w"> </span>activate<span class="w"> </span>graphaide
+</code></pre></div></p>
+<h2 id="method-1-uv-recommended-for-speed">Method 1: uv (Recommended for Speed)</h2>
+<p>The <strong>fastest</strong> way to install GraphAide. We recommend <code>uv</code> for significantly faster dependency resolution:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>graphaide
+</code></pre></div>
+<p>Verify installation:</p>
+<div class="highlight"><pre><span></span><code>graphaide<span class="w"> </span>--version
+</code></pre></div>
+<h2 id="method-2-pip">Method 2: pip</h2>
+<p>Standard Python package manager approach:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphaide
 </code></pre></div>
 <p>Verify installation:</p>
 <div class="highlight"><pre><span></span><code>graphaide<span class="w"> </span>--version
 </code></pre></div>
-<h2 id="method-2-using-graphaide-as-a-python-library">Method 2: Using GraphAide as a Python Library</h2>
+<h2 id="method-3-using-graphaide-as-a-python-library">Method 3: Using GraphAide as a Python Library</h2>
 <p>Use GraphAide programmatically in your Python code.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphAide</span><span class="p">,</span> <span class="n">ModelConfig</span>
 
@@ -1166,23 +1208,30 @@
 <span class="c1"># Use GraphAide functions</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="s2">"document.pdf"</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="method-3-docker">Method 3: Docker</h2>
+<h2 id="method-4-docker">Method 4: Docker</h2>
 <p>Run GraphAide in a containerized environment with all dependencies included.</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/pnnl/GraphAide.git
 <span class="nb">cd</span><span class="w"> </span>GraphAide
 docker<span class="w"> </span>compose<span class="w"> </span>up
 </code></pre></div>
 <p>Then access the REST API at <code>http://localhost:8000</code>.</p>
-<h2 id="method-4-development-setup">Method 4: Development Setup</h2>
+<h2 id="method-5-development-setup">Method 5: Development Setup</h2>
 <p>For developers who want to contribute or modify GraphAide.</p>
+<p><strong>With uv (recommended):</strong>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/pnnl/GraphAide.git
+<span class="nb">cd</span><span class="w"> </span>GraphAide
+uv<span class="w"> </span>venv
+<span class="c1"># On macOS/Linux:</span>
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<span class="c1"># On Windows:</span>
+.venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[testing]"</span>
+</code></pre></div></p>
+<p><strong>Or with pip:</strong>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/pnnl/GraphAide.git
 <span class="nb">cd</span><span class="w"> </span>GraphAide
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[testing]"</span>
-</code></pre></div>
-<h2 id="method-5-using-uv-advanced">Method 5: Using UV (Advanced)</h2>
-<p>For projects using <code>uv</code> package manager:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span>graphaide
-</code></pre></div>
+</code></pre></div></p>
 <h2 id="next-steps">Next Steps</h2>
 <ol>
 <li><strong><a href="../configuration/">Configure GraphAide</a></strong> — Set up your LLM and databases</li>
