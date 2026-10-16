@@ -1677,7 +1677,7 @@
 <span class="n">cyber_file</span> <span class="o">=</span> <span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"cyberkg.txt"</span><span class="p">)</span>
 <span class="n">pdf_file</span> <span class="o">=</span> <span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"PNNL_About.pdf"</span><span class="p">)</span>
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">cyber_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">pdf_file</span><span class="p">)],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
@@ -1723,13 +1723,13 @@
 <span class="n">pdf_file</span> <span class="o">=</span> <span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"PNNL_About.pdf"</span><span class="p">)</span>
 
 <span class="c1"># Load into vector store</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">cyber_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">pdf_file</span><span class="p">)],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="load-your-own-documents">Load Your Own Documents</h3>
-<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"document1.pdf"</span><span class="p">,</span> <span class="s2">"document2.pdf"</span><span class="p">],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># Replace existing, or True to add</span>
@@ -1743,20 +1743,20 @@
 <span class="n">text_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"temp.txt"</span><span class="p">)</span>
 <span class="n">text_file</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">text_file</span><span class="p">)],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 </code></pre></div>
 <h2 id="document-splitting-options">Document Splitting Options</h2>
 <h3 id="default-splitting-recommended">Default Splitting (Recommended)</h3>
-<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"document.pdf"</span><span class="p">],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span>   <span class="c1"># Auto-split into chunks</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="without-splitting">Without Splitting</h3>
-<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"small_document.txt"</span><span class="p">],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># Store entire document as-is</span>
 <span class="p">)</span>
@@ -1781,27 +1781,27 @@
 
 <span class="c1"># Load different data into each</span>
 <span class="n">graphaide1</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">vectordb_config</span><span class="o">=</span><span class="n">gvd_config</span><span class="p">)</span>
-<span class="n">graphaide1</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">graphaide1</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"cyberkg.txt"</span><span class="p">)],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 
 <span class="n">graphaide2</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">vectordb_config</span><span class="o">=</span><span class="n">general_config</span><span class="p">)</span>
-<span class="n">graphaide2</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">graphaide2</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"PNNL_About.pdf"</span><span class="p">)],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="clear-and-reload">Clear and Reload</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Replace all documents (append=False)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"new_documents.pdf"</span><span class="p">],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="keep-and-append">Keep and Append</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Add more documents to existing store</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"additional.pdf"</span><span class="p">],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
@@ -1852,7 +1852,7 @@
 <span class="n">cyber_file</span> <span class="o">=</span> <span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"cyberkg.txt"</span><span class="p">)</span>
 <span class="n">pdf_file</span> <span class="o">=</span> <span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"PNNL_About.pdf"</span><span class="p">)</span>
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">cyber_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">pdf_file</span><span class="p">)],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
@@ -1862,13 +1862,13 @@
 </code></pre></div>
 <h3 id="incremental-updates">Incremental Updates</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Initial load</span>
-<span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"doc1.pdf"</span><span class="p">,</span> <span class="s2">"doc2.pdf"</span><span class="p">],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 
 <span class="c1"># Later: add new documents</span>
-<span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"doc3.pdf"</span><span class="p">],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Keep existing, add new</span>
 <span class="p">)</span>
@@ -1898,7 +1898,7 @@
 </code></pre></div>
 <h3 id="out-of-memory-with-large-documents">Out of Memory with Large Documents</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Split into smaller batches</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_to_vectordb</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"large_document.pdf"</span><span class="p">],</span>
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Enables chunking</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Add incrementally</span>
