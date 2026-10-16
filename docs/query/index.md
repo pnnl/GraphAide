@@ -25,8 +25,8 @@ graphaide = GraphAide(
 
 # Query your knowledge graph
 
-answer = graphaide.query("What organizations are mentioned?")
-print(answer)
+result = graphaide.query("What organizations are mentioned?")
+print(result.answer)
 ```
 
 ## Query Examples
@@ -35,39 +35,48 @@ print(answer)
 
 ```python
 # Find all people
-answer = graphaide.query("Who are all the people mentioned?")
+result = graphaide.query("Who are all the people mentioned?")
+print(result.answer)
 
 # Find specific relationships
-answer = graphaide.query("What companies does John Smith work for?")
+result = graphaide.query("What companies does John Smith work for?")
+print(result.answer)
 
 # Find connected entities
-answer = graphaide.query("What projects are associated with AI research?")
+result = graphaide.query("What projects are associated with AI research?")
+print(result.answer)
 ```
 
 ### Relationship Queries
 
 ```python
 # Explore relationships
-answer = graphaide.query("What relationships exist between companies and technologies?")
+result = graphaide.query("What relationships exist between companies and technologies?")
+print(result.answer)
 
 # Find connections
-answer = graphaide.query("How are cybersecurity concepts connected?")
+result = graphaide.query("How are cybersecurity concepts connected?")
+print(result.answer)
 
 # Path finding
-answer = graphaide.query("What's the connection between AI and natural language processing?")
+result = graphaide.query("What's the connection between AI and natural language processing?")
+print(result.answer)
 ```
 
 ### Aggregation Queries
 
 ```python
 # Count entities
-answer = graphaide.query("How many different organizations are in the knowledge graph?")
+result = graphaide.query("How many different organizations are in the knowledge graph?")
+print(result.answer)
 
 # List operations
-answer = graphaide.query("List all the technologies mentioned and their uses")
+result = graphaide.query("List all the technologies mentioned and their uses")
+print(result.answer)
 
 # Statistical queries
-answer = graphaide.query("What are the most frequently mentioned concepts?")
+result = graphaide.query("What are the most frequently mentioned concepts?")
+print(result.answer)
 ```
 
 ## Query Parameters
@@ -122,7 +131,8 @@ graphaide = GraphAide(
 )
 
 # Query now includes both graph data AND document context
-answer = graphaide.query("What specific technologies are mentioned for cybersecurity?")
+result = graphaide.query("What specific technologies are mentioned for cybersecurity?")
+print(result.answer)
 ```
 
 ## Understanding Query Results
@@ -150,17 +160,19 @@ doc_count = graphaide._get_vector_store_doc_count() if graphaide.vector_configs 
 print(f"Documents in vector store: {doc_count}")
 
 # Try a simpler query
-answer = graphaide.query("What entities are in the graph?")
+result = graphaide.query("What entities are in the graph?")
+print(result.answer)
 ```
 
 ### Query Execution Errors
 
 ```python
 # Enable debug logging to see detailed execution
-answer = graphaide.query(
+result = graphaide.query(
     "Your question here?",
     log_level="DEBUG"
 )
+print(result.answer)
 ```
 
 ## Next Steps
