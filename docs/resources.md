@@ -41,7 +41,7 @@ Useful tools, examples, and references for working with GraphAide.
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="...")
 )
 
 result = graphaide.extract(file_path="document.pdf")
@@ -55,7 +55,7 @@ import os
 from graphaide import GraphAide, ModelConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="...")
 )
 
 # Ingest all PDFs
@@ -75,7 +75,7 @@ print(answer)
 from graphaide import GraphAide, ModelConfig, get_sample_data_path
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="...")
 )
 
 # Use domain-specific ontology
@@ -93,7 +93,7 @@ from graphaide import GraphAide, ModelConfig, VectorDBConfig
 from graphaide.workflows.schemas import VectorStoreConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="..."),
     vectordb_config=VectorDBConfig(provider="chromadb", path="./kb")
 )
 
@@ -119,7 +119,7 @@ result = graphaide.extract(
 from graphaide import GraphAide, ModelConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="...")
 )
 
 # documents.jsonl: {"text": "document content"}

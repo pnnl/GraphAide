@@ -8,61 +8,109 @@ A vector store stores document chunks as embeddings (numerical representations).
 
 **Why use it?** Instead of sending the entire document, GraphAide can find the most relevant parts automatically.
 
-## Supported Vector Stores
+## Quick Start: ChromaDB with Sample Data
 
-| Store | Type | Best For |
-|-------|------|----------|
-| **ChromaDB** | File-based | Local development, quick setup |
-| **Qdrant** | Remote/In-memory | Production, distributed systems |
-
-## Quick Start: ChromaDB
-
-### Load Documents into ChromaDB
+### Load Sample Documents into ChromaDB
 
 ```python
-from graphaide import GraphAide, ModelConfig, VectorDBConfig
+from pathlib import Path
+from graphaide import GraphAide, ModelConfig, VectorDBConfig, get_sample_data_path
+
+# Setup LLM
+model_config = ModelConfig(
+    provider="openai",
+    model_name="gpt-5.6-luna",
+    api_key="..."
+)
+
+# Setup ChromaDB vector store with GVD name in home directory
+home = Path.home()
+vectordb_config = VectorDBConfig(
+    provider="chromadb",
+    store_name="GVD",
+    store_path=home / "GVD"
+)
 
 graphaide = GraphAide(
-    model_config=ModelConfig(
-        provider="openai",
-        model_name="gpt-4o",
-        api_key="..."
-    ),
-    vectordb_config=VectorDBConfig(
-        provider="chromadb",
-        path="./chroma"
-    )
+    model_config=model_config,
+    vectordb_config=vectordb_config
 )
 
-# Load documents into vector store
-result = graphaide.ingest_to_vectordb(
-    file_paths=["document1.pdf", "document2.pdf"],
+# Load sample documents into vector store
+cyber_file = get_sample_data_path("cyberkg.txt")
+pdf_file = get_sample_data_path("PNNL_About.pdf")
+
+result = graphaide.ingest_vectors(
+    file_paths=[str(cyber_file), str(pdf_file)],
     split_docs=True,
-    append=False  # Replace existing, or True to add
+    append=False
 )
-
-print(f"✓ Loaded {result.documents_loaded} documents")
-print(f"✓ Created {result.chunks_created} chunks")
 ```
 
-## ChromaDB Setup
 
-### Default Configuration (Recommended)
+### Visualizing Vector Embeddings
+
+After loading documents into your vector store, you can inspect the vector space and create 2D visualizations using UMAP (Uniform Manifold Approximation and Projection).
+
+#### Check Document Count and Visualize
+
+```python
+from graphaide import GraphAide, ModelConfig, VectorDBConfig, get_sample_data_path
+from pathlib import Path
+
+# Check how many documents are stored
+doc_count = graphaide._get_vector_store_doc_count()
+print(f"✓ Vector store contains {doc_count} documents")
+
+# Create 2D UMAP projection and interactive visualization
+viz_result = graphaide.project_vectors(
+    output_dir="./visualizations",
+    reuse_embedding=False,  # Compute new projection
+    category_field="source"  # Color points by source document
+)
+
+print(f"✓ Projected {viz_result.stats['num_embeddings_projected']} embeddings")
+print(f"✓ Visualization saved to: {viz_result.stats['visualization_image_path']}")
+```
+
+#### Reuse Existing Projections
+
+If you've already created a 2D projection and want to recreate the visualization with different settings:
+
+```python
+# Reuse previous UMAP projection (faster, no recomputation)
+viz_result = graphaide.project_vectors(
+    output_dir="./visualizations",
+    reuse_embedding=True,  # Skip UMAP, reuse .npy file
+    save_png=True,  # Save as static PNG image
+    category_field="metadata_filter"  # Different coloring
+)
+```
+
+The visualization is interactive—hover over points to see metadata, zoom, pan, and toggle categories.
+
+## ChromaDB Configuration
+
+### With Store Name and Path (Recommended)
+
+```python
+from pathlib import Path
+
+home = Path.home()
+VectorDBConfig(
+    provider="chromadb",
+    store_name="GVD",
+    store_path=home / "GVD"
+)
+```
+
+### Default Configuration
 
 ```python
 VectorDBConfig(
     provider="chromadb",
-    path="./chroma"  # Stores in local folder
-)
-```
-
-### Persistent Storage
-
-```python
-VectorDBConfig(
-    provider="chromadb",
-    path="/data/chroma",  # Survives restarts
-    collection_name="documents"
+    store_name="default",
+    store_path="./chroma"
 )
 ```
 
@@ -71,71 +119,42 @@ VectorDBConfig(
 ```python
 VectorDBConfig(
     provider="chromadb",
-    path=":memory:"  # Cleared on exit
-)
-```
-
-## Qdrant Setup
-
-### Remote Qdrant Server
-
-```python
-VectorDBConfig(
-    provider="qdrant",
-    url="http://localhost:6333",
-    collection_name="documents"
-)
-```
-
-### With API Key
-
-```python
-VectorDBConfig(
-    provider="qdrant",
-    url="http://qdrant-server:6333",
-    api_key="your-api-key",
-    collection_name="documents"
-)
-```
-
-### In-Memory Qdrant
-
-```python
-VectorDBConfig(
-    provider="qdrant",
-    path=":memory:"  # Temporary, in-process
+    store_name="temp",
+    store_path=":memory:"  # Cleared on exit
 )
 ```
 
 ## Loading Documents
 
-### Single Document
+### Load Sample Data
 
 ```python
-result = graphaide.ingest_to_vectordb(
-    file_paths=["document.pdf"],
+from graphaide import get_sample_data_path
+
+# Get sample files
+cyber_file = get_sample_data_path("cyberkg.txt")
+pdf_file = get_sample_data_path("PNNL_About.pdf")
+
+# Load into vector store
+result = graphaide.ingest_vectors(
+    file_paths=[str(cyber_file), str(pdf_file)],
     split_docs=True
 )
 ```
 
-### Multiple Documents
+### Load Your Own Documents
 
 ```python
-result = graphaide.ingest_to_vectordb(
-    file_paths=[
-        "report1.pdf",
-        "report2.pdf",
-        "guidelines.txt"
-    ],
+result = graphaide.ingest_vectors(
+    file_paths=["document1.pdf", "document2.pdf"],
     split_docs=True,
-    append=True  # Add to existing collection
+    append=False  # Replace existing, or True to add
 )
 ```
 
 ### From Text
 
 ```python
-# Convert text to file first, or use extraction workflow
 from pathlib import Path
 
 # Write text to temporary file
@@ -143,7 +162,7 @@ text = "Your document content here..."
 text_file = Path("temp.txt")
 text_file.write_text(text)
 
-result = graphaide.ingest_to_vectordb(
+result = graphaide.ingest_vectors(
     file_paths=[str(text_file)],
     split_docs=True
 )
@@ -151,10 +170,10 @@ result = graphaide.ingest_to_vectordb(
 
 ## Document Splitting Options
 
-### Default Splitting
+### Default Splitting (Recommended)
 
 ```python
-result = graphaide.ingest_to_vectordb(
+result = graphaide.ingest_vectors(
     file_paths=["document.pdf"],
     split_docs=True   # Auto-split into chunks
 )
@@ -163,45 +182,64 @@ result = graphaide.ingest_to_vectordb(
 ### Without Splitting
 
 ```python
-result = graphaide.ingest_to_vectordb(
+result = graphaide.ingest_vectors(
     file_paths=["small_document.txt"],
     split_docs=False  # Store entire document as-is
 )
 ```
 
-## Managing Collections
+## Managing Vector Stores
 
-### Create Multiple Collections
+### Create Multiple Named Stores
 
 ```python
-# Collection 1: Domain documentation
-result1 = graphaide.ingest_to_vectordb(
-    file_paths=["guide1.pdf", "guide2.pdf"],
+from pathlib import Path
+
+home = Path.home()
+
+# Store 1: Cybersecurity knowledge (GVD)
+gvd_config = VectorDBConfig(
+    store_name="GVD",
+    store_path=home / "GVD"
 )
 
-# Collection 2: Reference material
-result2 = graphaide.ingest_to_vectordb(
-    file_paths=["reference.pdf"],
+# Store 2: General knowledge
+general_config = VectorDBConfig(
+    store_name="general",
+    store_path=home / "general"
+)
+
+# Load different data into each
+graphaide1 = GraphAide(..., vectordb_config=gvd_config)
+graphaide1.ingest_vectors(
+    file_paths=[get_sample_data_path("cyberkg.txt")],
+    append=False
+)
+
+graphaide2 = GraphAide(..., vectordb_config=general_config)
+graphaide2.ingest_vectors(
+    file_paths=[get_sample_data_path("PNNL_About.pdf")],
+    append=False
 )
 ```
 
 ### Clear and Reload
 
 ```python
-# Clear existing
-result = graphaide.ingest_to_vectordb(
+# Replace all documents (append=False)
+result = graphaide.ingest_vectors(
     file_paths=["new_documents.pdf"],
-    append=False  # Replace everything
+    append=False
 )
 ```
 
 ### Keep and Append
 
 ```python
-# Add more documents
-result = graphaide.ingest_to_vectordb(
+# Add more documents to existing store
+result = graphaide.ingest_vectors(
     file_paths=["additional.pdf"],
-    append=True  # Add to existing
+    append=True
 )
 ```
 
@@ -214,7 +252,7 @@ Embeddings convert text into vectors. GraphAide supports:
 ```python
 ModelConfig(
     provider="openai",
-    model_name="gpt-4o",
+    model_name="gpt-5.6-luna",
     embedding_model="text-embedding-3-small",
     api_key="..."
 )
@@ -225,7 +263,7 @@ ModelConfig(
 ```python
 ModelConfig(
     provider="openai",
-    model_name="gpt-4o",
+    model_name="gpt-5.6-luna",
     embedding_model="sentence-transformers/all-MiniLM-L6-v2",
     api_key="..."
 )
@@ -243,103 +281,68 @@ ModelConfig(
 
 ## Common Workflows
 
-### Build a Knowledge Base
+### Build a Knowledge Base with Named Store
 
 ```python
 from pathlib import Path
-from graphaide import GraphAide, ModelConfig, VectorDBConfig
+from graphaide import GraphAide, ModelConfig, VectorDBConfig, get_sample_data_path
 
-# Setup
+home = Path.home()
+
+# Setup with named GVD store
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
-    vectordb_config=VectorDBConfig(provider="chromadb", path="./knowledge_base")
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="..."),
+    vectordb_config=VectorDBConfig(
+        provider="chromadb",
+        store_name="GVD",
+        store_path=home / "GVD"
+    )
 )
 
-# Load all PDFs from folder
-docs_folder = Path("documents")
-pdf_files = list(docs_folder.glob("*.pdf"))
+# Load sample data
+cyber_file = get_sample_data_path("cyberkg.txt")
+pdf_file = get_sample_data_path("PNNL_About.pdf")
 
-result = graphaide.ingest_to_vectordb(
-    file_paths=[str(f) for f in pdf_files],
+result = graphaide.ingest_vectors(
+    file_paths=[str(cyber_file), str(pdf_file)],
     split_docs=True,
-    append=False  # Start fresh
+    append=False
 )
-
-print(f"Knowledge base ready: {result.documents_loaded} documents, {result.chunks_created} chunks")
 ```
 
 ### Incremental Updates
 
 ```python
 # Initial load
-graphaide.ingest_to_vectordb(
+graphaide.ingest_vectors(
     file_paths=["doc1.pdf", "doc2.pdf"],
     append=False
 )
 
 # Later: add new documents
-graphaide.ingest_to_vectordb(
+graphaide.ingest_vectors(
     file_paths=["doc3.pdf"],
     append=True  # Keep existing, add new
 )
 ```
 
-### Production Setup
-
-```python
-from graphaide import GraphAide, ModelConfig, VectorDBConfig
-
-graphaide = GraphAide(
-    model_config=ModelConfig(
-        provider="openai",
-        model_name="gpt-4o",
-        embedding_model="text-embedding-3-small",
-        api_key="..."
-    ),
-    vectordb_config=VectorDBConfig(
-        provider="qdrant",
-        url="http://qdrant-prod:6333",
-        api_key="prod-key",
-        collection_name="prod-knowledge"
-    )
-)
-
-# Load documents
-result = graphaide.ingest_to_vectordb(
-    file_paths=get_all_documents(),
-    split_docs=True,
-    append=False
-)
-```
 
 ## Troubleshooting
 
 ### ChromaDB Connection Issues
 
 ```python
-# Check path exists
-import os
-os.makedirs("./chroma", exist_ok=True)
+from pathlib import Path
 
-# Or use absolute path
+home = Path.home()
+store_path = home / "GVD"
+
+# Ensure directory exists
+store_path.mkdir(parents=True, exist_ok=True)
+
 VectorDBConfig(
-    provider="chromadb",
-    path="/absolute/path/to/chroma"
-)
-```
-
-### Qdrant Connection Failed
-
-```bash
-# Start Qdrant server
-docker run -p 6333:6333 qdrant/qdrant:latest
-```
-
-Then configure:
-```python
-VectorDBConfig(
-    provider="qdrant",
-    url="http://localhost:6333"
+    store_name="GVD",
+    store_path=store_path
 )
 ```
 
@@ -354,8 +357,18 @@ ModelConfig(
 )
 ```
 
+### Out of Memory with Large Documents
+
+```python
+# Split into smaller batches
+result = graphaide.ingest_vectors(
+    file_paths=["large_document.pdf"],
+    split_docs=True,  # Enables chunking
+    append=True  # Add incrementally
+)
+```
+
 ## Next Steps
 
 - **[Use Vector Stores in Extraction](usage.md)** — Enhance extraction with retrieval
-- **[Configure Multiple Vector Stores](usage.md#multi-retriever-rag)** — Advanced retrieval
 - **[Query Your Knowledge Base](../resources.md)** — See what's possible

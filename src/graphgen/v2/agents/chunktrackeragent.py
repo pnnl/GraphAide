@@ -150,7 +150,7 @@ class ChunkTrackerAgent(GraphAideAgent):
                 edge.raw_source_line = self._find_mention_in_chunk(mention_str, raw_text)
                 enhanced_edges.append(edge)
 
-            logger.info(
+            logger.debug(
                 f"ChunkTracker: Enhanced {len(enhanced_nodes)} nodes, {len(enhanced_edges)} edges "
                 f"with chunk_id={chunk_id} from {file_name}#{chunk_sequence}"
             )

@@ -29,6 +29,7 @@ theme:
     - navigation.tabs.sticky
     - navigation.sections
     - navigation.top
+    - navigation.footer
     - search.suggest
     - search.highlight
     - toc.follow
@@ -64,10 +65,11 @@ nav:
   - Extraction:
       - Getting Started: extraction/index.md
       - Using Ontology: extraction/ontology.md
-  - Ingestion: ingestion/index.md
   - Vector Stores:
       - Setup & Loading: vector-stores/setup.md
       - Using in Extraction: vector-stores/usage.md
+  - Ingestion: ingestion/index.md
+  - Query: query/index.md
   - Resources: resources.md
   - Legal: legal/index.md
 

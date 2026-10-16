@@ -177,17 +177,16 @@ class GraphAide:
         # Initialize internal WorkflowManager
         self.manager = WorkflowManager(global_config=self.workflow_config)
 
-        # DEBUG: Print configuration values on initialization
+        # Print initialization summary with masked API keys
+        from graphgen.v2.utils import mask_api_key
         logger.info("=" * 80)
         logger.info("GraphAide Initialization - Configuration Summary")
         logger.info("=" * 80)
-        logger.info(f"LLM Provider: {self.model_config.provider}")
-        logger.info(f"LLM Model: {self.model_config.model_name}")
-        logger.info(f"Max Output Tokens (LLM): {self.model_config.max_output_tokens_limit_llm}")
-        logger.info(f"Embedding Model: {self.model_config.embedding_model_name}")
-        logger.info(f"Temperature: {self.model_config.temperature}")
-        logger.info(f"Vector Store(s): {len(self.vector_configs) if self.vector_configs else 0}")
+        masked_key = mask_api_key(self.model_config.api_key)
+        logger.info(f"LLM: {self.model_config.provider} / {self.model_config.model_name} (key: {masked_key})")
+        logger.info(f"Embedding: {self.model_config.embedding_model_name}")
         if self.vector_configs:
+            logger.info(f"Vector Stores: {len(self.vector_configs)}")
             from pathlib import Path
             for i, vconf in enumerate(self.vector_configs, 1):
                 if vconf.store_path:
@@ -195,11 +194,8 @@ class GraphAide:
                 else:
                     full_path = vconf.store_name
                 collection_name = vconf.collection_name or "langchain"
-                logger.info(f"  [{i}] {vconf.provider} - {vconf.store_name}")
-                logger.info(f"      Path: {full_path}")
-                logger.info(f"      Collection: {collection_name}")
                 doc_count = self._get_vector_store_doc_count(vconf)
-                logger.info(f"      Documents: {doc_count}")
+                logger.info(f"  [{i}] {vconf.provider} ({doc_count} docs) @ {full_path}")
         logger.info("=" * 80)
 
     def _get_vector_store_doc_count(self, vconf: VectorDBConfig) -> int:
@@ -221,41 +217,32 @@ class GraphAide:
                 )
 
                 # Log detailed diagnostic info
-                logger.info(f"[VectorStore Count Debug]")
-                logger.info(f"  Store Name: {vconf.store_name}")
-                logger.info(f"  Store Path Config: {vconf.store_path}")
-                logger.info(f"  Expanded Full Path: {path_obj}")
+                logger.debug(f"VectorStore: {vconf.store_name} @ {path_obj}")
 
                 import os
-                logger.info(f"  Path Exists: {path_obj.exists()}")
-                if path_obj.exists():
-                    contents = os.listdir(path_obj)
-                    logger.info(f"  Directory Contents: {contents}")
+                logger.debug(f"  Path exists: {path_obj.exists()}")
 
-                collection_name = vconf.collection_name  # None uses Chroma's default ("langchain")
-                logger.info(f"  Querying Collection Name: {collection_name or 'langchain (Chroma default)'}")
+                collection_name = vconf.collection_name or "langchain"
 
-                # List all available collections in this store
+                # Get collection directly without needing embeddings
+                client = chromadb.PersistentClient(path=str(path_obj))
+
                 try:
-                    client = chromadb.PersistentClient(path=str(path_obj))
-                    all_collections = client.list_collections()
-                    logger.info(f"  Available Collections in Store:")
-                    for col in all_collections:
-                        logger.info(f"    - {col.name} ({col.count()} docs)")
+                    collection = client.get_collection(name=collection_name)
+                    count = collection.count()
+                    logger.debug(f"  Found {count} documents in '{collection_name}'")
+                    return count
                 except Exception as e:
-                    logger.info(f"  Could not list collections: {e}")
+                    logger.debug(f"  Could not get collection '{collection_name}': {e}")
 
-                # Use same Chroma initialization as VectorFactory
-                chroma_kwargs = {
-                    "persist_directory": path_obj,
-                    "embedding_function": self.manager.model_factory.get_embeddings(),
-                    "collection_name": vconf.collection_name or "langchain",  # Explicit default
-                }
-
-                store = Chroma(**chroma_kwargs)
-                count = store._collection.count()
-                logger.info(f"  ✓ Found: {count} documents in '{collection_name}'")
-                return count
+                    # List available collections for debugging
+                    try:
+                        all_collections = client.list_collections()
+                        col_names = [col.name for col in all_collections]
+                        logger.debug(f"  Available collections: {col_names}")
+                    except Exception as e2:
+                        logger.debug(f"  Could not list collections: {e2}")
+                    return 0
 
             elif vconf.provider.lower() == "qdrant":
                 from langchain_qdrant import QdrantVectorStore
@@ -786,6 +773,68 @@ class GraphAide:
             jsonl_lines_per_batch=lines_per_batch,
             ontology_path=ontology_path,
             **kwargs,
+        )
+
+    def project_vectors(
+        self,
+        reuse_embedding: bool = False,
+        output_dir: str = "./visualizations",
+        display_in_notebook: bool = True,
+        save_png: bool = False,
+        category_field: str = "metadata_filter",
+        **kwargs,
+    ) -> WorkflowResult:
+        """Project vector store embeddings to 2D space and create visualization.
+
+        Creates a 2D UMAP projection of vector store embeddings and generates
+        an interactive visualization. Requires that vectors have been ingested
+        into the vector store via ingest_vectors().
+
+        Args:
+            reuse_embedding: Reuse existing UMAP projection if available (default: False)
+            output_dir: Directory to save visualization outputs (default: "./visualizations")
+            display_in_notebook: Display visualization in Jupyter notebook (default: True)
+            save_png: Save visualization as PNG image (default: False)
+            category_field: Metadata field for coloring data points (default: "metadata_filter")
+            **kwargs: Additional workflow parameters (e.g., log_level)
+
+        Returns:
+            WorkflowResult with stats containing:
+            - projection_file_path: UMAP embedding file (.npy)
+            - visualization_image_path: Interactive HTML visualization
+            - projection_metadata_path: Metadata JSON file
+            - num_embeddings_projected: Count of projected embeddings
+
+        Example:
+            # Basic usage - creates 2D visualization
+            result = graphaide.project_vectors()
+            print(f"Projected {result.stats['num_embeddings_projected']} embeddings")
+
+            # With custom output directory and category
+            result = graphaide.project_vectors(
+                output_dir="./my_visualizations",
+                reuse_embedding=True,  # Reuse previous projection
+                category_field="document_type"  # Color by document type
+            )
+
+            # Save as PNG file
+            result = graphaide.project_vectors(
+                save_png=True,
+                category_field="source"
+            )
+        """
+        logger.debug(f"Projecting vector store embeddings to 2D (output_dir={output_dir})")
+
+        return self.manager.run(
+            "vectordb_visualize",
+            {
+                "reuse_embedding": reuse_embedding,
+                "output_dir": output_dir,
+                "display_in_notebook": display_in_notebook,
+                "save_png": save_png,
+                "category_field": category_field,
+                **kwargs,
+            },
         )
 
     def get_manager(self) -> WorkflowManager:

@@ -12,7 +12,7 @@ from graphaide import GraphAide, ModelConfig
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
-        model_name="gpt-4o",
+        model_name="gpt-5.6-luna",
         api_key="..."
     )
 )
@@ -26,7 +26,7 @@ This uses defaults for Neo4j (localhost:7687) and vector storage.
 
 | Provider | Models | Setup |
 |----------|--------|-------|
-| **OpenAI** | gpt-4o, gpt-4o-mini | Requires API key |
+| **OpenAI** | gpt-5.6-luna, gpt-5.6-luna-mini | Requires API key |
 | **Anthropic** | claude-3-5-sonnet | Requires API key |
 | **Google** | gemini-pro | Requires API key |
 | **AWS Bedrock** | claude, llama | Requires AWS credentials |
@@ -40,7 +40,7 @@ from graphaide import GraphAide, ModelConfig
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
-        model_name="gpt-4o",
+        model_name="gpt-5.6-luna",
         api_key="sk-your-key-here",
         temperature=0.7,
         max_output_tokens_limit_llm=16000
@@ -78,7 +78,7 @@ model_config=ModelConfig(
 from graphaide import GraphAide, ModelConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="...")
     # No graphdb_config needed - uses localhost:7687 with neo4j:password
 )
 ```
@@ -153,7 +153,7 @@ from graphaide import GraphAide, ModelConfig
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
-        model_name="gpt-4o",
+        model_name="gpt-5.6-luna",
         embedding_model="text-embedding-3-small",
         api_key="..."
     )
@@ -165,7 +165,7 @@ graphaide = GraphAide(
 ```python
 model_config=ModelConfig(
     provider="openai",
-    model_name="gpt-4o",
+    model_name="gpt-5.6-luna",
     embedding_model="sentence-transformers/all-MiniLM-L6-v2",
     api_key="..."
 )
@@ -264,7 +264,7 @@ from graphaide import (
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
-        model_name="gpt-4o",
+        model_name="gpt-5.6-luna",
         api_key="...",
         embedding_model="text-embedding-3-small",
         temperature=0.3,

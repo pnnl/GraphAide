@@ -251,7 +251,7 @@ class ExtractorAgent(GraphAideAgent):
         from graphgen.v2 import globalconfig
 
         # Log vector store path on startup
-        logger.info(f"Vector store path: {globalconfig.VECTOR_STORE_BASEDIR}")
+        logger.debug(f"Vector store path: {globalconfig.VECTOR_STORE_BASEDIR}")
 
         # DEBUG: Log what we received at the start
         logger.debug(
@@ -324,7 +324,7 @@ class ExtractorAgent(GraphAideAgent):
                         else str(result.result_type)
                     )
                     by_type[rtype] = by_type.get(rtype, 0) + 1
-                logger.info(
+                logger.debug(
                     f"✓ {len(chunk_retrieval_results)} total (this chunk): {', '.join([f'{c} {t}' for t, c in by_type.items()])}"
                 )
 
@@ -337,10 +337,14 @@ class ExtractorAgent(GraphAideAgent):
             f"ExtractorAgent: rag_context_summary present? {summary is not None}"
         )
 
+        # Extract allowed node/edge types from ontology for filtering
+        node_types = summary.ontology_node_types if summary else []
+        edge_types = summary.ontology_edge_types if summary else []
+
         # Build optimized, deduplicated context for this chunk
         context = build_chunk_context(summary, chunk_retrieval_results, include_token_count=True)
 
-        logger.info(f"Context ready ({len(context)} chars)")
+        logger.debug(f"Context ready ({len(context)} chars)")
         logger.debug(f"ExtractorAgent: Full Context = {context}")
 
         # 4. Fallback: if no retrieval results, use single default store
@@ -354,7 +358,7 @@ class ExtractorAgent(GraphAideAgent):
             # Log vector store path for debugging
             from graphgen.v2 import globalconfig
             store_path = globalconfig.VECTOR_STORE_BASEDIR / "GA_VDB"
-            logger.info(f"Vector store path: {store_path}")
+            logger.debug(f"Vector store path: {store_path}")
 
             query = state.get("raw_text", "")
 
@@ -373,7 +377,7 @@ class ExtractorAgent(GraphAideAgent):
 
             # Skip search if query is empty
             if not query or query.isspace():
-                logger.info("ExtractorAgent: skipping similarity search (empty query)")
+                logger.debug("ExtractorAgent: skipping similarity search (empty query)")
                 docs = []
             else:
                 try:
@@ -405,12 +409,12 @@ class ExtractorAgent(GraphAideAgent):
         callbacks = []
         if self._langfuse_client:
             callbacks.append(self._langfuse_client)
-            logger.info(f"✓ [ExtractorAgent] Using LangFuse callback for tracing: {type(self._langfuse_client).__name__}")
+            logger.debug(f"✓ [ExtractorAgent] Using LangFuse callback for tracing: {type(self._langfuse_client).__name__}")
             logger.debug(f"  Callback: {self._langfuse_client}")
         else:
-            logger.info(f"⚠️  [ExtractorAgent] LangFuse callback not available - no tracing will be recorded")
+            logger.debug(f"⚠️  [ExtractorAgent] LangFuse callback not available - no tracing will be recorded")
         callbacks.append(self._debug_callback)
-        logger.info(f"✓ [ExtractorAgent] Debug callback added for event verification")
+        logger.debug(f"✓ [ExtractorAgent] Debug callback added for event verification")
         try:
             extracted_nodes, extracted_edges, messages = self._extract_with_fallback(
                 text=state.get("raw_text", ""),
@@ -419,7 +423,7 @@ class ExtractorAgent(GraphAideAgent):
                 chain=chain,
                 callbacks=callbacks,
             )
-            logger.info(messages[-1])
+            logger.debug(messages[-1])
 
             # Show extracted types for debugging
             extracted_node_types = list(
@@ -472,7 +476,7 @@ class ExtractorAgent(GraphAideAgent):
                 skipped_nodes = len(extracted_nodes) - len(filtered_nodes)
                 skipped_edges = len(extracted_edges) - len(filtered_edges)
                 if skipped_nodes or skipped_edges:
-                    logger.info(
+                    logger.debug(
                         f"Filtered out {skipped_nodes} nodes, {skipped_edges} edges not in ontology"
                     )
                     # Show which node types were filtered out

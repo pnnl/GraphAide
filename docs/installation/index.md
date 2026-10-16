@@ -8,9 +8,42 @@ Get GraphAide running in minutes. Choose the method that works best for you.
 - **Neo4j:** 4.4 or later (optional for basic usage)
 - **LLM API:** OpenAI, Anthropic, Google, or AWS Bedrock account
 
-## Method 1: pip (Recommended)
+## Setup Virtual Environment (Recommended)
 
-The simplest way to install GraphAide for most users.
+Before installing GraphAide, create an isolated environment to manage dependencies:
+
+**Option 1: Using uv (Fastest)** ⚡
+```bash
+uv venv graphaide-env
+# On macOS/Linux:
+source graphaide-env/bin/activate
+# On Windows:
+graphaide-env\Scripts\activate
+```
+
+**Option 2: Using Conda**
+```bash
+conda create -n graphaide python=3.12
+conda activate graphaide
+```
+
+## Method 1: uv (Recommended for Speed)
+
+The **fastest** way to install GraphAide. We recommend `uv` for significantly faster dependency resolution:
+
+```bash
+uv pip install graphaide
+```
+
+Verify installation:
+
+```bash
+graphaide --version
+```
+
+## Method 2: pip
+
+Standard Python package manager approach:
 
 ```bash
 pip install graphaide
@@ -22,7 +55,7 @@ Verify installation:
 graphaide --version
 ```
 
-## Method 2: Using GraphAide as a Python Library
+## Method 3: Using GraphAide as a Python Library
 
 Use GraphAide programmatically in your Python code.
 
@@ -32,7 +65,7 @@ from graphaide import GraphAide, ModelConfig
 graphaide = GraphAide(
     model_config=ModelConfig(
         provider="openai",
-        model_name="gpt-4o",
+        model_name="gpt-5.6-luna",
         api_key="..."
     )
 )
@@ -41,7 +74,7 @@ graphaide = GraphAide(
 result = graphaide.extract(file_path="document.pdf")
 ```
 
-## Method 3: Docker
+## Method 4: Docker
 
 Run GraphAide in a containerized environment with all dependencies included.
 
@@ -53,22 +86,27 @@ docker compose up
 
 Then access the REST API at `http://localhost:8000`.
 
-## Method 4: Development Setup
+## Method 5: Development Setup
 
 For developers who want to contribute or modify GraphAide.
 
+**With uv (recommended):**
+```bash
+git clone https://github.com/pnnl/GraphAide.git
+cd GraphAide
+uv venv
+# On macOS/Linux:
+source .venv/bin/activate
+# On Windows:
+.venv\Scripts\activate
+uv pip install -e ".[testing]"
+```
+
+**Or with pip:**
 ```bash
 git clone https://github.com/pnnl/GraphAide.git
 cd GraphAide
 pip install -e ".[testing]"
-```
-
-## Method 5: Using UV (Advanced)
-
-For projects using `uv` package manager:
-
-```bash
-uv add graphaide
 ```
 
 ## Next Steps
@@ -106,7 +144,7 @@ from graphaide import ModelConfig
 
 config = ModelConfig(
     provider="openai",
-    model_name="gpt-4o",
+    model_name="gpt-5.6-luna",
     api_key="sk-your-key-here"
 )
 # Test connection during GraphAide initialization

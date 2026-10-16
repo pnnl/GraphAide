@@ -38,7 +38,7 @@ class IntentPredictorAgent(GraphAideAgent):
         chain = self.prompt | structured_llm
 
         # Map State 'raw_text' to Template 'question'
-        logger.info("IntentPredictor: analyzing input")
+        logger.debug("IntentPredictor: analyzing input")
         inputs = {"question": state.get("raw_text", "")}
 
         # Run

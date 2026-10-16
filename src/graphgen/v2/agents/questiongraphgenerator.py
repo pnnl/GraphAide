@@ -40,7 +40,7 @@ class QuestionGraphGeneratorAgent(GraphAideAgent):
         try:
             chain = self.prompt | self.model
             response = self._invoke_chain(chain, {"raw_text": state.get("question", "")})
-            logger.info("QueryGraphGen: query generated")
+            logger.debug("QueryGraphGen: query generated")
             return {"messages": [response], "graph_question": response.content}
         except Exception as e:
             logger.error(f"QueryGraphGen failed: {e}")

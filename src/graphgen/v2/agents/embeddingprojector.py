@@ -64,7 +64,7 @@ class EmbeddingProjectorAgent(GraphAideAgent):
             and state.get("reuse_embedding_file_path", False)
             and os.path.exists(umap_persist_file_path + ".metadata.json")
         ):
-            logger.info(f"UMAP: reusing {umap_persist_file_path}")
+            logger.debug(f"UMAP: reusing {umap_persist_file_path}")
             return {
                 "messages": [
                     f"Reused existing UMAP projection from {umap_persist_file_path}."
@@ -72,7 +72,7 @@ class EmbeddingProjectorAgent(GraphAideAgent):
                 "embedding_file_path": umap_persist_file_path,
             }
 
-        logger.info(f"UMAP: computing projection -> {umap_persist_file_path}")
+        logger.debug(f"UMAP: computing projection -> {umap_persist_file_path}")
 
         t0 = time.time()
         documents = vector_store._collection.get(
@@ -102,13 +102,13 @@ class EmbeddingProjectorAgent(GraphAideAgent):
         logger.debug(f"Numpy conversion: {t3-t2:.2f}s")
 
         # Reduce dimensionality using UMAP
-        logger.info(f"UMAP: starting dimensionality reduction for {len(embeddings_np)} points")
+        logger.debug(f"UMAP: starting dimensionality reduction for {len(embeddings_np)} points")
         t4 = time.time()
         umap_reducer = umap.UMAP(n_components=2, random_state=42)
         reduced_embeddings = umap_reducer.fit_transform(embeddings_np)
         t5 = time.time()
         logger.debug(f"UMAP fit_transform: {t5-t4:.2f}s")
-        logger.info("UMAP: projection complete")
+        logger.debug("UMAP: projection complete")
 
         # Save the reduced embeddings to a file
         t6 = time.time()

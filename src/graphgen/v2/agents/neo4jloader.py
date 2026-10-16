@@ -76,7 +76,7 @@ class Neo4jLoaderAgent(GraphAideAgent):
                         context + f"QID={qid_label[0]} Label={qid_label[1]}" + "\n"
                     )
 
-        logger.info(f"{len(docs)} docs retrieved")
+        logger.debug(f"{len(docs)} docs retrieved")
 
         # Logic: combine Prompt + Model
         # Use structured output

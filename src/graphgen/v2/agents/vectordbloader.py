@@ -159,7 +159,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
         if not wikidata_path.exists():
             raise FileNotFoundError(f"Wikidata file not found: {wikidata_path}")
 
-        logger.info(f"Loading Wikidata JSON: {wikidata_file_path}")
+        logger.debug(f"Loading Wikidata JSON: {wikidata_file_path}")
 
         with open(wikidata_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -210,9 +210,9 @@ class VectorDBLoaderAgent(GraphAideAgent):
         # Add documents to vector store
         if documents:
             vector_store.add_documents(documents)
-            logger.info(f"Loaded {len(documents)} Wikidata entities into vector store")
+            logger.debug(f"Loaded {len(documents)} Wikidata entities into vector store")
         else:
-            logger.info("No Wikidata entities found in file")
+            logger.debug("No Wikidata entities found in file")
 
         return documents, [f"Loaded {len(documents)} Wikidata entities from {wikidata_file_path}"]
 
@@ -225,7 +225,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
 
         Uses shared parse_rdf_ontology() to avoid code duplication.
         """
-        logger.info(f"Loading ontology: {ontology_file_path}")
+        logger.debug(f"Loading ontology: {ontology_file_path}")
 
         # Use shared ontology parser
         ontology_data = parse_rdf_ontology(ontology_file_path)
@@ -277,9 +277,9 @@ class VectorDBLoaderAgent(GraphAideAgent):
         # Add documents to vector store
         if documents:
             vector_store.add_documents(documents)
-            logger.info(f"Loaded {len(documents)} ontology types into vector store")
+            logger.debug(f"Loaded {len(documents)} ontology types into vector store")
         else:
-            logger.info("No ontology types found in file")
+            logger.debug("No ontology types found in file")
 
         return documents, [f"Loaded {len(documents)} ontology types from {ontology_file_path}"]
 
@@ -393,7 +393,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                     all_messages.append(msg)
                     continue
 
-                logger.info(
+                logger.debug(
                     f"Loading {file_path} [file {idx + 1}/{len(files_to_load)}]"
                 )
 
@@ -507,7 +507,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                     existing_ids = collection.get()["ids"]
                     if existing_ids:
                         collection.delete(existing_ids)
-                        logger.info("Cleared vector store collection for fresh load")
+                        logger.debug("Cleared vector store collection for fresh load")
 
                 # Extract ID→Title mappings from this file's documents
                 id_to_title = self._extract_id_title_mapping(splits)
@@ -520,7 +520,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                         batch_splits = splits[i : i + batch_size]
                         vector_store.add_documents(batch_splits)
                     msg = f"✅ Loaded {len(splits)} docs from {file_path} ({(len(splits) + batch_size - 1) // batch_size} batches)"
-                    logger.info(msg)
+                    logger.debug(msg)
                     all_messages.append(msg)
                 else:
                     collection = vector_store._collection
@@ -543,7 +543,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                                 f"Failed to ingest batch {i // batch_size + 1}: {e}"
                             )
                     msg = f"✅ Loaded {len(splits)} docs from {file_path} (batched)"
-                    logger.info(msg)
+                    logger.debug(msg)
                     all_messages.append(msg)
 
             result = {"messages": all_messages}
@@ -597,7 +597,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
         Returns:
             List of Document objects, one per section.
         """
-        logger.info(f"Loading PDF with section chunking: {file_path}")
+        logger.debug(f"Loading PDF with section chunking: {file_path}")
 
         if not PYMUPDF_AVAILABLE:
             logger.warning("PyMuPDF not available. Falling back to PyPDFLoader")
@@ -803,7 +803,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
         Returns:
             List of Document objects, one per entry.
         """
-        logger.info(f"Loading YAML file: {file_path}")
+        logger.debug(f"Loading YAML file: {file_path}")
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
@@ -1155,7 +1155,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                                 metadata[col] = str(row[col])
                     docs.append(Document(page_content=doc_content, metadata=metadata))
 
-                logger.info(f"Loaded {len(docs)} docs using pandas fallback")
+                logger.debug(f"Loaded using pandas fallback")
             # sys.stderr.write(len(docs))
 
             # Filter documents based on whether the column is present in content
@@ -1264,7 +1264,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
 
                 doc = Document(page_content=content, metadata=metadata)
                 docs.append(doc)
-                logger.info(f"Loaded image: {file_path}")
+                logger.debug(f"Loaded image: {file_path}")
 
             except Exception as e:
                 logger.error(f"Error loading image {file_path}: {e}")
@@ -1330,7 +1330,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
 
                     doc = Document(page_content=content, metadata=metadata)
                     docs.append(doc)
-                    logger.info(f"Extracted image from {pdf_name} page {page_num + 1}")
+                    logger.debug(f"Extracted image from {pdf_name} page {page_num + 1}")
 
             pdf_document.close()
 
