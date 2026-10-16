@@ -20,11 +20,12 @@ from .base import WorkflowConfig
 # FACTORY INITIALIZATION
 # ============================================================================
 
-def get_agent_factory(config: Optional[WorkflowConfig] = None) -> AgentFactory:
+def get_agent_factory(config: Optional[WorkflowConfig] = None, include_graphdb: bool = True) -> AgentFactory:
     """Initialize and return the AgentFactory with all required dependencies.
 
     Args:
         config: Optional WorkflowConfig with model/db overrides
+        include_graphdb: If False, skip GraphDB initialization (for workflows like vectordb_visualize that don't need it)
 
     Returns:
         Initialized AgentFactory
@@ -38,8 +39,10 @@ def get_agent_factory(config: Optional[WorkflowConfig] = None) -> AgentFactory:
     vector_factory = VectorFactory(model_factory=model_factory,
                                   vectordb_config=config.vector_config if config else None)
 
-    # Create graph database factory
-    graphdb_factory = GraphDBFactory(graphdb_config=config.graphdb_config if config else None)
+    # Create graph database factory only if needed
+    graphdb_factory = None
+    if include_graphdb:
+        graphdb_factory = GraphDBFactory(graphdb_config=config.graphdb_config if config else None)
 
     # Create agent factory
     return AgentFactory(

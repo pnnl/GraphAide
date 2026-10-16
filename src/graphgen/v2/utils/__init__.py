@@ -272,17 +272,13 @@ def get_current_log_level():
 
 
 def log_workflow_start(workflow_name: str):
-    """Log workflow start with pretty centered formatting.
+    """Log workflow start (suppressed - use log_workflow_info for operation tracking).
 
     Args:
         workflow_name: Name of the workflow being started
     """
-    logger = logging.getLogger("graphgen")
-    width = 60
-    border = "=" * width
-    name_str = f" {workflow_name.upper()} "
-    centered_name = name_str.center(width, "=")
-    logger.info(f"\n{border}\n{centered_name}\n{border}")
+    # Workflow start messages are too verbose. Use log_workflow_info() for key status messages instead.
+    pass
 
 
 def get_vector_store_metadata(vector_store):

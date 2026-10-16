@@ -1174,7 +1174,7 @@ class WorkflowManager:
         Projects embeddings to 2D and creates visualization.
         Flow: embeddingprojector → embeddingvisualizer → END
         """
-        agent_factory = get_agent_factory(config)
+        agent_factory = get_agent_factory(config, include_graphdb=False)
 
         # Build agents
         embedding_projector = agent_factory.build(

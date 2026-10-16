@@ -823,12 +823,7 @@ class GraphAide:
                 category_field="source"
             )
         """
-        # Setup logging (always, to suppress third-party DEBUG noise)
-        log_level = kwargs.pop("log_level", "INFO")
-        from graphgen.v2.utils import setup_logging
-        setup_logging(log_level=log_level)
-
-        logger.info(f"Projecting vector store embeddings to 2D (output_dir={output_dir})")
+        logger.debug(f"Projecting vector store embeddings to 2D (output_dir={output_dir})")
 
         return self.manager.run(
             "vectordb_visualize",
