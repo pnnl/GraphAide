@@ -190,7 +190,7 @@ class EmbeddingVisualizerAgent(GraphAideAgent):
                 return port
 
             port = find_free_port()
-            logger.info(f"Launching Dash app on http://localhost:{port}")
+            logger.debug(f"Launching Dash app on http://localhost:{port}")
             app.run(debug=False, port=port)
 
             # Save PNG if requested

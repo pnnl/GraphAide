@@ -70,7 +70,7 @@ class NodesLoaderAgent(GraphAideAgent):
         edges = state.get("edges", [])
 
         if not nodes:
-            logger.info("No nodes to load, skipping")
+            logger.debug("No nodes to load, skipping")
             return {
                 "messages": [
                     "No nodes provided for loading. Skipping."
@@ -86,7 +86,7 @@ class NodesLoaderAgent(GraphAideAgent):
         nodes_data = [{k: v for k, v in node.items() if k not in ["character_span", "token_span"]} for node in nodes_data]
         inputtext = json.dumps({"nodes": nodes_data, "edges": str(edges)})
 
-        logger.info(f"Loading {len(nodes)} nodes (batch {state.get('batch_index', 'all')}/{state.get('total_batches', 'all')})")
+        logger.debug(f"Loading {len(nodes)} nodes (batch {state.get('batch_index', 'all')}/{state.get('total_batches', 'all')})")
 
         # 4. Invoke chain and handle result
         result, error = self._invoke_cypher_chain(graph_store, nodes, edges, inputtext)

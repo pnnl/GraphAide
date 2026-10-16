@@ -76,7 +76,7 @@ class Neo4jPostProcessorAgent(GraphAideAgent):
                 RETURN node
                 """
                 graph_store.query(lablesetquery)
-                logger.info("Neo4jPostProcessor: successfully set node labels from node_type")
+                logger.debug("Neo4jPostProcessor: successfully set node labels from node_type")
             except Exception as e:
                 logger.error(f"Neo4jPostProcessor failed on SET node labels: {e}")
                 raise
@@ -107,11 +107,11 @@ class Neo4jPostProcessorAgent(GraphAideAgent):
 
                 RETURN rel
                 """
-                logger.info("Neo4jPostProcessor: converting REL edges with edge_type to typed relationships")
+                logger.debug("Neo4jPostProcessor: converting REL edges with edge_type to typed relationships")
                 result = graph_store.query(edgelablesetquery)
                 skipped_count_query = "MATCH (a)-[r:REL]->(b) WHERE r.edge_type IS NULL OR toString(r.edge_type) = '' RETURN count(r) as cnt"
                 skipped = graph_store.query(skipped_count_query)
-                logger.info(f"Neo4jPostProcessor: converted {len(result) if result else 0} edges, skipped {skipped[0]['cnt'] if skipped else 0} edges without edge_type")
+                logger.debug(f"Neo4jPostProcessor: converted {len(result) if result else 0} edges, skipped {skipped[0]['cnt'] if skipped else 0} edges without edge_type")
             except Exception as e:
                 logger.error(f"Neo4jPostProcessor failed on edge type conversion: {e}")
                 raise
@@ -131,7 +131,7 @@ class Neo4jPostProcessorAgent(GraphAideAgent):
                 link_result = graph_store.query(link_nodes_to_chunks_query)
                 linked_count = link_result[0]['linked_count'] if link_result else 0
                 if linked_count > 0:
-                    logger.info(f"Neo4jPostProcessor: created {linked_count} EXTRACTED_FROM_CHUNK edges")
+                    logger.debug(f"Neo4jPostProcessor: created {linked_count} EXTRACTED_FROM_CHUNK edges")
             except Exception as e:
                 logger.debug(f"Neo4jPostProcessor: no chunk linking needed (non-chunk-aware workflow): {e}")
 

@@ -235,7 +235,7 @@ def build_chunk_context(
     # Log token count if requested
     if include_token_count:
         token_count = count_tokens(context)
-        logger.info(f"Built context: {len(context)} chars, ~{token_count} tokens")
+        logger.debug(f"Built context: {len(context)} chars, ~{token_count} tokens")
 
     return context
 

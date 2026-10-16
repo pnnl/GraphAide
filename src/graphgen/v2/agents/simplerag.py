@@ -79,7 +79,7 @@ class SimpleRAGAgent(GraphAideAgent):
                     context = context + doc_content + "\n"
             input_text = f"Question: {question}\nGraph Answer Text: {graph_answer_text}\nContext from Vector Store:\n{context}"
             response = self._invoke_chain(chain, {"question": input_text})
-            logger.info("SimpleRAG: response generated")
+            logger.debug("SimpleRAG: response generated")
             return {"messages": [response], "answer": response.content}
         except Exception as e:
             logger.error(f"SimpleRAG failed: {e}")

@@ -41,8 +41,8 @@ class JSONLLoaderAgent(GraphAideAgent):
                 "current_agent": [self.__class__.__name__],
             })
 
-        logger.info(f"🔍 Loading JSONL from: {jsonl_path}")
-        logger.info(f"   Field to extract: '{field_name}'")
+        logger.debug(f"🔍 Loading JSONL from: {jsonl_path}")
+        logger.debug(f"   Field to extract: '{field_name}'")
 
         try:
             # Read all lines from JSONL (in real implementation, would read batch_size lines)
@@ -77,10 +77,10 @@ class JSONLLoaderAgent(GraphAideAgent):
             jsonl_lines = [{"content": l["content"]} for l in all_lines]
             jsonl_line_numbers = [l["line_number"] for l in all_lines]
 
-            logger.info(f"✅ Loaded {len(jsonl_lines)} lines from JSONL")
-            logger.info(f"   Lines per batch: {lines_per_batch}")
-            logger.info(f"   Parallel jobs: ceil({len(jsonl_lines)}/{lines_per_batch}) = {math.ceil(len(jsonl_lines) / lines_per_batch)}")
-            logger.info(f"   DEBUG: First line #{jsonl_line_numbers[0]}: {jsonl_lines[0]['content'][:80]}...")
+            logger.debug(f"✅ Loaded {len(jsonl_lines)} lines from JSONL")
+            logger.debug(f"   Lines per batch: {lines_per_batch}")
+            logger.debug(f"   Parallel jobs: ceil({len(jsonl_lines)}/{lines_per_batch}) = {math.ceil(len(jsonl_lines) / lines_per_batch)}")
+            logger.debug(f"   DEBUG: First line #{jsonl_line_numbers[0]}: {jsonl_lines[0]['content'][:80]}...")
 
             return Command(update={
                 "jsonl_lines": jsonl_lines,

@@ -132,7 +132,7 @@ class ChunkGraphLoadAgent(GraphAideAgent):
         }
 
         graph_store.query(doc_query, params=doc_params)
-        logger.info(
+        logger.debug(
             f"ChunkGraphLoad: created {len(set(d.file_path for d in documents))} SourceDocument nodes"
         )
 
@@ -173,7 +173,7 @@ class ChunkGraphLoadAgent(GraphAideAgent):
         }
 
         graph_store.query(para_query, params=para_params)
-        logger.info(
+        logger.debug(
             f"ChunkGraphLoad: created {len(set(p.chunk_id for p in chunks))} ChunkParagraph nodes "
             f"(deduplicated by content hash)"
         )
@@ -206,7 +206,7 @@ class ChunkGraphLoadAgent(GraphAideAgent):
         }
 
         graph_store.query(link_query, params=link_params)
-        logger.info("ChunkGraphLoad: linked SourceDocuments to ChunkParagraphs")
+        logger.debug("ChunkGraphLoad: linked SourceDocuments to ChunkParagraphs")
 
     def _set_chunk_properties_on_nodes(self, graph_store: Any, nodes: List[Node]) -> None:
         """Set chunk_id and raw_source_line on existing nodes using hardcoded Cypher.
@@ -245,7 +245,7 @@ class ChunkGraphLoadAgent(GraphAideAgent):
 
         try:
             graph_store.query(set_query, params=set_params)
-            logger.info(f"ChunkGraphLoad: set chunk_id and raw_source_line on {len(nodes_with_chunks)} nodes")
+            logger.debug(f"ChunkGraphLoad: set chunk_id and raw_source_line on {len(nodes_with_chunks)} nodes")
         except Exception as e:
             logger.warning(f"ChunkGraphLoad: failed to set chunk properties: {e}")
 
@@ -286,4 +286,4 @@ class ChunkGraphLoadAgent(GraphAideAgent):
         }
 
         graph_store.query(link_query, params=link_params)
-        logger.info(f"ChunkGraphLoad: linked {len(nodes_with_chunks)} KG nodes to ChunkParagraph chunks")
+        logger.debug(f"ChunkGraphLoad: linked {len(nodes_with_chunks)} KG nodes to ChunkParagraph chunks")

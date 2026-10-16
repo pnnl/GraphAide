@@ -55,7 +55,7 @@ class OntologyLoaderAgent(GraphAideAgent):
         # Check both field names for robustness (ontology_file_path is expected, but fallback to ontology_path if needed)
         ontology_path_str = state.get("ontology_file_path") or state.get("ontology_path") or ""
         if not ontology_path_str:
-            logger.info("No ontology file provided, skipping")
+            logger.debug("No ontology file provided, skipping")
             return {
                 "messages": ["No ontology file provided - extraction will use open schema."],
                 "rag_context_summary": RAGContextSummary(),  # Empty summary (no ontology constraints)
@@ -101,7 +101,7 @@ class OntologyLoaderAgent(GraphAideAgent):
         )
 
         # Log summary
-        logger.info(
+        logger.debug(
             f"Ontology: {len(ontology_data['node_types'])} classes, "
             f"{len(ontology_data['edge_types'])} properties, "
             f"{len(ontology_data['node_definitions'])} definitions, "

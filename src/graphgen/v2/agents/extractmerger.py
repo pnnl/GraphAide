@@ -34,15 +34,15 @@ class ExtractMergerAgent(GraphAideAgent):
         nodes = state.get("nodes", [])
         edges = state.get("edges", [])
 
-        logger.info(f"ExtractMerger: Consolidating {len(nodes)} nodes and {len(edges)} edges")
+        logger.debug(f"ExtractMerger: Consolidating {len(nodes)} nodes and {len(edges)} edges")
 
         # Merge nodes by node_id
         merged_nodes = self._merge_nodes(nodes)
-        logger.info(f"ExtractMerger: Consolidated to {len(merged_nodes)} unique nodes")
+        logger.debug(f"ExtractMerger: Consolidated to {len(merged_nodes)} unique nodes")
 
         # Merge edges by (source, target, edge_type)
         merged_edges = self._merge_edges(edges)
-        logger.info(f"ExtractMerger: Consolidated to {len(merged_edges)} unique edges")
+        logger.debug(f"ExtractMerger: Consolidated to {len(merged_edges)} unique edges")
 
         return Command(
             update={
