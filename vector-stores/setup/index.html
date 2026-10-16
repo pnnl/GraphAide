@@ -1682,12 +1682,6 @@
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Loaded </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">documents_loaded</span><span class="si">}</span><span class="s2"> documents:"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - cyberkg.txt"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - PNNL_About.pdf"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Created </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">chunks_created</span><span class="si">}</span><span class="s2"> chunks"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Vector store: </span><span class="si">{</span><span class="n">vectordb_config</span><span class="o">.</span><span class="n">store_name</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">vectordb_config</span><span class="o">.</span><span class="n">store_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="chromadb-configuration">ChromaDB Configuration</h2>
 <h3 id="with-store-name-and-path-recommended">With Store Name and Path (Recommended)</h3>
@@ -1857,8 +1851,6 @@
     <span class="n">split_docs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Knowledge base ready: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">documents_loaded</span><span class="si">}</span><span class="s2"> documents, </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">chunks_created</span><span class="si">}</span><span class="s2"> chunks"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="incremental-updates">Incremental Updates</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Initial load</span>
