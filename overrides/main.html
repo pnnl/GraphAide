@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <!-- Top Navigation (Previous/Next) -->
+  {% if page.previous_page or page.next_page %}
+    <div class="md-nav__top" style="display: flex; justify-content: space-between; padding: 1em 0; margin-bottom: 1em; border-bottom: 1px solid var(--md-border-color);">
+      {% if page.previous_page %}
+        <a href="{{ page.previous_page.url }}" style="padding: 0.5em 1em; border: 1px solid var(--md-border-color); border-radius: 4px; text-decoration: none; display: inline-block;">
+          ← {{ page.previous_page.title }}
+        </a>
+      {% else %}
+        <span></span>
+      {% endif %}
+      {% if page.next_page %}
+        <a href="{{ page.next_page.url }}" style="padding: 0.5em 1em; border: 1px solid var(--md-border-color); border-radius: 4px; text-decoration: none; display: inline-block;">
+          {{ page.next_page.title }} →
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {{ super() }}
+{% endblock %}
