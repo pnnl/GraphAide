@@ -235,27 +235,27 @@ class GraphAide:
                 collection_name = vconf.collection_name  # None uses Chroma's default ("langchain")
                 logger.info(f"  Querying Collection Name: {collection_name or 'langchain (Chroma default)'}")
 
-                # List all available collections in this store
+                # Get collection directly without needing embeddings
+                client = chromadb.PersistentClient(path=str(path_obj))
+                collection_name_to_query = vconf.collection_name or "langchain"
+
                 try:
-                    client = chromadb.PersistentClient(path=str(path_obj))
-                    all_collections = client.list_collections()
-                    logger.info(f"  Available Collections in Store:")
-                    for col in all_collections:
-                        logger.info(f"    - {col.name} ({col.count()} docs)")
+                    collection = client.get_collection(name=collection_name_to_query)
+                    count = collection.count()
+                    logger.info(f"  ✓ Found: {count} documents in '{collection_name_to_query}'")
+                    return count
                 except Exception as e:
-                    logger.info(f"  Could not list collections: {e}")
+                    logger.debug(f"  Could not get collection '{collection_name_to_query}': {e}")
 
-                # Use same Chroma initialization as VectorFactory
-                chroma_kwargs = {
-                    "persist_directory": path_obj,
-                    "embedding_function": self.manager.model_factory.get_embeddings(),
-                    "collection_name": vconf.collection_name or "langchain",  # Explicit default
-                }
-
-                store = Chroma(**chroma_kwargs)
-                count = store._collection.count()
-                logger.info(f"  ✓ Found: {count} documents in '{collection_name}'")
-                return count
+                    # List available collections for debugging
+                    try:
+                        all_collections = client.list_collections()
+                        logger.info(f"  Available Collections in Store:")
+                        for col in all_collections:
+                            logger.info(f"    - {col.name} ({col.count()} docs)")
+                    except Exception as e2:
+                        logger.debug(f"  Could not list collections: {e2}")
+                    return 0
 
             elif vconf.provider.lower() == "qdrant":
                 from langchain_qdrant import QdrantVectorStore
