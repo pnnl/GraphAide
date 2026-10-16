@@ -1294,39 +1294,48 @@
 
 <span class="c1"># Query your knowledge graph</span>
 
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What organizations are mentioned?"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What organizations are mentioned?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="query-examples">Query Examples</h2>
 <h3 id="entity-queries">Entity Queries</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Find all people</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"Who are all the people mentioned?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"Who are all the people mentioned?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 
 <span class="c1"># Find specific relationships</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What companies does John Smith work for?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What companies does John Smith work for?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 
 <span class="c1"># Find connected entities</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What projects are associated with AI research?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What projects are associated with AI research?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="relationship-queries">Relationship Queries</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Explore relationships</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What relationships exist between companies and technologies?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What relationships exist between companies and technologies?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 
 <span class="c1"># Find connections</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"How are cybersecurity concepts connected?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"How are cybersecurity concepts connected?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 
 <span class="c1"># Path finding</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What's the connection between AI and natural language processing?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What's the connection between AI and natural language processing?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="aggregation-queries">Aggregation Queries</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Count entities</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"How many different organizations are in the knowledge graph?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"How many different organizations are in the knowledge graph?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 
 <span class="c1"># List operations</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"List all the technologies mentioned and their uses"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"List all the technologies mentioned and their uses"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 
 <span class="c1"># Statistical queries</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What are the most frequently mentioned concepts?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What are the most frequently mentioned concepts?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="query-parameters">Query Parameters</h2>
 <p>The <code>query()</code> method accepts additional parameters:</p>
@@ -1369,7 +1378,8 @@
 <span class="p">)</span>
 
 <span class="c1"># Query now includes both graph data AND document context</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What specific technologies are mentioned for cybersecurity?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What specific technologies are mentioned for cybersecurity?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="understanding-query-results">Understanding Query Results</h2>
 <p>The query result includes:</p>
@@ -1390,14 +1400,16 @@
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Documents in vector store: </span><span class="si">{</span><span class="n">doc_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="c1"># Try a simpler query</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What entities are in the graph?"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"What entities are in the graph?"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="query-execution-errors">Query Execution Errors</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Enable debug logging to see detailed execution</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
     <span class="s2">"Your question here?"</span><span class="p">,</span>
     <span class="n">log_level</span><span class="o">=</span><span class="s2">"DEBUG"</span>
 <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="next-steps">Next Steps</h2>
 <ul>
