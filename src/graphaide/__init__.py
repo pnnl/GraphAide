@@ -17,6 +17,30 @@ Advanced Usage:
     result = manager.run("kg_extract", {...})
 """
 
+# Suppress verbose third-party library logs at import time (before they initialize)
+import logging
+_verbose_libs = [
+    "langfuse",
+    "langchain",
+    "langchain_core",
+    "langchain_community",
+    "langgraph",
+    "httpx",
+    "httpcore",
+    "urllib3",
+    "asyncio",
+    "neo4j",
+    "chromadb",
+    "sentence_transformers",
+]
+for _lib in _verbose_libs:
+    _logger = logging.getLogger(_lib)
+    _logger.setLevel(logging.WARNING)
+    _logger.propagate = True
+    # Remove any existing handlers to prevent them from outputting DEBUG logs
+    for _handler in _logger.handlers[:]:
+        _handler.setLevel(logging.WARNING)
+
 # Core Configuration Classes
 from graphgen.v2.ModelManager import ModelConfig, ModelFactory
 from graphgen.v2.GraphDBManager import GraphDBConfig, GraphDBFactory

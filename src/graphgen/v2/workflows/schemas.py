@@ -498,6 +498,18 @@ class VectorDBVisualizeInput(BaseModel):
         "./data",
         description="Directory to save visualization outputs"
     )
+    display_in_notebook: bool = Field(
+        True,
+        description="Display interactive visualization in Jupyter notebook"
+    )
+    save_png: bool = Field(
+        False,
+        description="Save visualization as PNG file"
+    )
+    category_field: str = Field(
+        "metadata_filter",
+        description="Metadata field to use for coloring data points (e.g., 'document_type', 'source')"
+    )
 
     class Config:
         """Pydantic config."""
@@ -505,6 +517,9 @@ class VectorDBVisualizeInput(BaseModel):
             "example": {
                 "reuse_embedding": False,
                 "output_dir": "./data",
+                "display_in_notebook": True,
+                "save_png": False,
+                "category_field": "metadata_filter",
             }
         }
 

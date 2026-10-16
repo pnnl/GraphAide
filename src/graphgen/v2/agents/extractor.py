@@ -337,6 +337,10 @@ class ExtractorAgent(GraphAideAgent):
             f"ExtractorAgent: rag_context_summary present? {summary is not None}"
         )
 
+        # Extract allowed node/edge types from ontology for filtering
+        node_types = summary.ontology_node_types if summary else []
+        edge_types = summary.ontology_edge_types if summary else []
+
         # Build optimized, deduplicated context for this chunk
         context = build_chunk_context(summary, chunk_retrieval_results, include_token_count=True)
 

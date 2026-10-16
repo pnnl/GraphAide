@@ -8,17 +8,43 @@ Ingestion is the process of taking extracted entities and relationships and load
 
 ## Quick Start: Ingest to Neo4j
 
-### One-Step Extraction and Ingestion
+### Configure Neo4j Connection
+
+First, set up your Neo4j database configuration:
 
 ```python
-from graphaide import GraphAide, ModelConfig
+from graphaide import GraphDBConfig
 
+graphdb_config = GraphDBConfig(
+    uri="neo4j://localhost:7687",      # Neo4j server address
+    username="neo4j",                   # Neo4j username
+    password="password"                 # Neo4j password
+)
+```
+
+### Initialize GraphAide with Neo4j
+
+```python
+from graphaide import GraphAide, ModelConfig, GraphDBConfig
+
+# Setup LLM
+model_config = ModelConfig(
+    provider="openai",
+    model_name="gpt-5.6-luna",
+    api_key="..."
+)
+
+# Setup Neo4j
+graphdb_config = GraphDBConfig(
+    uri="neo4j://localhost:7687",
+    username="neo4j",
+    password="password"
+)
+
+# Initialize GraphAide with both configs
 graphaide = GraphAide(
-    model_config=ModelConfig(
-        provider="openai",
-        model_name="gpt-4o",
-        api_key="..."
-    )
+    model_config=model_config,
+    graphdb_config=graphdb_config
 )
 
 # Extract AND ingest to Neo4j in one call
@@ -216,7 +242,7 @@ import os
 from graphaide import GraphAide, ModelConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="...")
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="...")
 )
 
 # Ingest all PDFs in folder

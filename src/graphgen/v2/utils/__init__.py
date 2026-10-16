@@ -175,6 +175,26 @@ def setup_logging(log_level="INFO", log_file=None):
     graphaide_level = getattr(logging, log_level.upper())
     logging.getLogger("graphgen").setLevel(graphaide_level)
 
+    # Suppress DEBUG logs from verbose third-party libraries (only show WARNING+)
+    # Unless GraphAide itself is in DEBUG mode, then let them through
+    if log_level.upper() != "DEBUG":
+        verbose_libraries = [
+            "langfuse",
+            "langchain",
+            "langchain_core",
+            "langchain_community",
+            "langgraph",
+            "httpx",
+            "httpcore",
+            "urllib3",
+            "asyncio",
+            "neo4j",
+            "chromadb",
+            "sentence_transformers",
+        ]
+        for lib in verbose_libraries:
+            logging.getLogger(lib).setLevel(logging.WARNING)
+
     # Log setup message
     logger = logging.getLogger("graphgen")
     abs_path = Path(log_file).resolve()

@@ -449,6 +449,11 @@ class WorkflowManager:
                     validated_inputs.reuse_embedding
                 )
                 initial_state["output_dir"] = output_dir
+                initial_state["display_in_notebook"] = (
+                    validated_inputs.display_in_notebook
+                )
+                initial_state["save_png"] = validated_inputs.save_png
+                initial_state["category_field"] = validated_inputs.category_field
             elif workflow_name == "ontology_generate":
                 initial_state = init_kg_generation_state(file_path="")
                 initial_state["node_types"] = validated_inputs.node_types

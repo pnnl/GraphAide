@@ -788,6 +788,73 @@ class GraphAide:
             **kwargs,
         )
 
+    def project_vectors(
+        self,
+        reuse_embedding: bool = False,
+        output_dir: str = "./visualizations",
+        display_in_notebook: bool = True,
+        save_png: bool = False,
+        category_field: str = "metadata_filter",
+        **kwargs,
+    ) -> WorkflowResult:
+        """Project vector store embeddings to 2D space and create visualization.
+
+        Creates a 2D UMAP projection of vector store embeddings and generates
+        an interactive visualization. Requires that vectors have been ingested
+        into the vector store via ingest_vectors().
+
+        Args:
+            reuse_embedding: Reuse existing UMAP projection if available (default: False)
+            output_dir: Directory to save visualization outputs (default: "./visualizations")
+            display_in_notebook: Display visualization in Jupyter notebook (default: True)
+            save_png: Save visualization as PNG image (default: False)
+            category_field: Metadata field for coloring data points (default: "metadata_filter")
+            **kwargs: Additional workflow parameters (e.g., log_level)
+
+        Returns:
+            WorkflowResult with stats containing:
+            - projection_file_path: UMAP embedding file (.npy)
+            - visualization_image_path: Interactive HTML visualization
+            - projection_metadata_path: Metadata JSON file
+            - num_embeddings_projected: Count of projected embeddings
+
+        Example:
+            # Basic usage - creates 2D visualization
+            result = graphaide.project_vectors()
+            print(f"Projected {result.stats['num_embeddings_projected']} embeddings")
+
+            # With custom output directory and category
+            result = graphaide.project_vectors(
+                output_dir="./my_visualizations",
+                reuse_embedding=True,  # Reuse previous projection
+                category_field="document_type"  # Color by document type
+            )
+
+            # Save as PNG file
+            result = graphaide.project_vectors(
+                save_png=True,
+                category_field="source"
+            )
+        """
+        # Setup logging (always, to suppress third-party DEBUG noise)
+        log_level = kwargs.pop("log_level", "INFO")
+        from graphgen.v2.utils import setup_logging
+        setup_logging(log_level=log_level)
+
+        logger.info(f"Projecting vector store embeddings to 2D (output_dir={output_dir})")
+
+        return self.manager.run(
+            "vectordb_visualize",
+            {
+                "reuse_embedding": reuse_embedding,
+                "output_dir": output_dir,
+                "display_in_notebook": display_in_notebook,
+                "save_png": save_png,
+                "category_field": category_field,
+                **kwargs,
+            },
+        )
+
     def get_manager(self) -> WorkflowManager:
         """Access the internal WorkflowManager for advanced usage.
 

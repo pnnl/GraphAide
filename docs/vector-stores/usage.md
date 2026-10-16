@@ -20,7 +20,7 @@ from graphaide import GraphAide, ModelConfig, VectorDBConfig
 
 # First, load documents into vector store
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="..."),
     vectordb_config=VectorDBConfig(provider="chromadb", path="./chroma")
 )
 
@@ -70,7 +70,7 @@ from graphaide.workflows.schemas import VectorStoreConfig
 
 # Setup GraphAide
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="..."),
     vectordb_config=VectorDBConfig(provider="chromadb", path="./chroma")
 )
 
@@ -162,7 +162,7 @@ VectorStoreConfig(
 from graphaide import GraphAide, ModelConfig, VectorDBConfig
 
 graphaide = GraphAide(
-    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
+    model_config=ModelConfig(provider="openai", model_name="gpt-5.6-luna", api_key="..."),
     vectordb_config=VectorDBConfig(provider="chromadb", path="./kb")
 )
 
