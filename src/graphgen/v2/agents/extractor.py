@@ -251,7 +251,7 @@ class ExtractorAgent(GraphAideAgent):
         from graphgen.v2 import globalconfig
 
         # Log vector store path on startup
-        logger.debug(f\"Vector store path: {globalconfig.VECTOR_STORE_BASEDIR}")
+        logger.debug(f"Vector store path: {globalconfig.VECTOR_STORE_BASEDIR}")
 
         # DEBUG: Log what we received at the start
         logger.debug(
@@ -358,7 +358,7 @@ class ExtractorAgent(GraphAideAgent):
             # Log vector store path for debugging
             from graphgen.v2 import globalconfig
             store_path = globalconfig.VECTOR_STORE_BASEDIR / "GA_VDB"
-            logger.debug(f\"Vector store path: {store_path}")
+            logger.debug(f"Vector store path: {store_path}")
 
             query = state.get("raw_text", "")
 
