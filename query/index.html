@@ -1396,7 +1396,11 @@
 2. Neo4j connection is working
 3. Query is specific enough (avoid overly broad questions)</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Verify data exists</span>
-<span class="n">doc_count</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">_get_vector_store_doc_count</span><span class="p">()</span> <span class="k">if</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">vector_configs</span> <span class="k">else</span> <span class="s2">"N/A"</span>
+<span class="k">if</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">vector_configs</span><span class="p">:</span>
+    <span class="n">vector_config</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">vector_configs</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">graphaide</span><span class="o">.</span><span class="n">vector_configs</span><span class="p">,</span> <span class="n">VectorDBConfig</span><span class="p">)</span> <span class="k">else</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">vector_configs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">doc_count</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">_get_vector_store_doc_count</span><span class="p">(</span><span class="n">vector_config</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">doc_count</span> <span class="o">=</span> <span class="s2">"N/A"</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Documents in vector store: </span><span class="si">{</span><span class="n">doc_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="c1"># Try a simpler query</span>

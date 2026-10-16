@@ -1789,12 +1789,12 @@
 <span class="n">vectordb_config</span> <span class="o">=</span> <span class="n">VectorDBConfig</span><span class="p">(</span>
     <span class="n">provider</span><span class="o">=</span><span class="s2">"chromadb"</span><span class="p">,</span>
     <span class="n">store_name</span><span class="o">=</span><span class="s2">"GVD"</span><span class="p">,</span>
-    <span class="n">store_path</span><span class="o">=</span><span class="n">home</span> <span class="o">/</span> <span class="s2">"GVD"</span>
+    <span class="n">store_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">home</span> <span class="o">/</span> <span class="s2">"GVD"</span><span class="p">)</span>  <span class="c1"># Path must be a string</span>
 <span class="p">)</span>
 
 <span class="n">graphaide</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span>
     <span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">,</span>
-    <span class="n">vectordb_config</span><span class="o">=</span><span class="n">vectordb_config</span>
+    <span class="n">vector_configs</span><span class="o">=</span><span class="n">vectordb_config</span>
 <span class="p">)</span>
 
 <span class="c1"># Load sample documents into vector store</span>
@@ -1814,7 +1814,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="c1"># Check how many documents are stored</span>
-<span class="n">doc_count</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">_get_vector_store_doc_count</span><span class="p">()</span>
+<span class="n">doc_count</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">_get_vector_store_doc_count</span><span class="p">(</span><span class="n">vectordb_config</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Vector store contains </span><span class="si">{</span><span class="n">doc_count</span><span class="si">}</span><span class="s2"> documents"</span><span class="p">)</span>
 
 <span class="c1"># Create 2D UMAP projection and interactive visualization</span>
@@ -1846,7 +1846,7 @@
 <span class="n">VectorDBConfig</span><span class="p">(</span>
     <span class="n">provider</span><span class="o">=</span><span class="s2">"chromadb"</span><span class="p">,</span>
     <span class="n">store_name</span><span class="o">=</span><span class="s2">"GVD"</span><span class="p">,</span>
-    <span class="n">store_path</span><span class="o">=</span><span class="n">home</span> <span class="o">/</span> <span class="s2">"GVD"</span>
+    <span class="n">store_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">home</span> <span class="o">/</span> <span class="s2">"GVD"</span><span class="p">)</span>  <span class="c1"># Path must be a string</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="default-configuration">Default Configuration</h3>
@@ -1929,13 +1929,13 @@
 <span class="p">)</span>
 
 <span class="c1"># Load different data into each</span>
-<span class="n">graphaide1</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">vectordb_config</span><span class="o">=</span><span class="n">gvd_config</span><span class="p">)</span>
+<span class="n">graphaide1</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">vector_configs</span><span class="o">=</span><span class="n">gvd_config</span><span class="p">)</span>
 <span class="n">graphaide1</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"cyberkg.txt"</span><span class="p">)],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 
-<span class="n">graphaide2</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">vectordb_config</span><span class="o">=</span><span class="n">general_config</span><span class="p">)</span>
+<span class="n">graphaide2</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">vector_configs</span><span class="o">=</span><span class="n">general_config</span><span class="p">)</span>
 <span class="n">graphaide2</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
     <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"PNNL_About.pdf"</span><span class="p">)],</span>
     <span class="n">append</span><span class="o">=</span><span class="kc">False</span>
