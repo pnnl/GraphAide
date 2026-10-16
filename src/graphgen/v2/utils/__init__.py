@@ -249,11 +249,6 @@ def setup_logging(log_level="INFO", log_file=None):
         for lib in verbose_libraries:
             logging.getLogger(lib).setLevel(logging.WARNING)
 
-    # Log setup message
-    logger = logging.getLogger("graphgen")
-    abs_path = Path(log_file).resolve()
-    logger.info(f"Logging to: {abs_path}")
-
     return log_file
 
 
