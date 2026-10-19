@@ -48,16 +48,16 @@ conda activate graphaide
 
 ### Basic Usage
 
-**1. Install GraphAide (latest version 0.6.6):**
+**1. Install GraphAide (latest version 0.6.7):**
 
 We recommend **uv** for fast, reliable installation:
 ```bash
-uv pip install graphaide==0.6.6
+uv pip install graphaide==0.6.7
 ```
 
 Or use pip:
 ```bash
-pip install graphaide==0.6.6
+pip install graphaide==0.6.7
 ```
 
 **2. Extract knowledge graph:**

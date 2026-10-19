@@ -158,13 +158,13 @@ def extract(
             config_data["model"]["api_endpoint"] = endpoint
         if resolved_password:
             config_data["model"]["api_key"] = resolved_password
-        if max_output_tokens:
-            config_data["model"]["max_output_tokens_limit_llm"] = max_output_tokens
             # Set env var based on provider
             if provider.lower() == "anthropic":
                 os.environ["ANTHROPIC_API_KEY"] = resolved_password
             elif provider.lower() == "openai":
                 os.environ["OPENAI_API_KEY"] = resolved_password
+        if max_output_tokens:
+            config_data["model"]["max_output_tokens_limit_llm"] = max_output_tokens
 
         # Create temporary config file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -313,13 +313,13 @@ def extract_merge(
             config_data["model"]["api_endpoint"] = endpoint
         if resolved_password:
             config_data["model"]["api_key"] = resolved_password
-        if max_output_tokens:
-            config_data["model"]["max_output_tokens_limit_llm"] = max_output_tokens
             # Set env var based on provider
             if provider.lower() == "anthropic":
                 os.environ["ANTHROPIC_API_KEY"] = resolved_password
             elif provider.lower() == "openai":
                 os.environ["OPENAI_API_KEY"] = resolved_password
+        if max_output_tokens:
+            config_data["model"]["max_output_tokens_limit_llm"] = max_output_tokens
 
         # Create temporary config file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -460,13 +460,13 @@ def ingest(
             config_data["model"]["api_endpoint"] = endpoint
         if resolved_password:
             config_data["model"]["api_key"] = resolved_password
-        if max_output_tokens:
-            config_data["model"]["max_output_tokens_limit_llm"] = max_output_tokens
             # Set env var based on provider
             if provider.lower() == "anthropic":
                 os.environ["ANTHROPIC_API_KEY"] = resolved_password
             elif provider.lower() == "openai":
                 os.environ["OPENAI_API_KEY"] = resolved_password
+        if max_output_tokens:
+            config_data["model"]["max_output_tokens_limit_llm"] = max_output_tokens
 
         # Create temporary config file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
