@@ -2,12 +2,91 @@
 
 import logging
 from collections.abc import Callable
+from typing import Any, List
+
+from langchain_core.documents import Document
 
 from graphgen.v2 import globalconfig
 from graphgen.v2.state import KGGenerationState, RetrievalResult, RetrievalResultType
 from graphgen.v2.workflows.schemas import VectorStoreConfig
 
 logger = logging.getLogger("graphgen.retriever")
+
+try:
+    from flashrank import Ranker
+except ImportError:
+    Ranker = None
+
+# Singleton cache for Ranker instance (avoid recreating on every call)
+_ranker_instance = None
+
+
+def get_ranker():
+    """Get or create cached Ranker instance (downloads model once on first use)."""
+    global _ranker_instance
+    if _ranker_instance is None and Ranker:
+        try:
+            _ranker_instance = Ranker(model_name="ms-marco-MiniLM-L-12-v2")
+            logger.debug("FlashRank model initialized (cached)")
+        except Exception as e:
+            logger.debug(f"FlashRank initialization failed: {e}")
+            _ranker_instance = False  # Mark as failed to avoid retry
+    return _ranker_instance if _ranker_instance else None
+
+
+def rerank_documents(query: str, documents: List[Document], top_k: int) -> List[Document]:
+    """Rerank documents using FlashRank for better relevance.
+
+    Central utility for reranking across all retrieval operations.
+
+    Args:
+        query: Query text to rank against
+        documents: List of Document objects to rerank
+        top_k: Number of top results to return
+
+    Returns:
+        List of reranked Document objects (up to top_k)
+
+    Gracefully falls back to unranked if FlashRank unavailable.
+    """
+    if not documents or not Ranker:
+        return documents[:top_k]
+
+    try:
+        ranker = get_ranker()
+        if not ranker:
+            logger.debug("FlashRank not available, returning unranked documents")
+            return documents[:top_k]
+
+        # Convert Documents to FlashRank format (dicts with id and text)
+        from flashrank import RerankRequest
+
+        passages = [
+            {"id": str(i), "text": doc.page_content}
+            for i, doc in enumerate(documents)
+        ]
+
+        # Create rerank request
+        request = RerankRequest(query=query, passages=passages)
+
+        # Rerank (returns list of dicts with id, text, score)
+        reranked_results = ranker.rerank(request)
+
+        # Convert back to Document objects with scores in metadata
+        reranked_docs = []
+        for result in reranked_results[:top_k]:
+            idx = int(result['id'])
+            original_doc = documents[idx]
+            # Add rerank score to metadata
+            original_doc.metadata['rerank_score'] = float(result['score'])
+            reranked_docs.append(original_doc)
+
+        logger.debug(f"Reranked {len(documents)} docs → {len(reranked_docs)} best matches")
+        return reranked_docs
+
+    except Exception as e:
+        logger.debug(f"FlashRank reranking failed: {e}. Using similarity order.")
+        return documents[:top_k]
 
 
 def make_vectorstore_retriever(
@@ -90,7 +169,10 @@ def make_vectorstore_retriever(
             logger.debug(f"  Collection: {vector_store_config.collection_name}, retrieve_type: {vector_store_config.retrieve_type}")
             logger.debug(f"  Searching with k={globalconfig.DEFAULT_K}")
 
-            docs = vector_store.similarity_search(query, k=globalconfig.DEFAULT_K)
+            # Fetch 5x more docs for reranking, then rerank to top-k
+            fetch_k = globalconfig.DEFAULT_K * 5
+            docs = vector_store.similarity_search(query, k=fetch_k)
+            docs = rerank_documents(query, docs, globalconfig.DEFAULT_K)
 
             logger.info(
                 f"✓ Retriever {vector_store_config.retrieve_type}: Retrieved {len(docs)} docs from {vector_store_config.collection_name} (k={globalconfig.DEFAULT_K})"

@@ -28,7 +28,7 @@ class ModelConfig(BaseModel):
     model_name: str
     api_key: str | None = None
     base_url: str | None = None
-    temperature: float | None = Field(default=1.0)  # None = skip temperature (for models that don't support it)
+    temperature: float | None = Field(default=0.0)  # None = skip temperature (for models that don't support it). Default 0.0 for stable extraction
     max_output_tokens_limit_llm: int = globalconfig.DEFAULT_MAX_OUTPUT_TOKENS_LIMIT_LLM  # LLM output token limit. For input chunk size, see max_tokens_per_segment in workflows
     embedding_model_name: str | None = Field(default="text-embedding-3-small-project")
     service_name: str | None = (

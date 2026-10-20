@@ -13,9 +13,10 @@ complexity of WorkflowManager, WorkflowConfig, and workflow orchestration.
 import logging
 
 from graphgen.v2.GraphDBManager import GraphDBConfig
-from graphgen.v2.ModelManager import ModelConfig
-from graphgen.v2.VectorStoreManager import VectorDBConfig
+from graphgen.v2.ModelManager import ModelConfig, ModelFactory
+from graphgen.v2.VectorStoreManager import VectorDBConfig, VectorFactory
 from graphgen.v2.workflows import WorkflowConfig, WorkflowManager, WorkflowResult
+from graphgen.v2.tools import vector_query_with_reranking
 
 logger = logging.getLogger(__name__)
 
@@ -836,6 +837,75 @@ class GraphAide:
                 **kwargs,
             },
         )
+
+    def vector_query(
+        self,
+        query: str,
+        topk: int = 5,
+        rerank: bool = True,
+        vector_config_index: int = 0,
+    ) -> dict:
+        """Search vector store with optional FlashRank reranking.
+
+        Args:
+            query: Search query text
+            topk: Number of top results to return (default 5)
+            rerank: Whether to rerank results with FlashRank (default True)
+            vector_config_index: Index of vector config to use if multiple (default 0)
+
+        Returns:
+            dict with:
+                - results: List of matched documents with rank, scores, source
+                - query: The search query
+                - topk: Number of results requested
+                - total_results: Total results returned
+                - error: Error message if any
+
+        Raises:
+            ValueError: If no vector store configured
+
+        Example:
+            result = graphaide.vector_query(
+                query="What is cybersecurity?",
+                topk=5,
+                rerank=True
+            )
+            for doc in result["results"]:
+                print(f"{doc['rank']}. {doc['source']} (score: {doc['rerank_score']})")
+        """
+        if not self.vector_configs:
+            raise ValueError(
+                "No vector store configured. Initialize GraphAide with vector_configs."
+            )
+
+        # Handle single or multiple configs
+        if isinstance(self.vector_configs, list):
+            if vector_config_index >= len(self.vector_configs):
+                raise ValueError(
+                    f"Vector config index {vector_config_index} out of range "
+                    f"(have {len(self.vector_configs)} configs)"
+                )
+            config = self.vector_configs[vector_config_index]
+        else:
+            config = self.vector_configs
+
+        # Create vector store using VectorFactory
+        model_factory = ModelFactory(model_config=self.model_config)
+        vector_factory = VectorFactory(model_factory=model_factory, vectordb_config=config)
+        vector_store = vector_factory.get_store(config)
+
+        if not vector_store:
+            raise ValueError(f"Could not initialize vector store for config: {config}")
+
+        # Perform query with reranking
+        result = vector_query_with_reranking(
+            query=query,
+            vector_store=vector_store,
+            k=topk,
+            rerank=rerank,
+        )
+
+        return result
 
     def get_manager(self) -> WorkflowManager:
         """Access the internal WorkflowManager for advanced usage.

@@ -22,7 +22,7 @@ from graphgen.core import (
     visualize_vector_store,
 )
 from graphgen.v2.utils import setup_logging
-from graphaide import __version__
+from graphaide import __version__, GraphAide, ModelConfig, VectorDBConfig
 
 app = typer.Typer(
     name="graphaide",
@@ -968,6 +968,114 @@ def dev(
 def main():
     """Entry point for the CLI."""
     app()
+
+
+@app.command()
+def vector_query(
+    query: str = typer.Argument(..., help="Search query text"),
+    topk: int = typer.Option(5, "--topk", "-k", help="Number of top results to return (default: 5)"),
+    rerank: bool = typer.Option(True, "--rerank/--no-rerank", help="Enable FlashRank reranking (default: True)"),
+    vector_store: str = typer.Option("default", "--vector-store", "-v", help="Name of vector store to search"),
+    config: Optional[Path] = typer.Option(
+        None, "--config", "-c", help="JSON config file for model/vectorstore settings"
+    ),
+    embedding_model: Optional[str] = typer.Option(
+        None, "--embedding-model", help="Embedding model name (e.g., text-embedding-3-small)"
+    ),
+    vector_store_path: Optional[Path] = typer.Option(
+        None, "--vector-store-path", help="Path to ChromaDB vector store"
+    ),
+) -> None:
+    """Search vector store for similar documents with optional reranking.
+
+    Example:
+        graphaide vector-query "What is cybersecurity?" --topk 5 --rerank
+    """
+    try:
+        # Load config
+        config_data = {}
+        if config and config.exists():
+            with open(config) as f:
+                config_data = json.load(f)
+
+        # Setup model config
+        model_config = ModelConfig(
+            provider=config_data.get("model", {}).get("provider", "openai"),
+            model_name=config_data.get("model", {}).get("model_name", "gpt-4o"),
+            api_key=config_data.get("model", {}).get("api_key") or os.getenv("OPENAI_API_KEY"),
+            embedding_model_name=embedding_model or config_data.get("model", {}).get("embedding_model_name", "text-embedding-3-small"),
+        )
+
+        # Setup vector store config
+        vector_store_config = None
+        if vector_store_path:
+            vector_store_config = VectorDBConfig(
+                provider="chromadb",
+                store_name=vector_store,
+                store_path=str(vector_store_path),
+            )
+        elif config_data.get("vector_store"):
+            vector_store_config = VectorDBConfig(
+                provider=config_data["vector_store"].get("provider", "chromadb"),
+                store_name=config_data["vector_store"].get("store_name", vector_store),
+                store_path=config_data["vector_store"].get("store_path"),
+            )
+        else:
+            from pathlib import Path
+            home = Path.home()
+            vector_store_config = VectorDBConfig(
+                provider="chromadb",
+                store_name=vector_store,
+                store_path=str(home / vector_store),
+            )
+
+        # Initialize GraphAide
+        graphaide = GraphAide(
+            model_config=model_config,
+            vector_configs=vector_store_config,
+        )
+
+        # Perform query
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            progress.add_task(f"Searching for: '{query}'...", total=None)
+            result = graphaide.vector_query(query=query, topk=topk, rerank=rerank)
+
+        # Display results
+        if result.get("error"):
+            console.print(f"[red]Error: {result['error']}[/red]")
+            raise typer.Exit(1)
+
+        console.print(f"\n[bold green]Query:[/bold green] {result['query']}")
+        console.print(f"[bold green]Results:[/bold green] {result['total_results']}/{result['topk']}")
+
+        if result["results"]:
+            console.print()
+            for doc in result["results"]:
+                rank = doc["rank"]
+                source = doc.get("source", "Unknown")
+                page = f" (page {doc['page']})" if doc.get("page") else ""
+                similarity = doc.get("similarity_score", 0)
+                rerank_score = doc.get("rerank_score")
+
+                score_str = f"similarity: {similarity:.3f}"
+                if rerank_score:
+                    score_str += f", rerank: {rerank_score:.3f}"
+
+                console.print(f"[bold cyan][{rank}][/bold cyan] {source}{page}")
+                console.print(f"    [{score_str}]")
+                console.print(f"    {doc['document'][:200]}...")
+                console.print()
+        else:
+            console.print("[yellow]No results found[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error: {str(e)}[/red]")
+        logger.exception("Vector query failed")
+        raise typer.Exit(1)
 
 
 @app.callback()
