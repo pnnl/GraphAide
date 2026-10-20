@@ -89,6 +89,77 @@ viz_result = graphaide.project_vectors(
 
 The visualization is interactive—hover over points to see metadata, zoom, pan, and toggle categories.
 
+## Semantic Search with Reranking
+
+Query your vector store for semantically similar documents with optional FlashRank reranking to improve relevance.
+
+### Query with Reranking (Recommended)
+
+```python
+from graphaide import GraphAide, ModelConfig, VectorDBConfig
+from pathlib import Path
+
+home = Path.home()
+
+graphaide = GraphAide(
+    model_config=ModelConfig(
+        provider="openai",
+        model_name="gpt-5.6-luna",
+        api_key="..."
+    ),
+    vector_configs=VectorDBConfig(
+        provider="chromadb",
+        store_name="GVD",
+        store_path=str(home / "GVD")
+    )
+)
+
+# Search with automatic FlashRank reranking (enabled by default)
+result = graphaide.vector_query(
+    query="What is cybersecurity?",
+    topk=5,
+    rerank=True  # Enable reranking for better relevance
+)
+
+# Results include both similarity and rerank scores
+for doc in result["results"]:
+    print(f"[{doc['rank']}] {doc['source']}")
+    print(f"    Similarity: {doc['similarity_score']:.3f}")
+    print(f"    Rerank: {doc['rerank_score']:.3f}")
+    print(f"    Content: {doc['document'][:200]}...")
+    print()
+```
+
+### Query without Reranking
+
+```python
+# Disable reranking to use raw vector similarity
+result = graphaide.vector_query(
+    query="What is machine learning?",
+    topk=5,
+    rerank=False  # Use only vector similarity
+)
+```
+
+### Via CLI
+
+```bash
+# Search with reranking
+graphaide vector-query "What is data science?" --topk 5 --rerank
+
+# Search without reranking
+graphaide vector-query "What is data science?" --topk 5 --no-rerank
+```
+
+**Result Structure:**
+- `rank`: Document rank (1 = most relevant)
+- `document`: Document content preview
+- `source`: Source file or document name
+- `title`: Document title (if available)
+- `page`: Page number (if available)
+- `similarity_score`: Vector similarity score (0-1)
+- `rerank_score`: FlashRank relevance score (only if rerank=True)
+
 ## ChromaDB Configuration
 
 ### With Store Name and Path (Recommended)
