@@ -267,6 +267,109 @@ def similarity_search(
         }
 
 
+def vector_query_with_reranking(
+    query: str,
+    vector_store: Any,
+    k: int = 5,
+    rerank: bool = True,
+) -> dict:
+    """Perform semantic search with optional FlashRank reranking.
+
+    Uses the central reranking utility from retriever_factory for consistency.
+
+    Args:
+        query: Search query text
+        vector_store: The vector store instance to search
+        k: Number of top results to return
+        rerank: Whether to rerank results using FlashRank (default True)
+
+    Returns:
+        dict with:
+            - results: List of dicts with rank, document, source, similarity_score, rerank_score
+            - query: The search query
+            - topk: Number of results requested
+            - total_results: Total results returned
+    """
+    if not query or not vector_store:
+        return {
+            "results": [],
+            "query": query,
+            "topk": k,
+            "total_results": 0,
+            "error": "Query and vector store required"
+        }
+
+    try:
+        # Import reranking utility
+        from graphgen.v2.workflows.retriever_factory import rerank_documents
+
+        # Fetch more docs for reranking (fetch 50, rerank to k)
+        fetch_k = min(50, k * 10) if rerank else k
+        docs: List[Document] = vector_store.similarity_search(query, k=fetch_k)
+
+        if not docs:
+            return {
+                "results": [],
+                "query": query,
+                "topk": k,
+                "total_results": 0,
+            }
+
+        # Rerank using central utility if enabled
+        if rerank:
+            docs = rerank_documents(query, docs, k)
+        else:
+            docs = docs[:k]
+
+        # Format results with scores
+        results = []
+        for rank, doc in enumerate(docs, 1):
+            # Use same priority as visualization: preview > title > id > source
+            source = doc.metadata.get("source", "Unknown")
+            title = doc.metadata.get("title")
+            preview = doc.metadata.get("preview", doc.page_content[:500])
+            page = doc.metadata.get("page", None)
+
+            # Get scores from metadata
+            similarity_score = doc.metadata.get("similarity_score", 0.0)
+            rerank_score = doc.metadata.get("rerank_score", 0.0) if rerank else None
+
+            result_item = {
+                "rank": rank,
+                "document": preview,  # Show preview (same as visualization hover)
+                "source": source,
+                "similarity_score": float(similarity_score),
+            }
+
+            if title:
+                result_item["title"] = title
+
+            if page is not None:
+                result_item["page"] = page
+
+            if rerank_score is not None:
+                result_item["rerank_score"] = float(rerank_score)
+
+            results.append(result_item)
+
+        return {
+            "results": results,
+            "query": query,
+            "topk": k,
+            "total_results": len(results),
+        }
+
+    except Exception as e:
+        logger.error(f"Vector query error: {str(e)}")
+        return {
+            "results": [],
+            "query": query,
+            "topk": k,
+            "total_results": 0,
+            "error": str(e)
+        }
+
+
 def create_similarity_search_tool(vector_store: Any, name: str = "similarity_search"):
     """Create a StructuredTool for similarity search with injected vector store.
 
