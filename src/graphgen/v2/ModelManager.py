@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from graphgen.v2 import globalconfig
 from graphgen.v2.LangFuseManager import get_langfuse_callback
+from graphgen.v2.utils import mask_sensitive_value
 
 logger = logging.getLogger("graphgen.v2.modelmanager")
 
@@ -196,7 +197,8 @@ class ModelFactory:
                     model = model.with_config(callbacks=[self._langfuse_client])
                 self._model_objects[MODEL_OBJECT_KEY] = model
 
-            logger.debug(f"🔍 [ModelFactory] Model ready: provider={model_config.provider}")
+            masked_key = mask_sensitive_value(model_config.api_key) if model_config.api_key else "not set"
+            logger.debug(f"🔍 [ModelFactory] Model ready: provider={model_config.provider}, api_key={masked_key}")
             return self._model_objects[MODEL_OBJECT_KEY]
         except Exception as e:
             raise ValueError(f"Error initializing model for provider '{provider}': {e}")
