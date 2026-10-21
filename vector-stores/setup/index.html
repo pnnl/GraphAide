@@ -817,6 +817,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#semantic-search-with-reranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantic Search with Reranking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Semantic Search with Reranking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-with-reranking-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query with Reranking (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-without-reranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query without Reranking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#via-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Via CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#chromadb-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1412,6 +1462,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#semantic-search-with-reranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantic Search with Reranking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Semantic Search with Reranking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-with-reranking-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query with Reranking (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-without-reranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query without Reranking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#via-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Via CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#chromadb-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1838,6 +1938,65 @@
 <span class="p">)</span>
 </code></pre></div>
 <p>The visualization is interactive—hover over points to see metadata, zoom, pan, and toggle categories.</p>
+<h2 id="semantic-search-with-reranking">Semantic Search with Reranking</h2>
+<p>Query your vector store for semantically similar documents with optional FlashRank reranking to improve relevance.</p>
+<h3 id="query-with-reranking-recommended">Query with Reranking (Recommended)</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphAide</span><span class="p">,</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">VectorDBConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">home</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span>
+
+<span class="n">graphaide</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span>
+    <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">provider</span><span class="o">=</span><span class="s2">"openai"</span><span class="p">,</span>
+        <span class="n">model_name</span><span class="o">=</span><span class="s2">"gpt-5.6-luna"</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="o">=</span><span class="s2">"..."</span>
+    <span class="p">),</span>
+    <span class="n">vector_configs</span><span class="o">=</span><span class="n">VectorDBConfig</span><span class="p">(</span>
+        <span class="n">provider</span><span class="o">=</span><span class="s2">"chromadb"</span><span class="p">,</span>
+        <span class="n">store_name</span><span class="o">=</span><span class="s2">"GVD"</span><span class="p">,</span>
+        <span class="n">store_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">home</span> <span class="o">/</span> <span class="s2">"GVD"</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Search with automatic FlashRank reranking (enabled by default)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">vector_query</span><span class="p">(</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">"What is cybersecurity?"</span><span class="p">,</span>
+    <span class="n">topk</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">rerank</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Enable reranking for better relevance</span>
+<span class="p">)</span>
+
+<span class="c1"># Results include both similarity and rerank scores</span>
+<span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">"results"</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'rank'</span><span class="p">]</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'source'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    Similarity: </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'similarity_score'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    Rerank: </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'rerank_score'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    Content: </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'document'</span><span class="p">][:</span><span class="mi">200</span><span class="p">]</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="query-without-reranking">Query without Reranking</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Disable reranking to use raw vector similarity</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">vector_query</span><span class="p">(</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">"What is machine learning?"</span><span class="p">,</span>
+    <span class="n">topk</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">rerank</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># Use only vector similarity</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="via-cli">Via CLI</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Search with reranking</span>
+graphaide<span class="w"> </span>vector-query<span class="w"> </span><span class="s2">"What is data science?"</span><span class="w"> </span>--topk<span class="w"> </span><span class="m">5</span><span class="w"> </span>--rerank
+
+<span class="c1"># Search without reranking</span>
+graphaide<span class="w"> </span>vector-query<span class="w"> </span><span class="s2">"What is data science?"</span><span class="w"> </span>--topk<span class="w"> </span><span class="m">5</span><span class="w"> </span>--no-rerank
+</code></pre></div>
+<p><strong>Result Structure:</strong>
+- <code>rank</code>: Document rank (1 = most relevant)
+- <code>document</code>: Document content preview
+- <code>source</code>: Source file or document name
+- <code>title</code>: Document title (if available)
+- <code>page</code>: Page number (if available)
+- <code>similarity_score</code>: Vector similarity score (0-1)
+- <code>rerank_score</code>: FlashRank relevance score (only if rerank=True)</p>
 <h2 id="chromadb-configuration">ChromaDB Configuration</h2>
 <h3 id="with-store-name-and-path-recommended">With Store Name and Path (Recommended)</h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
