@@ -12,7 +12,7 @@ PROJECT_ROOT = global_config_path.parent.parent.parent.parent
 
 # Templates: check mounted path (Docker) → package path → environment root → project root
 _mounted_templates = Path("/app/templates")
-_package_templates = global_config_path.parent / "templates"
+_package_templates = global_config_path.parent.parent / "templates"
 _env_templates = Path(sys.prefix) / "templates"
 _root_templates = PROJECT_ROOT / "templates"
 
@@ -29,13 +29,22 @@ AGENT_CONFIG_PATH = PROJECT_ROOT / "agent_config.json"
 
 ENV_PATH = PROJECT_ROOT / ".env"
 
-VECTOR_STORE_BASEDIR = Path(
-    os.getenv("VECTOR_STORE_PATH", PROJECT_ROOT / ".local_vectorstores/")
+VECTOR_STORE_BASEDIR = Path(os.getenv("VECTOR_STORE_PATH", PROJECT_ROOT / ".local_vectorstores/"))
+
+DEFAULT_K = 30
+
+DEFAULT_MAX_OUTPUT_TOKENS_LIMIT_LLM = (
+    128000  # LLM output token limit. For input chunk size, see max_tokens_per_segment in CLI/workflows
 )
 
-DEFAULT_K = 10
-
-DEFAULT_MAX_OUTPUT_TOKENS_LIMIT_LLM = 128000  # LLM output token limit. For input chunk size, see max_tokens_per_segment in CLI/workflows
+# Context window presets for flexible scaling across different LLM capabilities
+CONTEXT_WINDOW_PRESETS = {
+    "small": 4096,      # Conservative, for resource-limited deployments
+    "medium": 8192,     # Balanced (new default) - supports richer context with multi-retriever RAG
+    "large": 16384,     # For models supporting larger windows (GPT-4, Claude 3)
+    "xlarge": 32768,    # For cutting-edge models with massive context windows
+}
+DEFAULT_CONTEXT_WINDOW_MODE = "medium"  # New default: increased from 4096
 
 DEFAULT_EXTERNAL_METADATA = None
 

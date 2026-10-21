@@ -48,7 +48,7 @@ class EdgeTable2TextGeneratorAgent(GraphAideAgent):
             edgetable = state.get("graph_answer", "No input data found")
 
             response = self._invoke_chain(chain, {"edge_table": edgetable})
-            logger.info("EdgeTable2Text: response generated")
+            logger.debug("EdgeTable2Text: response generated")
             return {
                 "messages": [
                     "Edge Table 2 Text Generator response: " + response.content

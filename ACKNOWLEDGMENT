@@ -1,0 +1,64 @@
+ACKNOWLEDGMENT
+
+GraphAide was developed at Pacific Northwest National Laboratory (PNNL), operated by Battelle Memorial Institute for the U.S. Department of Energy (DOE).
+
+## Authors and Contributors
+
+**Lead Developer:** Sumit Purohit (sumit.purohit@pnnl.gov)
+
+**Contributors:**
+- George Chin (PNNL)
+- Patrick S. Mackey (PNNL)
+- Joseph A. Cottam (PNNL)
+
+## Funding and Support
+
+This research was supported by the:
+- **Resilience Through Data Driven, Intelligently Designed Control (RD2C) Initiative** at Pacific Northwest National Laboratory (PNNL)
+- **United States Federal Government**
+
+## Research Citation
+
+If you use GraphAide in your research, please cite:
+
+```bibtex
+@inproceedings{purohit2024graphaide,
+  title={GraphAide: Advanced Graph-Assisted Query and Reasoning System},
+  author={Purohit, Sumit and Chin, George and Mackey, Patrick S and Cottam, Joseph A},
+  booktitle={2024 IEEE International Conference on Big Data (BigData)},
+  pages={3485--3493},
+  year={2024},
+  organization={IEEE}
+}
+```
+
+## External Libraries and Projects
+
+GraphAide builds upon the following open-source projects:
+
+- **LangGraph** — Multi-agent orchestration framework
+- **Neo4j** — Graph database
+- **LangChain** — LLM framework and integrations
+- **ChromaDB** — Vector store for embeddings
+- **Qdrant** — Vector database
+- **PyPDF** — PDF processing
+- **RDFlib** — RDF/Ontology processing
+- **Sentence Transformers** — Embedding models
+- **Pydantic** — Data validation
+- **FastAPI** — REST API framework
+- **Material for MkDocs** — Documentation theme
+
+## Special Thanks
+
+Thanks to all contributors, researchers, and users who have provided feedback and improvements to GraphAide.
+
+## Contact
+
+For questions, suggestions, or support, please reach out to:
+- **Email:** sumit.purohit@pnnl.gov
+- **GitHub Issues:** https://github.com/pnnl/GraphAide/issues
+- **GitHub Discussions:** https://github.com/pnnl/GraphAide/discussions
+
+---
+
+*Pacific Northwest National Laboratory is a multiprogram national laboratory operated for the US Department of Energy (DOE) by Battelle Memorial Institute under Contract No. DE-AC05-76RL01830.*

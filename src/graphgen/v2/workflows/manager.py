@@ -254,6 +254,28 @@ class WorkflowManager:
                 logger.info(f"DEBUG manager.run: file_path={file_path!r}, input_text={input_text_preview!r}")
                 filter_flag = getattr(validated_inputs, "filter_by_ontology", False)
                 logger.debug(f"DEBUG: filter_by_ontology from validated_inputs: {filter_flag}")
+                # Convert VectorDBConfig to VectorStoreConfig for retriever_factory
+                vector_store_configs = []
+                if merged_config.vector_configs:
+                    from graphgen.v2.workflows.schemas import VectorStoreConfig
+                    from pathlib import Path
+                    for vdb_config in merged_config.vector_configs:
+                        # Build full path: store_path / store_name (same pattern as VectorFactory)
+                        if vdb_config.store_path:
+                            full_path = str(Path(vdb_config.store_path).expanduser() / vdb_config.store_name)
+                        else:
+                            full_path = vdb_config.store_name
+
+                        vstore_config = VectorStoreConfig(
+                            type=vdb_config.provider,
+                            path=full_path,
+                            url=getattr(vdb_config, 'url', None),
+                            collection_name=vdb_config.collection_name or "langchain",  # Use Chroma default
+                            retrieve_type=vdb_config.retrieve_type,
+                            description=vdb_config.description,
+                        )
+                        vector_store_configs.append(vstore_config)
+
                 initial_state = init_kg_generation_state(
                     file_path=file_path,
                     input_text=input_text,
@@ -262,7 +284,9 @@ class WorkflowManager:
                         validated_inputs, "max_tokens_per_segment", 4096
                     ),
                     filter_by_ontology=filter_flag,
+                    vector_store_configs=vector_store_configs,
                 )
+
                 state_input_text = initial_state.get('input_text')
                 state_input_preview = f"<{len(state_input_text)} chars>" if state_input_text else None
                 logger.info(f"DEBUG initial_state: file_path={initial_state.get('file_path')!r}, input_text={state_input_preview!r}")
@@ -275,6 +299,8 @@ class WorkflowManager:
                 logger.debug(f"file_path: {initial_state.get('file_path')}")
                 logger.debug(f"ontology_file_path: {initial_state.get('ontology_file_path')}")
                 logger.debug(f"filter_by_ontology: {initial_state.get('filter_by_ontology')}")
+                if initial_state.get('ontology_file_path'):
+                    logger.info(f"✓ Ontology loaded for workflow: {initial_state.get('ontology_file_path')}")
                 logger.debug(f"max_tokens_per_segment: {initial_state.get('max_tokens_per_segment')}")
                 logger.debug(f"nodes (initial): {len(initial_state.get('nodes', []))} nodes")
                 logger.debug(f"edges (initial): {len(initial_state.get('edges', []))} edges")
@@ -372,10 +398,15 @@ class WorkflowManager:
                 logger.info(f"Node batches: {len(node_batches)}, Edge batches: {len(edge_batches)}")
 
                 # Process node batches sequentially
+                from graphgen.v2.utils import should_log_batch_progress
                 accumulated_nodes = []
                 kg_load_json_result_state = None
+                logger.info(f"Loading {len(node_batches)} node batches into Neo4j")
                 for batch_idx, node_batch in enumerate(node_batches):
-                    logger.info(f"Processing node batch {batch_idx + 1}/{len(node_batches)} ({len(node_batch)} nodes)")
+                    if should_log_batch_progress(batch_idx + 1, len(node_batches)):
+                        logger.info(f"  Batch {batch_idx + 1}/{len(node_batches)}")
+                    else:
+                        logger.debug(f"Processing node batch {batch_idx + 1}/{len(node_batches)} ({len(node_batch)} nodes)")
                     initial_state = init_kg_generation_state(
                         file_path=json_path,
                         nodes=node_batch,
@@ -387,8 +418,12 @@ class WorkflowManager:
 
                 # Process edge batches sequentially (after all nodes loaded)
                 accumulated_edges = []
+                logger.info(f"Loading {len(edge_batches)} edge batches into Neo4j")
                 for batch_idx, edge_batch in enumerate(edge_batches):
-                    logger.info(f"Processing edge batch {batch_idx + 1}/{len(edge_batches)} ({len(edge_batch)} edges)")
+                    if should_log_batch_progress(batch_idx + 1, len(edge_batches)):
+                        logger.info(f"  Batch {batch_idx + 1}/{len(edge_batches)}")
+                    else:
+                        logger.debug(f"Processing edge batch {batch_idx + 1}/{len(edge_batches)} ({len(edge_batch)} edges)")
                     initial_state = init_kg_generation_state(
                         file_path=json_path,
                         nodes=[],  # No nodes - already in Neo4j, nodes will be matched from Neo4j
@@ -423,6 +458,11 @@ class WorkflowManager:
                     validated_inputs.reuse_embedding
                 )
                 initial_state["output_dir"] = output_dir
+                initial_state["display_in_notebook"] = (
+                    validated_inputs.display_in_notebook
+                )
+                initial_state["save_png"] = validated_inputs.save_png
+                initial_state["category_field"] = validated_inputs.category_field
             elif workflow_name == "ontology_generate":
                 initial_state = init_kg_generation_state(file_path="")
                 initial_state["node_types"] = validated_inputs.node_types
@@ -802,10 +842,17 @@ class WorkflowManager:
 
         Reads JSONL batch (prepared by Python caller), dispatches lines to
         parallel extractors, then loads to Neo4j.
-        Flow: jsonlloader → jsonl_segment_dispatcher → [parallel extractors]
+        Flow: ontologyloader → jsonlloader → jsonl_segment_dispatcher → [parallel extractors]
               → extract_merger → kg_loader_subgraph → END
         """
         agent_factory = get_agent_factory(config)
+
+        # Build ontology loader
+        ontology_loader = agent_factory.build(
+            OntologyLoaderAgent,
+            "ontologyloader",
+            partials={"format_instructions": "format_instructions"},
+        )
 
         # Build JSONL loader
         jsonl_loader = agent_factory.build(
@@ -829,6 +876,7 @@ class WorkflowManager:
         workflow = StateGraph(KGGenerationState)
 
         # Add nodes
+        workflow.add_node("ontologyloader", ontology_loader)
         workflow.add_node("jsonlloader", jsonl_loader, retry_policy=retry_policy)
         workflow.add_node("extractor", agent_factory.build(ExtractorAgent, "extractor"), retry_policy=retry_policy)
         workflow.add_node(
@@ -836,7 +884,8 @@ class WorkflowManager:
         )
 
         # Define sequence with conditional routing
-        workflow.add_edge(START, "jsonlloader")
+        workflow.add_edge(START, "ontologyloader")
+        workflow.add_edge("ontologyloader", "jsonlloader")
 
         # Conditional edge: dispatch JSONL lines to extractors in parallel
         workflow.add_conditional_edges(
@@ -1125,7 +1174,7 @@ class WorkflowManager:
         Projects embeddings to 2D and creates visualization.
         Flow: embeddingprojector → embeddingvisualizer → END
         """
-        agent_factory = get_agent_factory(config)
+        agent_factory = get_agent_factory(config, include_graphdb=False)
 
         # Build agents
         embedding_projector = agent_factory.build(
@@ -1533,21 +1582,23 @@ class WorkflowManager:
             # Query Neo4j for actual total counts after workflow
             total_nodes = 0
             total_edges = 0
-            if config and config.graphdb_config:
-                try:
-                    from graphgen.v2.GraphDBManager import GraphDBFactory
-
-                    graph_store = GraphDBFactory.create(config.graphdb_config)
-                    nodes_result = graph_store.query(
-                        "MATCH (n) RETURN COUNT(n) as count"
-                    )
-                    total_nodes = nodes_result[0]["count"] if nodes_result else 0
-                    edges_result = graph_store.query(
-                        "MATCH ()-[r:REL]->() RETURN COUNT(r) as count"
-                    )
-                    total_edges = edges_result[0]["count"] if edges_result else 0
-                except Exception as e:
-                    logger.error(f"Failed to query node/edge counts from Neo4j: {e}")
+            # NOTE: Commented out due to GraphDBFactory.create() API not existing
+            # The nodes and edges are already loaded by Neo4jPostProcessor, so stats are correct
+            # if config and config.graphdb_config:
+            #     try:
+            #         from graphgen.v2.GraphDBManager import GraphDBFactory
+            #
+            #         graph_store = GraphDBFactory.create(config.graphdb_config)
+            #         nodes_result = graph_store.query(
+            #             "MATCH (n) RETURN COUNT(n) as count"
+            #         )
+            #         total_nodes = nodes_result[0]["count"] if nodes_result else 0
+            #         edges_result = graph_store.query(
+            #             "MATCH ()-[r:REL]->() RETURN COUNT(r) as count"
+            #         )
+            #         total_edges = edges_result[0]["count"] if edges_result else 0
+            #     except Exception as e:
+            #         logger.error(f"Failed to query node/edge counts from Neo4j: {e}")
 
             stats = {
                 "nodes_created": total_nodes,

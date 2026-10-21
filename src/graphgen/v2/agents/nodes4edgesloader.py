@@ -76,7 +76,7 @@ class Nodes4EdgesLoaderAgent(GraphAideAgent):
         nodes = state.get("nodes", [])
         edges = state.get("edges", [])
         if not edges:
-            logger.info("Nodes4EdgesLoader: No edges to process. Skipping.")
+            logger.debug("Nodes4EdgesLoader: No edges to process. Skipping.")
             return {
                 "messages": [
                     "No edges provided for loading nodes. Skipping."
@@ -89,9 +89,12 @@ class Nodes4EdgesLoaderAgent(GraphAideAgent):
         # Send raw values so LLM doesn't see escape chars and get confused
         nodes_data = [n.model_dump() if hasattr(n, "model_dump") else dict(n) for n in nodes]
         edges_data = [e.model_dump() if hasattr(e, "model_dump") else dict(e) for e in edges]
+        # Filter out character_span and token_span to prevent LLM from including them in Cypher
+        nodes_data = [{k: v for k, v in node.items() if k not in ["character_span", "token_span"]} for node in nodes_data]
+        edges_data = [{k: v for k, v in edge.items() if k not in ["character_span", "token_span"]} for edge in edges_data]
         inputtext = json.dumps({"nodes": nodes_data, "edges": edges_data})
 
-        logger.info(f"Nodes4EdgesLoader: loading {len(nodes)} nodes, {len(edges)} edges (batch {state.get('batch_index', 'all')}/{state.get('total_batches', 'all')})")
+        logger.debug(f"Nodes4EdgesLoader: loading {len(nodes)} nodes, {len(edges)} edges (batch {state.get('batch_index', 'all')}/{state.get('total_batches', 'all')})")
 
         # 4. Invoke chain and handle result
         result, error = self._invoke_cypher_chain(graph_store, nodes, edges, inputtext)

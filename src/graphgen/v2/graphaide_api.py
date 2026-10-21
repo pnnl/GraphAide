@@ -13,9 +13,10 @@ complexity of WorkflowManager, WorkflowConfig, and workflow orchestration.
 import logging
 
 from graphgen.v2.GraphDBManager import GraphDBConfig
-from graphgen.v2.ModelManager import ModelConfig
-from graphgen.v2.VectorStoreManager import VectorDBConfig
+from graphgen.v2.ModelManager import ModelConfig, ModelFactory
+from graphgen.v2.VectorStoreManager import VectorDBConfig, VectorFactory
 from graphgen.v2.workflows import WorkflowConfig, WorkflowManager, WorkflowResult
+from graphgen.v2.tools import vector_query_with_reranking
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ class GraphAide:
     def __init__(
         self,
         model_config: ModelConfig,
-        graphdb_config: GraphDBConfig,
+        graphdb_config: GraphDBConfig | None = None,
         vector_configs: VectorDBConfig | list[VectorDBConfig] | None = None,
         workflow_config: WorkflowConfig | None = None,
     ):
@@ -80,8 +81,10 @@ class GraphAide:
             model_config: LLM configuration (required).
                 Specifies provider (openai, anthropic, google, bedrock),
                 model name, API key, and embedding model.
-            graphdb_config: Neo4j database configuration (required).
+            graphdb_config: Neo4j database configuration (optional).
                 Specifies URI, username, password, and database name.
+                If not provided, defaults to localhost:7687 with neo4j:password.
+                Graph operations will gracefully skip if Neo4j is not available.
             vector_configs: Vector store configuration(s) (optional).
                 Can be a single VectorDBConfig or a list of VectorDBConfig objects.
                 For multi-retriever RAG with multiple vector stores.
@@ -92,7 +95,7 @@ class GraphAide:
                 Use this to customize WorkflowManager behavior.
 
         Raises:
-            ValueError: If model_config or graphdb_config is None.
+            ValueError: If model_config is None.
 
         Example - Single vector store:
             from graphaide import VectorDBConfig, RetrieveType
@@ -134,8 +137,17 @@ class GraphAide:
         """
         if model_config is None:
             raise ValueError("model_config is required")
+
+        # Use default Neo4j config if not provided
         if graphdb_config is None:
-            raise ValueError("graphdb_config is required")
+            graphdb_config = GraphDBConfig(
+                provider="neo4j",
+                uri="neo4j://localhost:7687",
+                username="neo4j",
+                password="password",
+                database="neo4j",
+            )
+            logger.info("Using default Neo4j configuration: neo4j://localhost:7687")
 
         self.model_config = model_config
         self.graphdb_config = graphdb_config
@@ -160,9 +172,93 @@ class GraphAide:
         if self.vector_configs:
             # Set first config as primary for backwards compatibility
             self.workflow_config.vector_config = self.vector_configs[0]
+            # Store all configs for multi-store retrieval
+            self.workflow_config.vector_configs = self.vector_configs
 
         # Initialize internal WorkflowManager
         self.manager = WorkflowManager(global_config=self.workflow_config)
+
+        # Print initialization summary with masked API keys
+        from graphgen.v2.utils import mask_api_key
+        logger.info("=" * 80)
+        logger.info("GraphAide Initialization - Configuration Summary")
+        logger.info("=" * 80)
+        masked_key = mask_api_key(self.model_config.api_key)
+        logger.info(f"LLM: {self.model_config.provider} / {self.model_config.model_name} (key: {masked_key})")
+        logger.info(f"Embedding: {self.model_config.embedding_model_name}")
+        if self.vector_configs:
+            logger.info(f"Vector Stores: {len(self.vector_configs)}")
+            from pathlib import Path
+            for i, vconf in enumerate(self.vector_configs, 1):
+                if vconf.store_path:
+                    full_path = str(Path(vconf.store_path).expanduser() / vconf.store_name)
+                else:
+                    full_path = vconf.store_name
+                collection_name = vconf.collection_name or "langchain"
+                doc_count = self._get_vector_store_doc_count(vconf)
+                logger.info(f"  [{i}] {vconf.provider} ({doc_count} docs) @ {full_path}")
+        logger.info("=" * 80)
+
+    def _get_vector_store_doc_count(self, vconf: VectorDBConfig) -> int:
+        """Get document count from vector store without modifying it.
+
+        Uses same initialization pattern as VectorFactory.get_store() to ensure
+        consistent path handling and persistence.
+        """
+        try:
+            from pathlib import Path
+            from langchain_chroma import Chroma
+            import chromadb
+
+            if vconf.provider.lower() == "chromadb":
+                # Use exact same path construction as VectorFactory
+                path_obj = (
+                    Path(vconf.store_path).expanduser()
+                    / vconf.store_name
+                )
+
+                # Log detailed diagnostic info
+                logger.debug(f"VectorStore: {vconf.store_name} @ {path_obj}")
+
+                import os
+                logger.debug(f"  Path exists: {path_obj.exists()}")
+
+                collection_name = vconf.collection_name or "langchain"
+
+                # Get collection directly without needing embeddings
+                client = chromadb.PersistentClient(path=str(path_obj))
+
+                try:
+                    collection = client.get_collection(name=collection_name)
+                    count = collection.count()
+                    logger.debug(f"  Found {count} documents in '{collection_name}'")
+                    return count
+                except Exception as e:
+                    logger.debug(f"  Could not get collection '{collection_name}': {e}")
+
+                    # List available collections for debugging
+                    try:
+                        all_collections = client.list_collections()
+                        col_names = [col.name for col in all_collections]
+                        logger.debug(f"  Available collections: {col_names}")
+                    except Exception as e2:
+                        logger.debug(f"  Could not list collections: {e2}")
+                    return 0
+
+            elif vconf.provider.lower() == "qdrant":
+                from langchain_qdrant import QdrantVectorStore
+
+                vector_store = QdrantVectorStore.from_url(
+                    url=getattr(vconf, "url", None),
+                    collection_name=vconf.collection_name,
+                    embedding=self.manager.model_factory.get_embeddings(),
+                )
+                return vector_store._client.count(collection_name=vconf.collection_name).count
+        except Exception as e:
+            logger.debug(f"Could not count documents in {vconf.provider} ({vconf.store_name}): {e}")
+            import traceback
+            logger.debug(f"Traceback: {traceback.format_exc()}")
+        return 0
 
     def extract(
         self,
@@ -260,6 +356,8 @@ class GraphAide:
         # Build vector_stores list from vector_configs if provided (used by all workflows)
         vector_stores = None
         logger.debug(f"GraphAide.extract: self.vector_configs = {self.vector_configs}")
+        logger.debug(f"GraphAide.extract: self.vector_configs is None? {self.vector_configs is None}")
+        logger.debug(f"GraphAide.extract: self.vector_configs length = {len(self.vector_configs) if self.vector_configs else 0}")
         if self.vector_configs:
             from graphgen.v2.workflows.schemas import VectorStoreConfig
             from pathlib import Path
@@ -293,7 +391,7 @@ class GraphAide:
             logger.debug(f"Converted {len(vector_stores)} vector_configs to VectorStoreConfig")
 
         # Auto-detect JSONL files and route to parallel extraction
-        if file_path and file_path.lower().endswith(".jsonl"):
+        if file_path and str(file_path).lower().endswith(".jsonl"):
             logger.info(f"Detected JSONL file in extract: {file_path}")
             logger.debug(
                 f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}, merge={merge}"
@@ -315,6 +413,7 @@ class GraphAide:
                     "merge_output": merge,  # Flag for result_packer to output only merged nodes
                     **kwargs,
                 },
+                config_overrides=self.workflow_config,
             )
 
             # Flush any pending LangFuse traces to ensure they reach the cloud
@@ -346,6 +445,7 @@ class GraphAide:
                 "merge_output": merge,
                 **kwargs,
             },
+            config_overrides=self.workflow_config,
         )
 
         # Flush any pending LangFuse traces to ensure they reach the cloud
@@ -390,7 +490,9 @@ class GraphAide:
             ontology_path: Path to ontology file (OWL, TTL, NT, RDF/XML).
             max_tokens_per_segment: Maximum tokens per segment. Default 4096.
             use_chunk_aware: If True, create SourceDocument and ChunkParagraph nodes
-                in Neo4j and link extracted entities to their source chunks.
+                in Neo4j and link extracted entities to their source chunks via edges.
+                Creates additional chunk nodes for document provenance tracking.
+                Every extracted entity gets attached to its source chunk via "FROM_CHUNK" edge.
                 Enables queries like "Show all entities from document.pdf chunk#5".
                 Default False.
             filter_by_ontology: If True, filter extracted nodes/edges to match ontology types.
@@ -481,7 +583,7 @@ class GraphAide:
             logger.debug(f"Converted {len(vector_stores)} vector_configs to VectorStoreConfig")
 
         # Auto-detect JSONL files and route to parallel ingestion
-        if file_path and file_path.lower().endswith(".jsonl"):
+        if file_path and str(file_path).lower().endswith(".jsonl"):
             logger.info(f"Detected JSONL file: {file_path}")
             logger.debug(
                 f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}"
@@ -673,6 +775,137 @@ class GraphAide:
             ontology_path=ontology_path,
             **kwargs,
         )
+
+    def project_vectors(
+        self,
+        reuse_embedding: bool = False,
+        output_dir: str = "./visualizations",
+        display_in_notebook: bool = True,
+        save_png: bool = False,
+        category_field: str = "metadata_filter",
+        **kwargs,
+    ) -> WorkflowResult:
+        """Project vector store embeddings to 2D space and create visualization.
+
+        Creates a 2D UMAP projection of vector store embeddings and generates
+        an interactive visualization. Requires that vectors have been ingested
+        into the vector store via ingest_vectors().
+
+        Args:
+            reuse_embedding: Reuse existing UMAP projection if available (default: False)
+            output_dir: Directory to save visualization outputs (default: "./visualizations")
+            display_in_notebook: Display visualization in Jupyter notebook (default: True)
+            save_png: Save visualization as PNG image (default: False)
+            category_field: Metadata field for coloring data points (default: "metadata_filter")
+            **kwargs: Additional workflow parameters (e.g., log_level)
+
+        Returns:
+            WorkflowResult with stats containing:
+            - projection_file_path: UMAP embedding file (.npy)
+            - visualization_image_path: Interactive HTML visualization
+            - projection_metadata_path: Metadata JSON file
+            - num_embeddings_projected: Count of projected embeddings
+
+        Example:
+            # Basic usage - creates 2D visualization
+            result = graphaide.project_vectors()
+            print(f"Projected {result.stats['num_embeddings_projected']} embeddings")
+
+            # With custom output directory and category
+            result = graphaide.project_vectors(
+                output_dir="./my_visualizations",
+                reuse_embedding=True,  # Reuse previous projection
+                category_field="document_type"  # Color by document type
+            )
+
+            # Save as PNG file
+            result = graphaide.project_vectors(
+                save_png=True,
+                category_field="source"
+            )
+        """
+        logger.debug(f"Projecting vector store embeddings to 2D (output_dir={output_dir})")
+
+        return self.manager.run(
+            "vectordb_visualize",
+            {
+                "reuse_embedding": reuse_embedding,
+                "output_dir": output_dir,
+                "display_in_notebook": display_in_notebook,
+                "save_png": save_png,
+                "category_field": category_field,
+                **kwargs,
+            },
+        )
+
+    def vector_query(
+        self,
+        query: str,
+        topk: int = 5,
+        rerank: bool = True,
+        vector_config_index: int = 0,
+    ) -> dict:
+        """Search vector store with optional FlashRank reranking.
+
+        Args:
+            query: Search query text
+            topk: Number of top results to return (default 5)
+            rerank: Whether to rerank results with FlashRank (default True)
+            vector_config_index: Index of vector config to use if multiple (default 0)
+
+        Returns:
+            dict with:
+                - results: List of matched documents with rank, scores, source
+                - query: The search query
+                - topk: Number of results requested
+                - total_results: Total results returned
+                - error: Error message if any
+
+        Raises:
+            ValueError: If no vector store configured
+
+        Example:
+            result = graphaide.vector_query(
+                query="What is cybersecurity?",
+                topk=5,
+                rerank=True
+            )
+            for doc in result["results"]:
+                print(f"{doc['rank']}. {doc['source']} (score: {doc['rerank_score']})")
+        """
+        if not self.vector_configs:
+            raise ValueError(
+                "No vector store configured. Initialize GraphAide with vector_configs."
+            )
+
+        # Handle single or multiple configs
+        if isinstance(self.vector_configs, list):
+            if vector_config_index >= len(self.vector_configs):
+                raise ValueError(
+                    f"Vector config index {vector_config_index} out of range "
+                    f"(have {len(self.vector_configs)} configs)"
+                )
+            config = self.vector_configs[vector_config_index]
+        else:
+            config = self.vector_configs
+
+        # Create vector store using VectorFactory
+        model_factory = ModelFactory(model_config=self.model_config)
+        vector_factory = VectorFactory(model_factory=model_factory, vectordb_config=config)
+        vector_store = vector_factory.get_store(config)
+
+        if not vector_store:
+            raise ValueError(f"Could not initialize vector store for config: {config}")
+
+        # Perform query with reranking
+        result = vector_query_with_reranking(
+            query=query,
+            vector_store=vector_store,
+            k=topk,
+            rerank=rerank,
+        )
+
+        return result
 
     def get_manager(self) -> WorkflowManager:
         """Access the internal WorkflowManager for advanced usage.

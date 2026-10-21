@@ -135,6 +135,60 @@ def get_chain_verbose() -> bool:
     return graphaide_logger.level == logging.DEBUG
 
 
+# ============================================================================
+# PHASE 2: LOGGING UTILITIES FOR CLEANER OPERATION LOGS
+# ============================================================================
+
+# Global tracking for workflow operation messages (3-5 per workflow)
+_workflow_message_count = {}
+
+def reset_workflow_counter(workflow_name):
+    """Reset message counter for a new workflow execution."""
+    _workflow_message_count[workflow_name] = 0
+
+def log_workflow_info(message, workflow_name, max_messages=3):
+    """Conditionally log INFO message, allowing N messages per workflow.
+
+    Args:
+        message (str): Message to log
+        workflow_name (str): Unique workflow identifier
+        max_messages (int): Max INFO messages allowed per workflow (default 3)
+    """
+    if workflow_name not in _workflow_message_count:
+        _workflow_message_count[workflow_name] = 0
+
+    if _workflow_message_count[workflow_name] < max_messages:
+        logger = logging.getLogger("graphgen")
+        logger.info(message)
+        _workflow_message_count[workflow_name] += 1
+
+def should_log_batch_progress(batch_num, total_batches):
+    """Determine if batch progress should be logged (first and last only).
+
+    Args:
+        batch_num (int): Current batch number (1-indexed)
+        total_batches (int): Total number of batches
+
+    Returns:
+        bool: True if this is first or last batch
+    """
+    return batch_num == 1 or batch_num == total_batches
+
+def mask_api_key(api_key, show_chars=4):
+    """Mask API key for display, showing only last N characters.
+
+    Args:
+        api_key (str): API key to mask
+        show_chars (int): Number of characters to show at end (default 4)
+
+    Returns:
+        str: Masked key in format: ***...abcd
+    """
+    if not api_key or len(api_key) <= show_chars:
+        return "***"
+    return "***" + api_key[-show_chars:]
+
+
 def setup_logging(log_level="INFO", log_file=None):
     """Configure logging for entire workflow.
 
@@ -175,10 +229,25 @@ def setup_logging(log_level="INFO", log_file=None):
     graphaide_level = getattr(logging, log_level.upper())
     logging.getLogger("graphgen").setLevel(graphaide_level)
 
-    # Log setup message
-    logger = logging.getLogger("graphgen")
-    abs_path = Path(log_file).resolve()
-    logger.info(f"Logging to: {abs_path}")
+    # Suppress DEBUG logs from verbose third-party libraries (only show WARNING+)
+    # Unless GraphAide itself is in DEBUG mode, then let them through
+    if log_level.upper() != "DEBUG":
+        verbose_libraries = [
+            "langfuse",
+            "langchain",
+            "langchain_core",
+            "langchain_community",
+            "langgraph",
+            "httpx",
+            "httpcore",
+            "urllib3",
+            "asyncio",
+            "neo4j",
+            "chromadb",
+            "sentence_transformers",
+        ]
+        for lib in verbose_libraries:
+            logging.getLogger(lib).setLevel(logging.WARNING)
 
     return log_file
 
@@ -203,17 +272,13 @@ def get_current_log_level():
 
 
 def log_workflow_start(workflow_name: str):
-    """Log workflow start with pretty centered formatting.
+    """Log workflow start (suppressed - use log_workflow_info for operation tracking).
 
     Args:
         workflow_name: Name of the workflow being started
     """
-    logger = logging.getLogger("graphgen")
-    width = 60
-    border = "=" * width
-    name_str = f" {workflow_name.upper()} "
-    centered_name = name_str.center(width, "=")
-    logger.info(f"\n{border}\n{centered_name}\n{border}")
+    # Workflow start messages are too verbose. Use log_workflow_info() for key status messages instead.
+    pass
 
 
 def get_vector_store_metadata(vector_store):

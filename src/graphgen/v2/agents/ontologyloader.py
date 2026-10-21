@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from ..ontology_utils import parse_rdf_ontology
-from ..state import KGGenerationState, RAGContext
+from ..state import KGGenerationState, RAGContext, RAGContextSummary
 from .base import GraphAideAgent
 
 logger = logging.getLogger("graphgen.agents.ontologyloader")
@@ -38,7 +38,7 @@ class OntologyLoaderAgent(GraphAideAgent):
 
     tool_schema = OntologyLoaderToolSchema
     tool_description = "Load an OWL ontology file and extract node/edge type constraints for knowledge graph extraction"
-    tool_output_keys = ["rag_context", "messages"]
+    tool_output_keys = ["rag_context_summary", "rag_context", "messages"]
 
     def __call__(self, state: KGGenerationState) -> dict:
         import os
@@ -52,12 +52,14 @@ class OntologyLoaderAgent(GraphAideAgent):
             )
 
         # 2. Check if ontology path is provided
-        ontology_path_str = state.get("ontology_file_path") or ""
+        # Check both field names for robustness (ontology_file_path is expected, but fallback to ontology_path if needed)
+        ontology_path_str = state.get("ontology_file_path") or state.get("ontology_path") or ""
         if not ontology_path_str:
-            logger.info("No ontology file provided, skipping")
+            logger.debug("No ontology file provided, skipping")
             return {
                 "messages": ["No ontology file provided - extraction will use open schema."],
-                "rag_context": RAGContext(),
+                "rag_context_summary": RAGContextSummary(),  # Empty summary (no ontology constraints)
+                "rag_context": RAGContext(),  # Keep for backward compatibility
             }
 
         # 3. Load and parse the ontology file using shared parser
@@ -78,7 +80,17 @@ class OntologyLoaderAgent(GraphAideAgent):
             logger.error(f"Failed to load ontology: {type(e).__name__}: {e}")
             raise
 
-        # Populate RAGContext with all ontology metadata
+        # Create RAGContextSummary (static, shared across chunks - NO per-chunk retrieval)
+        rag_context_summary = RAGContextSummary(
+            ontology_node_types=ontology_data["node_types"],
+            ontology_edge_types=ontology_data["edge_types"],
+            ontology_node_definitions=ontology_data["node_definitions"],
+            ontology_node_examples=ontology_data["node_examples"],
+            ontology_edge_definitions=ontology_data["edge_definitions"],
+            ontology_edge_examples=ontology_data["edge_examples"],
+        )
+
+        # Also create full RAGContext for backward compatibility (no retrieval_results here)
         rag_context = RAGContext(
             ontology_node_types=ontology_data["node_types"],
             ontology_edge_types=ontology_data["edge_types"],
@@ -89,7 +101,7 @@ class OntologyLoaderAgent(GraphAideAgent):
         )
 
         # Log summary
-        logger.info(
+        logger.debug(
             f"Ontology: {len(ontology_data['node_types'])} classes, "
             f"{len(ontology_data['edge_types'])} properties, "
             f"{len(ontology_data['node_definitions'])} definitions, "
@@ -102,7 +114,8 @@ class OntologyLoaderAgent(GraphAideAgent):
                 f"{len(ontology_data['edge_types'])} properties.\n"
                 f"Enriched with {len(ontology_data['node_definitions'])} class definitions "
                 f"and {sum(len(v) for v in ontology_data['node_examples'].values())} examples.\n"
-                f"RAG context updated with complete ontology metadata."
+                f"RAG context summary created for shared use across chunks."
             ],
-            "rag_context": rag_context,
+            "rag_context_summary": rag_context_summary,  # NEW: static, shared summary
+            "rag_context": rag_context,  # Keep for backward compatibility
         }

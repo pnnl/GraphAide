@@ -36,7 +36,7 @@ class SimpleAgent(GraphAideAgent):
 
     def __call__(self, state: KGGenerationState) -> KGGenerationState:
         try:
-            logger.info("SimpleAgent: processing input")
+            logger.debug("SimpleAgent: processing input")
             chain = self.prompt | self.model
             response = self._invoke_chain(chain, {"raw_text": state.get("raw_text", "")})
             return {

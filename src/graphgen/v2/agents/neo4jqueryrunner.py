@@ -62,7 +62,7 @@ class Neo4jQueryRunnerAgent(GraphAideAgent):
                         "No graph question found in state to run against Neo4j."
                     ]
                 }
-            logger.info("Neo4jQuery: executing query")
+            logger.debug("Neo4jQuery: executing query")
             result = graph_store.query(query)
 
             # 4. Return updated state

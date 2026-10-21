@@ -293,6 +293,45 @@ class RetrievalResult(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Source-specific metadata")
 
 
+# 5. RAG Context Summary - Static ontology context (computed once, shared across chunks)
+class RAGContextSummary(BaseModel):
+    """Static, ontology-focused context shared across all chunks in a workflow.
+
+    Contains only the static ontology types, definitions, and examples that remain
+    constant across all chunks. Dynamic retrieval results (wikidata, documents, etc.)
+    are fetched independently per chunk to avoid context duplication and accumulation.
+
+    Benefits:
+    - Lightweight: only contains ontology, not retrieval results
+    - Reusable: passed to all chunks, no per-chunk duplication
+    - Clear intent: separates static ontology from dynamic per-chunk retrievals
+    - Scalable: no context window bloat across N parallel chunks
+    """
+
+    ontology_node_types: List[str] = Field(
+        default_factory=list, description="List of valid node types from ontology"
+    )
+    ontology_edge_types: List[str] = Field(
+        default_factory=list, description="List of valid edge types from ontology"
+    )
+    ontology_node_definitions: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Node type → definition mapping (from skos:definition in RDF)"
+    )
+    ontology_node_examples: Dict[str, List[str]] = Field(
+        default_factory=dict,
+        description="Node type → list of examples (from skos:example in RDF)"
+    )
+    ontology_edge_definitions: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Edge type → definition mapping (from skos:definition in RDF)"
+    )
+    ontology_edge_examples: Dict[str, List[str]] = Field(
+        default_factory=dict,
+        description="Edge type → list of examples (from skos:example in RDF)"
+    )
+
+
 # 5. RAG Pipeline Context
 class RAGContext(BaseModel):
     """Consolidated context for the RAG pipeline.
@@ -398,7 +437,8 @@ class KGGenerationState(TypedDict):
     # RAG pipeline context (ontology, Wikidata, retrieval configs, etc.)
     ontology_file_path: Optional[str]
     filter_by_ontology: Annotated[bool, lambda a, b: b] = False  # Filter nodes/edges by ontology types (default: False)
-    rag_context: Optional[RAGContext]
+    rag_context_summary: Annotated[Optional[RAGContextSummary], lambda a, b: b]  # Shared, static ontology context (not duplicated across chunks)
+    rag_context: Optional[RAGContext]  # Full context (for merge/output tracking)
     vector_store_configs: Annotated[List, operator.add]  # Multi-retriever vector store configs
 
     # Ontology generation inputs (for ontology_generate workflow)

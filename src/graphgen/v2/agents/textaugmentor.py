@@ -51,7 +51,7 @@ class TextAugmentorAgent(GraphAideAgent):
         # Run
         try:
             result = self._invoke_chain(chain, inputs)
-            logger.info(f"TextAugmentor: generated {len(result.augmented_texts)} variations")
+            logger.debug(f"TextAugmentor: generated {len(result.augmented_texts)} variations")
 
             extended_QA_pairs = [(q, "") for q in result.augmented_texts]
             return {"extended_QA_pairs": [(input_text, "")] + extended_QA_pairs}

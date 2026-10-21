@@ -17,6 +17,30 @@ Advanced Usage:
     result = manager.run("kg_extract", {...})
 """
 
+# Suppress verbose third-party library logs at import time (before they initialize)
+import logging
+_verbose_libs = [
+    "langfuse",
+    "langchain",
+    "langchain_core",
+    "langchain_community",
+    "langgraph",
+    "httpx",
+    "httpcore",
+    "urllib3",
+    "asyncio",
+    "neo4j",
+    "chromadb",
+    "sentence_transformers",
+]
+for _lib in _verbose_libs:
+    _logger = logging.getLogger(_lib)
+    _logger.setLevel(logging.WARNING)
+    _logger.propagate = True
+    # Remove any existing handlers to prevent them from outputting DEBUG logs
+    for _handler in _logger.handlers[:]:
+        _handler.setLevel(logging.WARNING)
+
 # Core Configuration Classes
 from graphgen.v2.ModelManager import ModelConfig, ModelFactory
 from graphgen.v2.GraphDBManager import GraphDBConfig, GraphDBFactory
@@ -45,7 +69,10 @@ from graphgen.v2.graphaide_api import GraphAide
 
 # Sample data access
 from pathlib import Path
-import sys
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 def get_sample_data_path(filename: str = None) -> Path:
     """Get path to sample data files for demonstrations.
@@ -66,26 +93,17 @@ def get_sample_data_path(filename: str = None) -> Path:
         # Get specific file
         pdf_path = get_sample_data_path("PNNL_About.pdf")
     """
-    # Check multiple locations: env root → site-packages → project root
-    candidates = [
-        Path(sys.prefix) / "data",           # Installed via data_files
-        Path(sys.prefix) / "sample_data",    # Alternative install location
-        Path(__file__).parent.parent.parent / "data",  # Local project root
-    ]
-
-    sample_dir = None
-    for candidate in candidates:
-        if candidate.exists():
-            sample_dir = candidate
-            break
-
-    if not sample_dir:
-        # Fallback to project root (for development)
-        sample_dir = Path(__file__).parent.parent.parent / "data"
+    try:
+        # Use importlib.resources - works with wheels, editable installs, zipped packages
+        data_traversable = files('graphgen') / 'data'
+        data_dir = Path(str(data_traversable))
+    except Exception:
+        # Fallback for development: src/graphgen/data
+        data_dir = Path(__file__).parent.parent / "graphgen" / "data"
 
     if filename:
-        return sample_dir / filename
-    return sample_dir
+        return data_dir / filename
+    return data_dir
 
 try:
     from importlib.metadata import version

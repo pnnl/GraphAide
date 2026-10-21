@@ -80,10 +80,12 @@ run_graph_aide.py
 src/graphgen/v2/docs/GA_VDB/
 src/graphgen/v2/docs/chroma.sqlite3
 
-# Per-project virtualenvs
+# Per-project virtualenvs and package managers
 .venv*/
 .conda*/
 .python-version
+uv.lock
+uvpylatest/
 
 # Node.js dependencies and build artifacts
 node_modules/
@@ -165,3 +167,17 @@ tests/notebooks/*.pdf
 tests/notebooks/*.nt
 tests/notebooks/*.txt
 
+
+test_lm*.py
+test_*.txt
+
+# MkDocs build output
+site/
+
+# Temporary/experimental documentation files
+ARCHITECTURE_DIAGRAM.md
+QUICK_REFERENCE.md
+GraphAideV3.md
+diagramV3.svg
+tests/graphaide_platform_dark.svg
+GraphAide_KG_Extract_Merged_*.json

@@ -84,7 +84,7 @@ class OntologyGeneratorAgent(GraphAideAgent):
 
             for attempt in range(1, max_retries + 1):
                 try:
-                    logger.info(f"OntologyGenerator: Attempt {attempt}/{max_retries} to generate and validate ontology")
+                    logger.debug(f"OntologyGenerator: Attempt {attempt}/{max_retries} to generate and validate ontology")
 
                     # Generate N-Triple ontology
                     triples = self._generate_ntriples(node_types, edge_types)
@@ -101,7 +101,7 @@ class OntologyGeneratorAgent(GraphAideAgent):
                     self._validate_ntriples(output_path)
 
                     msg = f"Generated and validated N-Triple ontology with {len(node_types)} classes and {len(edge_types)} properties"
-                    logger.info(f"OntologyGenerator: [OK] {msg}")
+                    logger.debug(f"OntologyGenerator: [OK] {msg}")
 
                     return {
                         "messages": [msg],
@@ -164,11 +164,11 @@ class OntologyGeneratorAgent(GraphAideAgent):
             # For N-Triple files, owlready2 doesn't extract classes/properties well,
             # so just verify it loads without errors
             if file_format == "ntriples":
-                logger.info("OntologyGenerator: Validated N-Triple ontology (parsed successfully)")
+                logger.debug("OntologyGenerator: Validated N-Triple ontology (parsed successfully)")
             else:
                 classes = list(onto.classes())
                 properties = list(onto.properties())
-                logger.info(f"OntologyGenerator: Validated ontology - {len(classes)} classes, {len(properties)} properties")
+                logger.debug(f"OntologyGenerator: Validated ontology - {len(classes)} classes, {len(properties)} properties")
 
         except Exception as e:
             raise ValueError(f"Ontology validation (owlready2) failed: {e}")

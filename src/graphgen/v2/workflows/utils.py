@@ -20,11 +20,12 @@ from .base import WorkflowConfig
 # FACTORY INITIALIZATION
 # ============================================================================
 
-def get_agent_factory(config: Optional[WorkflowConfig] = None) -> AgentFactory:
+def get_agent_factory(config: Optional[WorkflowConfig] = None, include_graphdb: bool = True) -> AgentFactory:
     """Initialize and return the AgentFactory with all required dependencies.
 
     Args:
         config: Optional WorkflowConfig with model/db overrides
+        include_graphdb: If False, skip GraphDB initialization (for workflows like vectordb_visualize that don't need it)
 
     Returns:
         Initialized AgentFactory
@@ -38,8 +39,10 @@ def get_agent_factory(config: Optional[WorkflowConfig] = None) -> AgentFactory:
     vector_factory = VectorFactory(model_factory=model_factory,
                                   vectordb_config=config.vector_config if config else None)
 
-    # Create graph database factory
-    graphdb_factory = GraphDBFactory(graphdb_config=config.graphdb_config if config else None)
+    # Create graph database factory only if needed
+    graphdb_factory = None
+    if include_graphdb:
+        graphdb_factory = GraphDBFactory(graphdb_config=config.graphdb_config if config else None)
 
     # Create agent factory
     return AgentFactory(
@@ -59,10 +62,12 @@ def init_kg_generation_state(
     ontology_path: Optional[str] = None,
     ontology_node_types: Optional[list[str]] = None,
     ontology_edge_types: Optional[list[str]] = None,
-    max_tokens_per_segment: int = 4096,
+    max_tokens_per_segment: Optional[int] = None,
+    context_window_mode: str = "medium",
     nodes: Optional[list] = None,
     edges: Optional[list] = None,
     filter_by_ontology: bool = False,
+    vector_store_configs: Optional[list] = None,
 ) -> KGGenerationState:
     """Initialize a KGGenerationState for knowledge graph workflows.
 
@@ -72,20 +77,37 @@ def init_kg_generation_state(
         ontology_path: Optional path to ontology file
         ontology_node_types: Optional list of node types from ontology (migrated to rag_context)
         ontology_edge_types: Optional list of edge types from ontology (migrated to rag_context)
-        max_tokens_per_segment: Max tokens per segment (default 4096, reduce if LLM fails)
+        max_tokens_per_segment: Max tokens per segment. If not provided, uses context_window_mode preset
+        context_window_mode: Preset context window: 'small' (4096), 'medium' (8192, default), 'large' (16384), 'xlarge' (32768)
         nodes: Optional pre-extracted nodes (for kg_load_json workflow)
         edges: Optional pre-extracted edges (for kg_load_json workflow)
 
     Returns:
         Initialized KGGenerationState
     """
+    from graphgen.v2 import globalconfig
+
     # Generate output JSON path in same directory as input file (or cwd if input_text)
     input_dir = Path(file_path).parent.absolute() if file_path else Path.cwd()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_json_path = str(input_dir / f"GraphAide_KG_Extract_{timestamp}.json")
 
-    # Initialize RAG context with ontology types if provided
+    # Resolve context window: use preset unless explicitly overridden
+    if max_tokens_per_segment is None:
+        max_tokens_per_segment = globalconfig.CONTEXT_WINDOW_PRESETS.get(
+            context_window_mode,
+            globalconfig.CONTEXT_WINDOW_PRESETS.get("medium", 8192)
+        )
+
+    # Initialize RAG context with ontology types if provided (backward compatibility)
     rag_context = RAGContext(
+        ontology_node_types=ontology_node_types or [],
+        ontology_edge_types=ontology_edge_types or [],
+    ) if (ontology_node_types or ontology_edge_types) else None
+
+    # Initialize RAG context summary for new per-chunk retrieval pattern
+    from graphgen.v2.state import RAGContextSummary
+    rag_context_summary = RAGContextSummary(
         ontology_node_types=ontology_node_types or [],
         ontology_edge_types=ontology_edge_types or [],
     ) if (ontology_node_types or ontology_edge_types) else None
@@ -103,7 +125,9 @@ def init_kg_generation_state(
         "messages": [],
         "ontology_file_path": ontology_path,
         "filter_by_ontology": filter_by_ontology,
-        "rag_context": rag_context,
+        "rag_context_summary": rag_context_summary,  # NEW: static, shared summary
+        "rag_context": rag_context,  # Keep for backward compatibility
+        "vector_store_configs": vector_store_configs or [],
         "node_types": [],
         "edge_types": [],
         "output_path": "ontology.nt",

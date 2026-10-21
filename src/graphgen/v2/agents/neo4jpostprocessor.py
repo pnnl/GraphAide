@@ -68,12 +68,18 @@ class Neo4jPostProcessorAgent(GraphAideAgent):
                 "agent_status": {self.__class__.__name__: False},
             }
         try:
-            lablesetquery = """MATCH (n)
-            WHERE n.node_type IS NOT NULL
-            CALL apoc.create.setLabels(n, apoc.coll.toSet(n.node_type)) YIELD node
-            RETURN node
-            """
-            graph_store.query(lablesetquery)
+            # Step 1: Set node labels from node_type
+            try:
+                lablesetquery = """MATCH (n)
+                WHERE n.node_type IS NOT NULL
+                CALL apoc.create.setLabels(n, apoc.coll.toSet(n.node_type)) YIELD node
+                RETURN node
+                """
+                graph_store.query(lablesetquery)
+                logger.debug("Neo4jPostProcessor: successfully set node labels from node_type")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on SET node labels: {e}")
+                raise
 
             # make sure edge_type exist and 'type' does not exist
             """MATCH ()-[r]->()
@@ -85,26 +91,30 @@ class Neo4jPostProcessorAgent(GraphAideAgent):
             RETURN r
             """
 
-            # Convert REL edges to proper types - only process edges WITH edge_type
-            edgelablesetquery = """
-            MATCH (a)-[r:REL]->(b)
-            WHERE r.edge_type IS NOT NULL AND toString(r.edge_type) <> ""
-            WITH a, b, r, properties(r) AS props, toString(r.edge_type) AS newType
+            # Step 2: Convert REL edges to proper types - only process edges WITH edge_type
+            try:
+                edgelablesetquery = """
+                MATCH (a)-[r:REL]->(b)
+                WHERE r.edge_type IS NOT NULL AND toString(r.edge_type) <> ""
+                WITH a, b, r, properties(r) AS props, toString(r.edge_type) AS newType
 
-            // Create new relationship with proper type
-            CALL apoc.create.relationship(a, newType, props, b) YIELD rel
-            WITH rel, r
+                // Create new relationship with proper type
+                CALL apoc.create.relationship(a, newType, props, b) YIELD rel
+                WITH rel, r
 
-            // Delete original REL relationship
-            DELETE r
+                // Delete original REL relationship
+                DELETE r
 
-            RETURN rel
-            """
-            logger.info("Neo4jPostProcessor: converting REL edges with edge_type to typed relationships")
-            result = graph_store.query(edgelablesetquery)
-            skipped_count_query = "MATCH (a)-[r:REL]->(b) WHERE r.edge_type IS NULL OR toString(r.edge_type) = '' RETURN count(r) as cnt"
-            skipped = graph_store.query(skipped_count_query)
-            logger.info(f"Neo4jPostProcessor: converted {len(result) if result else 0} edges, skipped {skipped[0]['cnt'] if skipped else 0} edges without edge_type")
+                RETURN rel
+                """
+                logger.debug("Neo4jPostProcessor: converting REL edges with edge_type to typed relationships")
+                result = graph_store.query(edgelablesetquery)
+                skipped_count_query = "MATCH (a)-[r:REL]->(b) WHERE r.edge_type IS NULL OR toString(r.edge_type) = '' RETURN count(r) as cnt"
+                skipped = graph_store.query(skipped_count_query)
+                logger.debug(f"Neo4jPostProcessor: converted {len(result) if result else 0} edges, skipped {skipped[0]['cnt'] if skipped else 0} edges without edge_type")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on edge type conversion: {e}")
+                raise
 
             # Link nodes to chunks (for chunk-aware workflows)
             # This runs AFTER nodes are created, so MATCH will succeed
@@ -121,10 +131,11 @@ class Neo4jPostProcessorAgent(GraphAideAgent):
                 link_result = graph_store.query(link_nodes_to_chunks_query)
                 linked_count = link_result[0]['linked_count'] if link_result else 0
                 if linked_count > 0:
-                    logger.info(f"Neo4jPostProcessor: created {linked_count} EXTRACTED_FROM_CHUNK edges")
+                    logger.debug(f"Neo4jPostProcessor: created {linked_count} EXTRACTED_FROM_CHUNK edges")
             except Exception as e:
                 logger.debug(f"Neo4jPostProcessor: no chunk linking needed (non-chunk-aware workflow): {e}")
 
+            # Step 3: Update distinct values using apoc.coll.toSet
             try:
                 distinct_english_names_query = """MATCH (n)
                 WHERE n.english_name IS NOT NULL
@@ -132,51 +143,75 @@ class Neo4jPostProcessorAgent(GraphAideAgent):
                 RETURN n"""
                 graph_store.query(distinct_english_names_query)
                 logger.debug("Neo4jPostProcessor: updated distinct english names")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on distinct english_name: {e}")
+                raise
 
+            try:
                 distinct_names_query = """MATCH (n)
                 WHERE n.name IS NOT NULL
                 SET n.name = apoc.coll.toSet(n.name)
                 RETURN n"""
                 graph_store.query(distinct_names_query)
                 logger.debug("Neo4jPostProcessor: updated distinct names")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on distinct name: {e}")
+                raise
 
+            try:
                 distinct_names_query = """MATCH (n)
                 WHERE n.node_name IS NOT NULL
                 SET n.node_name = apoc.coll.toSet(n.node_name)
                 RETURN n"""
                 graph_store.query(distinct_names_query)
                 logger.debug("Neo4jPostProcessor: updated distinct node names")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on distinct node_name: {e}")
+                raise
 
+            try:
                 distinct_raw_source_query = """MATCH (n)
                 WHERE n.raw_source IS NOT NULL
                 SET n.raw_source = apoc.coll.toSet(n.raw_source)
                 RETURN n"""
                 graph_store.query(distinct_raw_source_query)
                 logger.debug("Neo4jPostProcessor: updated distinct raw_source")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on distinct raw_source: {e}")
+                raise
 
+            try:
                 distinct_type_query = """MATCH (n)
                 WHERE n.node_type IS NOT NULL
                 SET n.node_type = apoc.coll.toSet(n.node_type)
                 RETURN n"""
                 graph_store.query(distinct_type_query)
                 logger.debug("Neo4jPostProcessor: updated distinct types")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on distinct node_type: {e}")
+                raise
 
+            try:
                 distinct_start_datetime_query = """MATCH (n)
                 WHERE n.start_datetime IS NOT NULL
                 SET n.start_datetime = apoc.coll.toSet(n.start_datetime)
                 RETURN n"""
                 graph_store.query(distinct_start_datetime_query)
                 logger.debug("Neo4jPostProcessor: updated distinct start_datetime")
+            except Exception as e:
+                logger.error(f"Neo4jPostProcessor failed on distinct start_datetime: {e}")
+                raise
 
+            try:
                 distinct_end_datetime_query = """MATCH (n)
                 WHERE n.end_datetime IS NOT NULL
                 SET n.end_datetime = apoc.coll.toSet(n.end_datetime)
                 RETURN n"""
                 graph_store.query(distinct_end_datetime_query)
                 logger.debug("Neo4jPostProcessor: updated distinct end_datetime")
-
             except Exception as e:
-                logger.error(f"Neo4jPostProcessor failed to update distinct names or raw_source: {e}")
+                logger.error(f"Neo4jPostProcessor failed on distinct end_datetime: {e}")
+                raise
 
             # 4. Return updated state
             return {

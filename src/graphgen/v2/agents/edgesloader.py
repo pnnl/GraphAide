@@ -71,7 +71,7 @@ class EdgesLoaderAgent(GraphAideAgent):
         edges = state.get("edges", [])
 
         if not edges:
-            logger.info("No edges to load, skipping")
+            logger.debug("No edges to load, skipping")
             return {
                 "messages": [
                     "No edges provided for loading. Skipping."
@@ -83,9 +83,11 @@ class EdgesLoaderAgent(GraphAideAgent):
         # 3. Prepare input (NO escaping - Neo4j driver handles it via UNWIND row.* binding)
         # Send raw values so LLM doesn't see escape chars and get confused
         edges_data = [e.model_dump() if hasattr(e, "model_dump") else dict(e) for e in edges]
+        # Filter out character_span and token_span to prevent LLM from including them in Cypher
+        edges_data = [{k: v for k, v in edge.items() if k not in ["character_span", "token_span"]} for edge in edges_data]
         inputtext = json.dumps({"edges": edges_data})
 
-        logger.info(f"Loading {len(edges)} edges (batch {state.get('batch_index', 'all')}/{state.get('total_batches', 'all')})")
+        logger.debug(f"Loading {len(edges)} edges (batch {state.get('batch_index', 'all')}/{state.get('total_batches', 'all')})")
 
         # 4. Invoke chain and handle result
         result, error = self._invoke_cypher_chain(graph_store, nodes, edges, inputtext)
