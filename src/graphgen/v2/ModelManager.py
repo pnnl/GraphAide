@@ -69,13 +69,20 @@ class ModelFactory:
             str, Any
         ] = {}  # Cache for initialized model instances
 
-        # Initialize LangFuse client for tracing (optional)
+        # Defer LangFuse initialization to first model call (lazy-loading for faster init)
         # LangFuse 4.15.4+ auto-instruments LangChain via env vars
-        self._langfuse_client = get_langfuse_callback()
-        if self._langfuse_client:
-            logger.debug(f"🔍 [ModelFactory] LangFuse callback initialized: {self._langfuse_client}")
-        else:
-            logger.debug("🔍 [ModelFactory] LangFuse not available for this session")
+        self._langfuse_client = None
+        self._langfuse_initialized = False
+
+    def _ensure_langfuse_initialized(self):
+        """Lazy-initialize LangFuse callback on first model call."""
+        if not self._langfuse_initialized:
+            self._langfuse_client = get_langfuse_callback()
+            self._langfuse_initialized = True
+            if self._langfuse_client:
+                logger.debug(f"🔍 [ModelFactory] LangFuse callback initialized: {self._langfuse_client}")
+            else:
+                logger.debug("🔍 [ModelFactory] LangFuse not available for this session")
 
     def _load_config_from_env(self):
         """
@@ -115,6 +122,9 @@ class ModelFactory:
 
         if MODEL_OBJECT_KEY not in self._model_configs:
             logger.warning(f"Model not configured: {provider}/{model_name}")
+
+        # Lazy-initialize LangFuse on first model call (performance optimization)
+        self._ensure_langfuse_initialized()
 
         try:
             if model_config is None:
