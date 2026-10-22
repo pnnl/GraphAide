@@ -90,6 +90,8 @@ class GraphDBFactory:
             self._graphdb_configs[myconfig.provider] = myconfig
             if "neo4j" in myconfig.provider:
                 try:
+                    # Note: Neo4jGraph connection is lazy-loaded here (not in __init__)
+                    # Connection timeout is handled by Neo4j driver defaults
                     self._graphdb_drivers["neo4j"] = Neo4jGraph(
                         myconfig.uri,
                         myconfig.username,

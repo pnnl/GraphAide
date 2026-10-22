@@ -195,8 +195,7 @@ class GraphAide:
                 else:
                     full_path = vconf.store_name
                 collection_name = vconf.collection_name or "langchain"
-                doc_count = self._get_vector_store_doc_count(vconf)
-                logger.info(f"  [{i}] {vconf.provider} ({doc_count} docs) @ {full_path}")
+                logger.info(f"  [{i}] {vconf.provider} @ {full_path}")
         logger.info("=" * 80)
 
     def _get_vector_store_doc_count(self, vconf: VectorDBConfig) -> int:

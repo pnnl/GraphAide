@@ -1279,6 +1279,8 @@ class WorkflowManager:
                             "ontology_file_path": result_state.get(
                                 "ontology_file_path"
                             ),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["segments_processed"],
                             "filtering_applied": has_filtering,
                             "filter_stats": filter_stats if has_filtering else None,
@@ -1334,6 +1336,8 @@ class WorkflowManager:
                             "ontology_file_path": result_state.get(
                                 "ontology_file_path"
                             ),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["segments_processed"],
                             "chunks_tracked": stats["chunks_tracked"],
                             "nodes": nodes_data,
@@ -1377,6 +1381,8 @@ class WorkflowManager:
                             "source_file": os.path.basename(file_path),
                             "file_path": file_path,
                             "ontology_file_path": result_state.get("ontology_path"),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["nodes_extracted"],
                             "nodes": nodes_data,
                             "edges": edges_data,
@@ -1454,6 +1460,8 @@ class WorkflowManager:
                             "ontology_file_path": result_state.get(
                                 "ontology_file_path"
                             ),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["segments_processed"],
                             "nodes": merged_nodes_data,
                             "edges": merged_edges_data,
