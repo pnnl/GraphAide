@@ -566,12 +566,28 @@ def load_json_to_neo4j(
     if not os.path.exists(json_path):
         raise FileNotFoundError(f"JSON file not found: {json_path}")
 
-    # Load JSON to verify it's valid
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    # Use streaming JSON parser for memory efficiency with large files
+    try:
+        import ijson
 
-    nodes = data.get("nodes", [])
-    edges = data.get("edges", [])
+        nodes = []
+        edges = []
+
+        with open(json_path, "rb") as f:
+            # Stream parse nodes array
+            for node in ijson.items(f, "nodes.item"):
+                nodes.append(node)
+
+            # Reopen file for edges (ijson reads sequentially)
+            f.seek(0)
+            for edge in ijson.items(f, "edges.item"):
+                edges.append(edge)
+    except ImportError:
+        # Fallback to json.load if ijson not available (shouldn't happen if dependencies installed)
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        nodes = data.get("nodes", [])
+        edges = data.get("edges", [])
 
     # Build workflow config
     workflow_config = None
