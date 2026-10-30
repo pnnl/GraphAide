@@ -39,7 +39,7 @@ def model_config():
     return ModelConfig(
         provider="openai",
         model_name=os.getenv("OPENAI_MODEL_NAME", "gpt-4o-project"),
-        base_url=os.getenv("OPENAI_BASE_URL", "https://ai-incubator-api.pnnl.gov"),
+        base_url=os.getenv("OPENAI_BASE_URL", "<your-openai-base-url>"),
         api_key=os.getenv("OPENAI_API_KEY", ""),
         embedding_model_name=os.getenv(
             "OPENAI_EMBEDDING_MODEL_NAME", "text-embedding-3-small-project"

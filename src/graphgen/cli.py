@@ -84,7 +84,7 @@ def extract(
     endpoint: Optional[str] = typer.Option(
         None,
         "--endpoint",
-        help="API endpoint URL (e.g., https://ai-incubator-api.pnnl.gov)",
+        help="API endpoint URL (e.g., https://api.example.com)",
     ),
     password: Optional[str] = typer.Option(
         None, "--password", help="API key for LLM provider"
@@ -242,7 +242,7 @@ def extract_merge(
     endpoint: Optional[str] = typer.Option(
         None,
         "--endpoint",
-        help="API endpoint URL (e.g., https://ai-incubator-api.pnnl.gov)",
+        help="API endpoint URL (e.g., https://api.example.com)",
     ),
     password: Optional[str] = typer.Option(
         None, "--password", help="API key for LLM provider"
@@ -394,7 +394,7 @@ def ingest(
     endpoint: Optional[str] = typer.Option(
         None,
         "--endpoint",
-        help="API endpoint URL (e.g., https://ai-incubator-api.pnnl.gov)",
+        help="API endpoint URL (e.g., https://api.example.com)",
     ),
     password: Optional[str] = typer.Option(
         None, "--password", help="API key for LLM provider"
