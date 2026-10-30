@@ -105,11 +105,7 @@ def get_sample_data_path(filename: str = None) -> Path:
         return data_dir / filename
     return data_dir
 
-try:
-    from importlib.metadata import version
-    __version__ = version("graphaide")
-except Exception:
-    __version__ = "0.4.8"  # fallback if package not installed
+from graphgen._version import __version__
 
 __all__ = [
     "__version__",

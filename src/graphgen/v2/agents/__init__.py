@@ -12,11 +12,12 @@ Agent Tool Output Keys Reference:
 | EdgeTable2TextGeneratorAgent | ["graph_answer_text", "messages"]                   |
 | EmbeddingProjectorAgent      | ["embedding_file_path", "messages"]                 |
 | EmbeddingVisualizerAgent     | ["embedding_file_path", "messages"]                 |
+| ImageExplainerAgent          | ["explanation", "messages"]                         |
 | IntentPredictorAgent         | ["intent_scores"]                                   |
 | Neo4jLoaderAgent             | ["nodes", "edges", "messages", "is_valid"]          |
 | Neo4jPostProcessorAgent      | ["messages", "is_valid"]                            |
 | Neo4jQueryRunnerAgent        | ["graph_answer", "messages", "is_valid"]            |
-| Nodes4EdgesLoaderAgent       | ["messages", "is_valid"]                            |
+| NodesEdgeFixerAgent          | ["messages", "is_valid"]                            |
 | NodesLoaderAgent             | ["messages", "is_valid"]                            |
 | OntologyLoaderAgent          | ["rag_context", "messages"] |
 | QuestionGraphGeneratorAgent  | ["graph_question", "messages"]                      |
@@ -36,7 +37,8 @@ from .nodesloader import NodesLoaderAgent, NodesLoaderToolSchema
 from .neo4jloader import Neo4jLoaderAgent, Neo4jLoaderToolSchema
 from .neo4jpostprocessor import Neo4jPostProcessorAgent, Neo4jPostProcessorToolSchema
 from .neo4jqueryrunner import Neo4jQueryRunnerAgent, Neo4jQueryRunnerToolSchema
-from .nodes4edgesloader import Nodes4EdgesLoaderAgent, Nodes4EdgesLoaderToolSchema
+from .nodesedgefixer import NodesEdgeFixerAgent, NodesEdgeFixerToolSchema
+from .imageexplainer import ImageExplainerAgent, ImageExplainerToolSchema
 from .intentpredictor import IntentPredictorAgent, IntentPredictorToolSchema
 from .ontologyloader import OntologyLoaderAgent, OntologyLoaderToolSchema
 from .questiongraphgenerator import QuestionGraphGeneratorAgent, QuestionGraphGeneratorToolSchema
@@ -66,8 +68,10 @@ __all__ = [
     "Neo4jPostProcessorToolSchema",
     "Neo4jQueryRunnerAgent",
     "Neo4jQueryRunnerToolSchema",
-    "Nodes4EdgesLoaderAgent",
-    "Nodes4EdgesLoaderToolSchema",
+    "NodesEdgeFixerAgent",
+    "NodesEdgeFixerToolSchema",
+    "ImageExplainerAgent",
+    "ImageExplainerToolSchema",
     "IntentPredictorAgent",
     "IntentPredictorToolSchema",
     "OntologyLoaderAgent",

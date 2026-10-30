@@ -10,9 +10,9 @@ ontology_loader_node = agent_factory.build(
         partials={"format_instructions": "format_instructions"},
     )
 
-    nodes4edgesloader_node = agent_factory.build(
-        agent_class=ne.Nodes4EdgesLoaderAgent,
-        agent_id="nodes4edgesloader",
+    nodesedgefixer_node = agent_factory.build(
+        agent_class=ne.NodesEdgeFixerAgent,
+        agent_id="nodesedgefixer",
         partials={"format_instructions": "Instruction"},
     )
     nodesloader_node = agent_factory.build(
@@ -44,16 +44,16 @@ ontology_loader_node = agent_factory.build(
         jitter=True,  # Add randomness to prevent thundering herd
     )
     # --- 3. Construct the workflow with a State ---
-    # add a subgraph that combines extractor, nodes4edgesloader, nodesloader, edgesloader, and neo4jpostprocessor into a single "KnowledgeGraphLoader" node with retry policy applied to the whole subgraph
+    # add a subgraph that combines extractor, nodesedgefixer, nodesloader, edgesloader, and neo4jpostprocessor into a single "KnowledgeGraphLoader" node with retry policy applied to the whole subgraph
     workflow_kgloader = StateGraph(KGGenerationState)
     workflow_kgloader.add_node("extractor", extractor_node)
-    workflow_kgloader.add_node("nodes4edgesloader", nodes4edgesloader_node)
+    workflow_kgloader.add_node("nodesedgefixer", nodesedgefixer_node)
     workflow_kgloader.add_node("nodesloader", nodesloader_node)
     workflow_kgloader.add_node("edgesloader", edgesloader_node)
     workflow_kgloader.add_node("neo4jpostprocessor", neo4jpostprocessor_node)
     workflow_kgloader.add_edge(START, "extractor")
-    workflow_kgloader.add_edge("extractor", "nodes4edgesloader")
-    workflow_kgloader.add_edge("nodes4edgesloader", "nodesloader")
+    workflow_kgloader.add_edge("extractor", "nodesedgefixer")
+    workflow_kgloader.add_edge("nodesedgefixer", "nodesloader")
     workflow_kgloader.add_edge("nodesloader", "edgesloader")
     workflow_kgloader.add_edge("edgesloader", "neo4jpostprocessor")
     workflow_kgloader.add_edge("neo4jpostprocessor", END)

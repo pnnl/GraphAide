@@ -693,6 +693,47 @@ def query_graph(question: str, config_path: Optional[str] = None) -> dict[str, A
     }
 
 
+def explain_image(
+    file_path: str,
+    config_path: Optional[str] = None,
+    template_path: Optional[str] = None,
+) -> dict[str, Any]:
+    """Describe the key findings of an image file using a vision LLM.
+
+    Args:
+        file_path: Path to the image file
+        config_path: Optional path to JSON config file
+        template_path: Optional path to a prompt template text file
+
+    Returns:
+        Dictionary with the explanation text
+    """
+    from graphgen.v2.workflows import WorkflowManager
+
+    workflow_config = None
+    if config_path:
+        config = load_config(config_path)
+        workflow_config = _build_workflow_config(config)
+
+    manager = WorkflowManager(global_config=workflow_config)
+
+    result = manager.run(
+        "image_explain",
+        inputs={"file_path": file_path, "template_path": template_path},
+    )
+
+    if not result.success:
+        sys.stderr.write(f"Image explanation failed: {result.errors}\n")
+
+    return {
+        "success": result.success,
+        "file_path": file_path,
+        "explanation": result.answer,
+        "execution_time_seconds": result.execution_time_seconds,
+        "errors": result.errors,
+    }
+
+
 def _node_to_dict(node) -> dict:
     """Convert Node to dictionary."""
     if hasattr(node, "model_dump"):

@@ -749,7 +749,7 @@ Result: **Scalable, maintainable, extensible** multi-agent KG construction syste
             ┌─────────────┴────────────┐
             │                          │
      ┌──────▼──────────┐        ┌─────▼──────────┐
-     │ ExtractMerger   │        │ Nodes4Edges    │
+     │ ExtractMerger   │        │ NodesEdgeFixer│
      │ (Optional)      │        │ LinkCreator    │
      │ - Dedup nodes   │        │ - Link nodes   │
      │ - Merge edges   │        │ - for edges    │
@@ -989,7 +989,7 @@ EdgesLoaderAgent    │ edges[]        │ -                  │ GraphDB
 Neo4jPostProcessor  │ -              │ -                  │ GraphDB
 ExtractMerger       │ nodes[],       │ nodes[],           │ -
                     │ edges[]        │ edges[] (merged)   │
-Nodes4Edges         │ nodes[]        │ edges[]            │ -
+NodesEdgeFixer     │ nodes[]        │ edges[]            │ -
 SimpleRAGAgent      │ question,      │ answer             │ Model,
                     │ rag_context    │                    │ VectorDB,
                     │                │                    │ GraphDB

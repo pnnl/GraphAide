@@ -700,6 +700,35 @@ class GraphAide:
             {"question": question, **kwargs},
         )
 
+    def explain(
+        self, file_path: str, template_path: Optional[str] = None, **kwargs
+    ) -> WorkflowResult:
+        """Describe the key findings of an image file using a vision LLM.
+
+        Args:
+            file_path: Path to the image file (PNG, JPG, JPEG, GIF, BMP, WEBP).
+            template_path: Optional path to a text file whose contents replace
+                the default imageexplainer prompt template.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the text description in result.answer
+            (also available as result.data["explanation"]).
+
+        Example:
+            result = graphaide.explain("photo.jpg")
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run(
+            "image_explain",
+            {"file_path": file_path, "template_path": template_path, **kwargs},
+        )
+
     def load_json(self, json_path: str, **kwargs) -> WorkflowResult:
         """Load previously extracted JSON graph to Neo4j.
 
