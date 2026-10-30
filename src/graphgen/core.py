@@ -566,12 +566,28 @@ def load_json_to_neo4j(
     if not os.path.exists(json_path):
         raise FileNotFoundError(f"JSON file not found: {json_path}")
 
-    # Load JSON to verify it's valid
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    # Use streaming JSON parser for memory efficiency with large files
+    try:
+        import ijson
 
-    nodes = data.get("nodes", [])
-    edges = data.get("edges", [])
+        nodes = []
+        edges = []
+
+        with open(json_path, "rb") as f:
+            # Stream parse nodes array
+            for node in ijson.items(f, "nodes.item"):
+                nodes.append(node)
+
+            # Reopen file for edges (ijson reads sequentially)
+            f.seek(0)
+            for edge in ijson.items(f, "edges.item"):
+                edges.append(edge)
+    except ImportError:
+        # Fallback to json.load if ijson not available (shouldn't happen if dependencies installed)
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        nodes = data.get("nodes", [])
+        edges = data.get("edges", [])
 
     # Build workflow config
     workflow_config = None
@@ -672,6 +688,47 @@ def query_graph(question: str, config_path: Optional[str] = None) -> dict[str, A
         "graph_answer_text": result.data.get("graph_answer_text") if result.data else None,
         "related_nodes": [_node_to_dict(n) for n in result.nodes],
         "related_edges": [_edge_to_dict(e) for e in result.edges],
+        "execution_time_seconds": result.execution_time_seconds,
+        "errors": result.errors,
+    }
+
+
+def explain_image(
+    file_path: str,
+    config_path: Optional[str] = None,
+    template_path: Optional[str] = None,
+) -> dict[str, Any]:
+    """Describe the key findings of an image file using a vision LLM.
+
+    Args:
+        file_path: Path to the image file
+        config_path: Optional path to JSON config file
+        template_path: Optional path to a prompt template text file
+
+    Returns:
+        Dictionary with the explanation text
+    """
+    from graphgen.v2.workflows import WorkflowManager
+
+    workflow_config = None
+    if config_path:
+        config = load_config(config_path)
+        workflow_config = _build_workflow_config(config)
+
+    manager = WorkflowManager(global_config=workflow_config)
+
+    result = manager.run(
+        "image_explain",
+        inputs={"file_path": file_path, "template_path": template_path},
+    )
+
+    if not result.success:
+        sys.stderr.write(f"Image explanation failed: {result.errors}\n")
+
+    return {
+        "success": result.success,
+        "file_path": file_path,
+        "explanation": result.answer,
         "execution_time_seconds": result.execution_time_seconds,
         "errors": result.errors,
     }

@@ -42,7 +42,7 @@ class EdgesLoaderAgent(GraphAideAgent):
     """
 
     tool_schema = EdgesLoaderToolSchema
-    tool_description = "THIRD STEP: Load extracted edges (relationships) into Neo4j. Call AFTER Nodes4EdgesLoaderAgent, in parallel with NodesLoaderAgent. You must pass the nodes and edges extracted by ExtractorAgent."
+    tool_description = "THIRD STEP: Load extracted edges (relationships) into Neo4j. Call AFTER NodesEdgeFixerAgent, in parallel with NodesLoaderAgent. You must pass the nodes and edges extracted by ExtractorAgent."
     tool_output_keys = ["messages", "agent_status"]
 
     def __call__(self, state: KGGenerationState) -> dict:

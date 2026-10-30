@@ -1,6 +1,8 @@
 import logging
+from pathlib import Path
 
 import tiktoken
+from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from graphgen.v2 import globalconfig
@@ -9,6 +11,7 @@ from ..ontology_utils import build_enriched_ontology_context
 from ..state import Edge, KGGenerationState, Node, RetrievalResultType, RAGContextSummary
 from .base import GraphAideAgent
 from .contextbuilder import build_chunk_context
+from .nodesedgefixer import fix_unresolved_node_types
 
 logger = logging.getLogger("graphgen.extractor")
 
@@ -84,6 +87,13 @@ class ExtractorAgent(GraphAideAgent):
     tool_schema = ExtractorToolSchema
     tool_description = "Extract entities (nodes) and relationships (edges) from text. Ontology constraints are read automatically from state - ensure OntologyLoaderAgent has been called first to load the ontology."
     tool_output_keys = ["nodes", "edges", "messages"]
+
+    def __init__(self, model, template_str, settings=None):
+        super().__init__(model, template_str, settings)
+        fix_path = Path(globalconfig.AGENT_TEMPLATE_DIR) / "nodesedgefixer.template"
+        self.fix_prompt = ChatPromptTemplate.from_template(
+            fix_path.read_text(encoding="utf-8")
+        )
 
     def _extract_single_chunk(
         self, text: str, context: str, structured_llm, chain, callbacks=None
@@ -424,6 +434,13 @@ class ExtractorAgent(GraphAideAgent):
                 callbacks=callbacks,
             )
             logger.debug(messages[-1])
+
+            fix_unresolved_node_types(
+                extracted_nodes,
+                allowed=node_types or [],
+                prompt=self.fix_prompt,
+                model=self.model,
+            )
 
             # Show extracted types for debugging
             extracted_node_types = list(

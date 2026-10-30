@@ -488,6 +488,20 @@ class OntologyGenerateOutput(BaseModel):
 # VECTORDB VISUALIZATION (visualize_vector_store function)
 # ============================================================================
 
+class ImageExplainInput(BaseModel):
+    """Input schema for image explanation workflow."""
+    file_path: str = Field(..., description="Path to the image file to explain")
+    template_path: Optional[str] = Field(
+        None, description="Optional path to a text file whose contents override the default prompt template"
+    )
+
+
+class ImageExplainOutput(BaseModel):
+    """Output schema for image explanation workflow."""
+    file_path: str = Field(..., description="Path to the image that was explained")
+    explanation: str = Field(..., description="Text description of key findings in the image")
+
+
 class VectorDBVisualizeInput(BaseModel):
     """Input schema for vector store visualization workflow."""
     reuse_embedding: bool = Field(

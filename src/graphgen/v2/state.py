@@ -516,6 +516,13 @@ class IntentSchema(BaseModel):
     )
 
 
+class ImageExplainerState(TypedDict):
+    file_path: str
+    template_path: Optional[str]
+    explanation: Optional[str]
+    messages: Annotated[list, add_messages]
+
+
 class KGQuestionAnswerState(TypedDict):
     """This state structure is designed to hold all relevant information for a question-answering task on the knowledge graph.
     It includes the original question, a list of extended question-answer pairs for context, the.

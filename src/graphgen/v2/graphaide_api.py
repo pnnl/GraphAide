@@ -178,6 +178,9 @@ class GraphAide:
         # Initialize internal WorkflowManager
         self.manager = WorkflowManager(global_config=self.workflow_config)
 
+        # Create Neo4j indexes if needed (idempotent, safe to call always)
+        self._ensure_neo4j_indexes()
+
         # Print initialization summary with masked API keys
         from graphgen.v2.utils import mask_api_key
         logger.info("=" * 80)
@@ -258,6 +261,43 @@ class GraphAide:
             import traceback
             logger.debug(f"Traceback: {traceback.format_exc()}")
         return 0
+
+    def _ensure_neo4j_indexes(self):
+        """Create essential Neo4j indexes for knowledge graph operations.
+
+        Idempotent: safe to call multiple times. Gracefully handles cases where:
+        - No graphdb_config provided (extract-only workflows)
+        - Neo4j not running
+        - Indexes already exist
+
+        Index created:
+        - idx_node_id: On Node.node_id (canonical key for node identity/deduplication)
+          Used by: MERGE (n {node_id: X}), edge matching in edgesloader
+
+        This index works across all node/edge types and significantly improves
+        ingest performance by speeding up MERGE and relationship creation operations.
+        """
+        if not self.graphdb_config:
+            logger.debug("No Neo4j config, skipping index creation")
+            return
+
+        try:
+            from graphgen.v2.GraphDBManager import GraphDBFactory
+
+            driver = GraphDBFactory(graphdb_config=self.graphdb_config).get_driver()
+            if not driver:
+                logger.debug("Neo4j driver unavailable, skipping index creation")
+                return
+
+            # Create index (idempotent - IF NOT EXISTS prevents errors)
+            # node_id is the canonical key for all node lookups and edge matching
+            driver.query(
+                "CREATE INDEX idx_node_id IF NOT EXISTS FOR (n:Node) ON (n.node_id)"
+            )
+            logger.debug("Neo4j index verified/created (idx_node_id)")
+
+        except Exception as e:
+            logger.warning(f"Could not create Neo4j indexes: {e}")
 
     def extract(
         self,
@@ -658,6 +698,35 @@ class GraphAide:
         return self.manager.run(
             "kg_query",
             {"question": question, **kwargs},
+        )
+
+    def explain(
+        self, file_path: str, template_path: Optional[str] = None, **kwargs
+    ) -> WorkflowResult:
+        """Describe the key findings of an image file using a vision LLM.
+
+        Args:
+            file_path: Path to the image file (PNG, JPG, JPEG, GIF, BMP, WEBP).
+            template_path: Optional path to a text file whose contents replace
+                the default imageexplainer prompt template.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the text description in result.answer
+            (also available as result.data["explanation"]).
+
+        Example:
+            result = graphaide.explain("photo.jpg")
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run(
+            "image_explain",
+            {"file_path": file_path, "template_path": template_path, **kwargs},
         )
 
     def load_json(self, json_path: str, **kwargs) -> WorkflowResult:

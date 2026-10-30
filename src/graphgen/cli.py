@@ -14,6 +14,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from graphgen.core import (
     extract_graph,
+    explain_image,
     extract_graph_merge,
     ingest_to_neo4j,
     load_json_to_neo4j,
@@ -684,6 +685,47 @@ def query(
             console.print(f"\n[bold]Answer:[/bold] {result['answer']}")
         else:
             print(json.dumps(result, indent=2, default=str))
+
+
+@app.command()
+def explain(
+    image_path: Path = typer.Argument(..., help="Path to the image file to explain"),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-O", help="Output JSON file (default: stdout)"
+    ),
+    config: Optional[Path] = typer.Option(
+        None, "--config", "-c", help="JSON config file for model settings"
+    ),
+    template: Optional[Path] = typer.Option(
+        None, "--template", "-t", help="Text file with a custom prompt template (overrides default)"
+    ),
+):
+    """Describe the key findings of an image using a vision LLM.
+
+    Example:
+        graphaide explain photo.jpg
+        graphaide explain chart.png --config config.json --output result.json
+        graphaide explain chart.png --template my_prompt.txt
+    """
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        progress.add_task("Analyzing image...", total=None)
+        result = explain_image(
+            file_path=str(image_path),
+            config_path=str(config) if config else None,
+            template_path=str(template) if template else None,
+        )
+
+    if output:
+        output.write_text(json.dumps(result, indent=2, default=str))
+        console.print(f"[green]Explanation saved to {output}[/green]")
+    elif result.get("explanation"):
+        console.print(f"\n[bold]Explanation:[/bold]\n{result['explanation']}")
+    else:
+        print(json.dumps(result, indent=2, default=str))
 
 
 @app.command()
