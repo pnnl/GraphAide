@@ -11,6 +11,7 @@ complexity of WorkflowManager, WorkflowConfig, and workflow orchestration.
 """
 
 import logging
+from typing import Optional
 
 from graphgen.v2.GraphDBManager import GraphDBConfig
 from graphgen.v2.ModelManager import ModelConfig, ModelFactory
