@@ -8,16 +8,16 @@
 
 ## Quick Start
 
-### Install (Version 0.6.7)
+### Install (Version 0.6.10)
 
 **Using uv (Recommended - Fastest):**
 ```bash
-uv pip install graphaide==0.6.7
+uv pip install graphaide==0.6.10
 ```
 
 **Or using pip:**
 ```bash
-pip install graphaide==0.6.7
+pip install graphaide==0.6.10
 ```
 
 ### 30-Second Example
@@ -77,7 +77,7 @@ print(f"✓ Extracted {len(result.nodes)} entities, {len(result.edges)} relation
 
 ## Project Status
 
-- **Version:** 0.6.7
+- **Version:** 0.6.10
 - **Status:** Active Development
 - **License:** MIT
 
