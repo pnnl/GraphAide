@@ -763,6 +763,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#use-a-knowledge-base-for-disambiguation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use a Knowledge Base for Disambiguation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Use a Knowledge Base for Disambiguation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-the-bundled-knowledge-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load the Bundled Knowledge Base
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-your-own-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add Your Own Entities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-with-your-knowledge-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extract with Your Knowledge Base
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#advanced-options" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -908,6 +958,34 @@
     
   
     Using Ontology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="disambiguation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Disambiguation
   
 
     
@@ -1317,6 +1395,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#use-a-knowledge-base-for-disambiguation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use a Knowledge Base for Disambiguation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Use a Knowledge Base for Disambiguation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-the-bundled-knowledge-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load the Bundled Knowledge Base
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-your-own-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add Your Own Entities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-with-your-knowledge-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extract with Your Knowledge Base
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#advanced-options" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1545,6 +1673,47 @@
 <span class="c1"># Results are automatically saved to:</span>
 <span class="c1"># GraphAide_KG_Extract_YYYYMMDD_HHMMSS.json</span>
 </code></pre></div>
+<h2 id="use-a-knowledge-base-for-disambiguation">Use a Knowledge Base for Disambiguation</h2>
+<p>GraphAide comes with a default knowledge base snapshot of Wikidata out of the box. It contains entries for common entities such as countries, US states, companies, weekdays, months, and government departments. During extraction, each entity is matched against this knowledge base to get a stable Wikidata QID, so that "Georgia" the country and "Georgia" the state are kept apart. You can extend the knowledge base with your own entities for your domain.</p>
+<h3 id="load-the-bundled-knowledge-base">Load the Bundled Knowledge Base</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">graphaide</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraphAide</span><span class="p">,</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">VectorDBConfig</span><span class="p">,</span> <span class="n">get_sample_data_path</span>
+
+<span class="n">graphaide</span> <span class="o">=</span> <span class="n">GraphAide</span><span class="p">(</span>
+    <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"openai"</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">"gpt-4o"</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">"..."</span><span class="p">),</span>
+    <span class="n">vector_configs</span><span class="o">=</span><span class="n">VectorDBConfig</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"chromadb"</span><span class="p">,</span> <span class="n">store_name</span><span class="o">=</span><span class="s2">"GA_VDB"</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">kb_file</span> <span class="o">=</span> <span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"graphaide_KB.jsonl"</span><span class="p">)</span>
+<span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span><span class="n">file_paths</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">kb_file</span><span class="p">)],</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">input_text</span><span class="o">=</span><span class="s2">"Nvidia released new GPUs. Anthropic builds Claude."</span><span class="p">,</span> <span class="n">merge</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_name</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">wikidata_id</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="add-your-own-entities">Add Your Own Entities</h3>
+<p>Write a JSONL file with one object per line. Each object needs a <code>qid</code>, a <code>label</code>, and optionally a <code>description</code>, <code>aliases</code>, and <code>edges</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"qid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Q9000001"</span><span class="p">,</span><span class="w"> </span><span class="nt">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Acme Robotics"</span><span class="p">,</span><span class="w"> </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"American robotics company"</span><span class="p">,</span><span class="w"> </span><span class="nt">"aliases"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"Acme"</span><span class="p">],</span><span class="w"> </span><span class="nt">"edges"</span><span class="p">:</span><span class="w"> </span><span class="p">[]}</span>
+<span class="p">{</span><span class="nt">"qid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Q9000002"</span><span class="p">,</span><span class="w"> </span><span class="nt">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Project Helix"</span><span class="p">,</span><span class="w"> </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"internal battery research program"</span><span class="p">,</span><span class="w"> </span><span class="nt">"aliases"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"Helix"</span><span class="p">],</span><span class="w"> </span><span class="nt">"edges"</span><span class="p">:</span><span class="w"> </span><span class="p">[]}</span>
+</code></pre></div>
+<p>Use real Wikidata QIDs when they exist, and make up stable IDs (for example <code>X0001</code>) for internal entities. Load your file alongside the bundled one:</p>
+<div class="highlight"><pre><span></span><code><span class="n">graphaide</span><span class="o">.</span><span class="n">ingest_vectors</span><span class="p">(</span>
+    <span class="n">file_paths</span><span class="o">=</span><span class="p">[</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">get_sample_data_path</span><span class="p">(</span><span class="s2">"graphaide_KB.jsonl"</span><span class="p">)),</span>
+        <span class="s2">"my_entities.jsonl"</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Files whose name contains <code>graphaide_kb</code> or <code>wikidata</code> and end in <code>.jsonl</code> are loaded as Wikidata entities. Name your file accordingly, or it will be loaded as a regular document.</p>
+<h3 id="extract-with-your-knowledge-base">Extract with Your Knowledge Base</h3>
+<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
+    <span class="n">input_text</span><span class="o">=</span><span class="s2">"Acme Robotics and Project Helix announced a partnership with Nvidia."</span><span class="p">,</span>
+    <span class="n">merge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">node_name</span><span class="si">:</span><span class="s2">20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">wikidata_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<p>Entities that match one of your entries get its QID. Entities with no match stay without <code>wikidata_id</code>. See <a href="disambiguation/">Disambiguation</a> for how matches are chosen.</p>
 <h2 id="advanced-options">Advanced Options</h2>
 <h3 id="control-context-window">Control Context Window</h3>
 <div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">graphaide</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
