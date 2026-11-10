@@ -377,6 +377,41 @@ class RAGContext(BaseModel):
     )
 
 
+# Chunk-local state for the smartextractor subgraph (extractor → extractorfixer).
+# nodes/edges are replaced, not appended, so the fixer can rewrite the chunk's full list.
+class SmartExtractorInput(TypedDict, total=False):
+    raw_text: str
+    file_path: Optional[str]
+    current_chunk_id: Optional[str]
+    vector_store_configs: List
+    rag_context_summary: Optional[RAGContextSummary]
+    filter_by_ontology: bool
+    batch_index: Optional[int]
+    messages: Annotated[list, add_messages]
+
+
+_replace_list = lambda a, b: b  # noqa: E731
+
+
+class SmartExtractorState(SmartExtractorInput, total=False):
+    nodes: Annotated[List[Node], _replace_list]
+    edges: Annotated[List[Edge], _replace_list]
+    filter_stats: Dict[str, Any]
+    unstructured_response: Annotated[List[str], operator.add]
+    current_agent: Annotated[List[str], operator.add]
+    agent_status: Annotated[Dict[str, bool], lambda a, b: {**a, **b}]
+
+
+class SmartExtractorOutput(TypedDict, total=False):
+    nodes: Annotated[List[Node], _replace_list]
+    edges: Annotated[List[Edge], _replace_list]
+    filter_stats: Dict[str, Any]
+    messages: Annotated[list, add_messages]
+    unstructured_response: Annotated[List[str], operator.add]
+    current_agent: Annotated[List[str], operator.add]
+    agent_status: Annotated[Dict[str, bool], lambda a, b: {**a, **b}]
+
+
 # 5. The Central State
 # Using Annotated + operator.add ensures that each of your 10 agents
 # appends their findings to the list rather than overwriting previous work.

@@ -1,8 +1,5 @@
 import logging
-from pathlib import Path
-
 import tiktoken
-from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from graphgen.v2 import globalconfig
@@ -11,7 +8,6 @@ from ..ontology_utils import build_enriched_ontology_context
 from ..state import Edge, KGGenerationState, Node, RetrievalResultType, RAGContextSummary
 from .base import GraphAideAgent
 from .contextbuilder import build_chunk_context
-from .nodesedgefixer import fix_unresolved_node_types
 
 logger = logging.getLogger("graphgen.extractor")
 
@@ -87,13 +83,6 @@ class ExtractorAgent(GraphAideAgent):
     tool_schema = ExtractorToolSchema
     tool_description = "Extract entities (nodes) and relationships (edges) from text. Ontology constraints are read automatically from state - ensure OntologyLoaderAgent has been called first to load the ontology."
     tool_output_keys = ["nodes", "edges", "messages"]
-
-    def __init__(self, model, template_str, settings=None):
-        super().__init__(model, template_str, settings)
-        fix_path = Path(globalconfig.AGENT_TEMPLATE_DIR) / "nodesedgefixer.template"
-        self.fix_prompt = ChatPromptTemplate.from_template(
-            fix_path.read_text(encoding="utf-8")
-        )
 
     def _extract_single_chunk(
         self, text: str, context: str, structured_llm, chain, callbacks=None
@@ -347,10 +336,6 @@ class ExtractorAgent(GraphAideAgent):
             f"ExtractorAgent: rag_context_summary present? {summary is not None}"
         )
 
-        # Extract allowed node/edge types from ontology for filtering
-        node_types = summary.ontology_node_types if summary else []
-        edge_types = summary.ontology_edge_types if summary else []
-
         # Build optimized, deduplicated context for this chunk
         context = build_chunk_context(summary, chunk_retrieval_results, include_token_count=True)
 
@@ -435,13 +420,6 @@ class ExtractorAgent(GraphAideAgent):
             )
             logger.debug(messages[-1])
 
-            fix_unresolved_node_types(
-                extracted_nodes,
-                allowed=node_types or [],
-                prompt=self.fix_prompt,
-                model=self.model,
-            )
-
             # Show extracted types for debugging
             extracted_node_types = list(
                 set(n.node_type for n in extracted_nodes if n.node_type)
@@ -464,132 +442,14 @@ class ExtractorAgent(GraphAideAgent):
                 logger.debug(f"  - {edge_type}: {count} edges")
             logger.debug(f"{'=' * 60}\n")
 
-            # Save pre-filtered graph before ontology filtering
-            pre_filtered_nodes = extracted_nodes.copy()
-            pre_filtered_edges = extracted_edges.copy()
-            filter_stats = {}
-
-            # Check if filtering is enabled (default: True)
-            filter_by_ontology = state.get("filter_by_ontology", False)
-            logger.debug(
-                f"filter_by_ontology from state: {filter_by_ontology} (type: {type(filter_by_ontology)})"
+            logger.info(
+                f"SmartExtractor[extractor] chunk={state.get('current_chunk_id')}: "
+                f"extracted {len(extracted_nodes)} nodes, {len(extracted_edges)} edges"
             )
-
-            # Filter nodes and edges to ontology types if ontology is provided AND filtering is enabled
-            if filter_by_ontology and (node_types or edge_types):
-                logger.debug(
-                    f"Applying ontology filter (filter_by_ontology={filter_by_ontology}, has_ontology={bool(node_types or edge_types)})"
-                )
-                filtered_nodes = (
-                    [n for n in extracted_nodes if n.node_type in node_types]
-                    if node_types
-                    else extracted_nodes
-                )
-                filtered_edges = (
-                    [e for e in extracted_edges if e.edge_type in edge_types]
-                    if edge_types
-                    else extracted_edges
-                )
-                skipped_nodes = len(extracted_nodes) - len(filtered_nodes)
-                skipped_edges = len(extracted_edges) - len(filtered_edges)
-                if skipped_nodes or skipped_edges:
-                    logger.debug(
-                        f"Filtered out {skipped_nodes} nodes, {skipped_edges} edges not in ontology"
-                    )
-                    # Show which node types were filtered out
-                    allowed_node_set = set(node_types) if node_types else set()
-                    rejected_node_types = set()
-                    for n in pre_filtered_nodes:
-                        if n.node_type and n.node_type not in allowed_node_set:
-                            rejected_node_types.add(n.node_type)
-                    if rejected_node_types:
-                        logger.debug(
-                            f"Rejected node types: {list(rejected_node_types)}"
-                        )
-
-                    # Show which edge types were filtered out
-                    allowed_edge_set = set(edge_types) if edge_types else set()
-                    rejected_edge_types = set()
-                    for e in pre_filtered_edges:
-                        if e.edge_type and e.edge_type not in allowed_edge_set:
-                            rejected_edge_types.add(e.edge_type)
-                    if rejected_edge_types:
-                        logger.debug(
-                            f"Rejected edge types: {list(rejected_edge_types)}"
-                        )
-                    filter_stats = {
-                        "filtered_nodes": skipped_nodes,
-                        "filtered_edges": skipped_edges,
-                        "nodes_before": len(pre_filtered_nodes),
-                        "edges_before": len(pre_filtered_edges),
-                        "nodes_after": len(filtered_nodes),
-                        "edges_after": len(filtered_edges),
-                    }
-                extracted_nodes = filtered_nodes
-                extracted_edges = filtered_edges
-
-                # Save pre-filtered graph with "PreFilter" prefix
-                try:
-                    import json
-                    from datetime import datetime
-
-                    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")[:-3]  # Include milliseconds
-                    batch_info = ""
-                    if state.get("batch_index") is not None:
-                        batch_info = f"_Batch{state.get('batch_index')}"
-                    pre_filter_filename = (
-                        f"GraphAide_KG_Extract_PreFilter_{timestamp}{batch_info}.json"
-                    )
-
-                    # Convert to dict for JSON serialization
-                    pre_nodes_data = []
-                    for n in pre_filtered_nodes:
-                        node_dict = (
-                            n.model_dump() if hasattr(n, "model_dump") else dict(n)
-                        )
-                        if "grounding_id" in node_dict:
-                            node_dict["node_id"] = node_dict.pop("grounding_id")
-                        pre_nodes_data.append(node_dict)
-
-                    pre_edges_data = []
-                    for e in pre_filtered_edges:
-                        edge_dict = (
-                            e.model_dump() if hasattr(e, "model_dump") else dict(e)
-                        )
-                        if "source_node_english_name" in edge_dict:
-                            edge_dict["source_id"] = edge_dict.pop(
-                                "source_node_english_name"
-                            )
-                        if "target_node_english_name" in edge_dict:
-                            edge_dict["target_id"] = edge_dict.pop(
-                                "target_node_english_name"
-                            )
-                        pre_edges_data.append(edge_dict)
-
-                    pre_filter_data = {
-                        "source_file": state.get("file_path", ""),
-                        "extraction_stage": "pre_filter",
-                        "nodes_before_filter": len(pre_filtered_nodes),
-                        "edges_before_filter": len(pre_filtered_edges),
-                        "nodes_after_filter": len(extracted_nodes),
-                        "edges_after_filter": len(extracted_edges),
-                        "filtered_out_nodes": skipped_nodes,
-                        "filtered_out_edges": skipped_edges,
-                        "nodes": pre_nodes_data,
-                        "edges": pre_edges_data,
-                    }
-
-                    with open(pre_filter_filename, "w", encoding="utf-8") as f:
-                        json.dump(pre_filter_data, f, indent=2, ensure_ascii=False)
-                    logger.debug(f"Pre-filtered graph saved to: {pre_filter_filename}")
-                except Exception as e:
-                    logger.error(f"Failed to save pre-filtered graph: {e}")
-
             return {
                 "nodes": extracted_nodes,
                 "edges": extracted_edges,
                 "messages": messages,
-                "filter_stats": filter_stats,
                 "agent_status": {self.__class__.__name__: True},
             }
         except Exception as e:

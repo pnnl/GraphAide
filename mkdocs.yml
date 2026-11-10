@@ -65,6 +65,7 @@ nav:
   - Extraction:
       - Getting Started: extraction/index.md
       - Using Ontology: extraction/ontology.md
+      - Disambiguation: extraction/disambiguation.md
   - Vector Stores:
       - Setup & Loading: vector-stores/setup.md
       - Using in Extraction: vector-stores/usage.md

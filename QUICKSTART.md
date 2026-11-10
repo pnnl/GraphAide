@@ -339,7 +339,7 @@ export OPENAI_MODEL_NAME=gpt-4o-mini
 GraphAide uses a **multi-agent architecture** orchestrated by [LangGraph](https://langchain.com/docs/langgraph):
 
 ```
-Document → [FileLoader] → [Extractor] → [NodesEdgeFixer] 
+Document → [FileLoader] → [SmartExtractor: Extractor → ExtractorFixer] 
          → [NodesLoader] → [EdgesLoader] → Neo4j
          ↓
       [VectorDB] ← [Embeddings] ← RAG Context

@@ -17,7 +17,7 @@ Agent Tool Output Keys Reference:
 | Neo4jLoaderAgent             | ["nodes", "edges", "messages", "is_valid"]          |
 | Neo4jPostProcessorAgent      | ["messages", "is_valid"]                            |
 | Neo4jQueryRunnerAgent        | ["graph_answer", "messages", "is_valid"]            |
-| NodesEdgeFixerAgent          | ["messages", "is_valid"]                            |
+| ExtractorFixerAgent          | ["nodes", "edges", "messages", "agent_status"]      |
 | NodesLoaderAgent             | ["messages", "is_valid"]                            |
 | OntologyLoaderAgent          | ["rag_context", "messages"] |
 | QuestionGraphGeneratorAgent  | ["graph_question", "messages"]                      |
@@ -37,7 +37,7 @@ from .nodesloader import NodesLoaderAgent, NodesLoaderToolSchema
 from .neo4jloader import Neo4jLoaderAgent, Neo4jLoaderToolSchema
 from .neo4jpostprocessor import Neo4jPostProcessorAgent, Neo4jPostProcessorToolSchema
 from .neo4jqueryrunner import Neo4jQueryRunnerAgent, Neo4jQueryRunnerToolSchema
-from .nodesedgefixer import NodesEdgeFixerAgent, NodesEdgeFixerToolSchema
+from .extractorfixer import ExtractorFixerAgent, ExtractorFixerToolSchema
 from .imageexplainer import ImageExplainerAgent, ImageExplainerToolSchema
 from .intentpredictor import IntentPredictorAgent, IntentPredictorToolSchema
 from .ontologyloader import OntologyLoaderAgent, OntologyLoaderToolSchema
@@ -68,8 +68,8 @@ __all__ = [
     "Neo4jPostProcessorToolSchema",
     "Neo4jQueryRunnerAgent",
     "Neo4jQueryRunnerToolSchema",
-    "NodesEdgeFixerAgent",
-    "NodesEdgeFixerToolSchema",
+    "ExtractorFixerAgent",
+    "ExtractorFixerToolSchema",
     "ImageExplainerAgent",
     "ImageExplainerToolSchema",
     "IntentPredictorAgent",

@@ -3,7 +3,6 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import List, Optional, Union
 
 import yaml
 from langchain_chroma import Chroma
@@ -12,9 +11,9 @@ from langchain_community.document_loaders import (
     PyPDFLoader,
     TextLoader,
 )
+from pydantic import BaseModel, Field
 
 from ..ontology_utils import parse_rdf_ontology
-from pydantic import BaseModel, Field
 
 try:
     import fitz  # PyMuPDF
@@ -45,44 +44,28 @@ logger = get_logger(__name__)
 class VectorDBLoaderToolSchema(BaseModel):
     """Input schema for VectorDBLoaderAgent tool."""
 
-    file_path: Optional[str] = Field(
+    file_path: str | None = Field(
         default=None,
         description="Path to a single file to load (e.g., 'document.pdf'). Supports: PDF, JSON (including Wikidata), JSONL, CSV, TSV, YAML, TXT, PNG, JPG, GIF, BMP, OWL, TTL, NT. Special files detected by extension/name: .owl/.ttl/.nt (ontology), *wikidata*.json (Wikidata entities).",
     )
-    file_paths: Optional[Union[List[str], str]] = Field(
+    file_paths: list[str] | str | None = Field(
         default=None,
         description="List of file paths or comma-separated paths to load multiple files at once. Examples: ['file1.pdf', 'file2.pdf'] or 'file1.pdf, file2.pdf'.",
     )
-    json_line: Optional[bool] = Field(
-        default=False, description="Whether JSON file is in JSONL format"
-    )
-    source_column: Optional[str] = Field(
-        default=None, description="Column name to use as document source"
-    )
-    encoding: Optional[str] = Field(default="utf-8", description="File encoding")
-    chunking: Optional[bool] = Field(
-        default=False, description="Whether to process in batches for large files"
-    )
-    split_docs: Optional[bool] = Field(
-        default=True, description="Whether to split documents into chunks"
-    )
-    append: Optional[bool] = Field(
-        default=False, description="Whether to append to existing vector store"
-    )
-    is_raw_embedding: Optional[bool] = Field(
-        default=False, description="Whether file contains pre-computed embeddings"
-    )
-    section_chunking: Optional[bool] = Field(
-        default=False, description="For PDFs, use section-based chunking"
-    )
-    max_characters: Optional[int] = Field(
-        default=1500, description="Max characters per section chunk"
-    )
-    use_vision_extraction: Optional[bool] = Field(
+    json_line: bool | None = Field(default=False, description="Whether JSON file is in JSONL format")
+    source_column: str | None = Field(default=None, description="Column name to use as document source")
+    encoding: str | None = Field(default="utf-8", description="File encoding")
+    chunking: bool | None = Field(default=False, description="Whether to process in batches for large files")
+    split_docs: bool | None = Field(default=True, description="Whether to split documents into chunks")
+    append: bool | None = Field(default=False, description="Whether to append to existing vector store")
+    is_raw_embedding: bool | None = Field(default=False, description="Whether file contains pre-computed embeddings")
+    section_chunking: bool | None = Field(default=False, description="For PDFs, use section-based chunking")
+    max_characters: int | None = Field(default=1500, description="Max characters per section chunk")
+    use_vision_extraction: bool | None = Field(
         default=False,
         description="For images/PDFs, use LLM to extract text via vision capability",
     )
-    extract_pdf_images: Optional[bool] = Field(
+    extract_pdf_images: bool | None = Field(
         default=False,
         description="For PDFs, extract embedded images as separate documents",
     )
@@ -123,10 +106,12 @@ class VectorDBLoaderAgent(GraphAideAgent):
     """
 
     tool_schema = VectorDBLoaderToolSchema
-    tool_description = "Load documents from various file formats (PDF, JSON, CSV, YAML, text) into a ChromaDB vector store"
+    tool_description = (
+        "Load documents from various file formats (PDF, JSON, CSV, YAML, text) into a ChromaDB vector store"
+    )
     tool_output_keys = ["messages", "document_id_to_title"]
 
-    def _extract_id_title_mapping(self, documents: List[Document]) -> dict:
+    def _extract_id_title_mapping(self, documents: list[Document]) -> dict:
         """Extract ID→Title mapping from documents.
 
         For each document, looks for 'id' and 'title' in metadata.
@@ -146,75 +131,79 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 id_to_title[doc_id] = title
         return id_to_title
 
-    def loadWikidataJSON(self, wikidata_file_path: str, vector_store):
-        """Load Wikidata JSON file into vector store.
+    def _wikidata_document(self, qid: str, entity: dict) -> Document:
+        label = entity.get("label") or qid
+        description = entity.get("description") or ""
+        aliases = entity.get("aliases") or []
+        edges = entity.get("edges") or []
 
-        Expected format: {QID: {label, description, aliases, edges}}
-        For each entity (QID), creates a document with:
-        - documentID: the QID
-        - description: label + description + aliases + edges info
-        - metadata includes edge relationships
-        """
+        content = f"QID: {qid}\nLabel: {label}\n"
+        if description:
+            content += f"Description: {description}\n"
+        if aliases:
+            content += f"Aliases: {', '.join(aliases)}\n"
+        if edges:
+            content += f"\nRelationships ({len(edges)}):\n"
+            for edge in edges:
+                predicate = edge.get("predicate")
+                obj = edge.get("object")
+                edge_desc = edge.get("description") or ""
+                target = f"{predicate} → {obj}: " if predicate and obj else ""
+                content += f"  - {target}{edge_desc}\n"
+
+        predicates = sorted({e["predicate"] for e in edges if e.get("predicate")})
+        metadata = {
+            "id": qid,
+            "title": label,
+            "source": f"{qid}|{label}",
+            "type": "wikidata_entity",
+            "qid": qid,
+            "label": label,
+        }
+        if predicates:
+            metadata["predicates"] = ",".join(predicates)
+        return Document(page_content=content, metadata=metadata)
+
+    def _load_wikidata_documents(self, documents: list[Document], vector_store, source: str):
+        if documents:
+            batch_size = gc.VECTOR_BATCH_SIZE
+            for i in range(0, len(documents), batch_size):
+                vector_store.add_documents(documents[i : i + batch_size])
+            logger.debug(f"Loaded {len(documents)} Wikidata entities from {source}")
+        else:
+            logger.debug(f"No Wikidata entities found in {source}")
+        return documents, [f"Loaded {len(documents)} Wikidata entities from {source}"]
+
+    def loadWikidataJSON(self, wikidata_file_path: str, vector_store):
+        """Load a {QID: {label, description, aliases, edges}} JSON file."""
         wikidata_path = Path(wikidata_file_path)
         if not wikidata_path.exists():
             raise FileNotFoundError(f"Wikidata file not found: {wikidata_path}")
 
         logger.debug(f"Loading Wikidata JSON: {wikidata_file_path}")
+        data = json.loads(wikidata_path.read_text(encoding="utf-8"))
+        documents = [self._wikidata_document(qid, entity) for qid, entity in data.items()]
+        return self._load_wikidata_documents(documents, vector_store, wikidata_file_path)
 
-        with open(wikidata_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+    def loadWikidataJSONL(self, wikidata_file_path: str, vector_store):
+        """Load a JSONL file with one {qid, label, description, aliases, edges} object per line."""
+        wikidata_path = Path(wikidata_file_path)
+        if not wikidata_path.exists():
+            raise FileNotFoundError(f"Wikidata file not found: {wikidata_path}")
 
+        logger.debug(f"Loading Wikidata JSONL: {wikidata_file_path}")
         documents = []
-
-        for qid, entity_data in data.items():
-            label = entity_data.get("label", qid)
-            description = entity_data.get("description", "")
-            aliases = entity_data.get("aliases", [])
-            edges = entity_data.get("edges", [])
-
-            # Build document content
-            doc_content = f"QID: {qid}\nLabel: {label}\n"
-
-            if description:
-                doc_content += f"Description: {description}\n"
-
-            if aliases:
-                doc_content += f"Aliases: {', '.join(aliases)}\n"
-
-            if edges:
-                doc_content += f"\nRelationships ({len(edges)}):\n"
-                for edge in edges:
-                    predicate = edge.get("predicate", "")
-                    obj = edge.get("object", "")
-                    edge_desc = edge.get("description", "")
-                    doc_content += f"  - {predicate} → {obj}: {edge_desc}\n"
-
-            # Create document with metadata including edge info
-            metadata = {
-                "id": qid,  # ChromaDB document ID
-                "title": label,  # Document title
-                "source": f"{qid}|{label}",  # Format for ExtractorAgent Wikidata parsing
-                "type": "wikidata_entity",
-                "qid": qid,
-                "label": label,
-            }
-
-            # Include predicates as metadata for relationship discovery
-            if edges:
-                predicates = [e.get("predicate", "") for e in edges]
-                metadata["predicates"] = ",".join(set(predicates))
-
-            doc = Document(page_content=doc_content, metadata=metadata)
-            documents.append(doc)
-
-        # Add documents to vector store
-        if documents:
-            vector_store.add_documents(documents)
-            logger.debug(f"Loaded {len(documents)} Wikidata entities into vector store")
-        else:
-            logger.debug("No Wikidata entities found in file")
-
-        return documents, [f"Loaded {len(documents)} Wikidata entities from {wikidata_file_path}"]
+        with wikidata_path.open("r", encoding="utf-8") as f:
+            for line_no, line in enumerate(f, start=1):
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                qid = record.get("qid")
+                if not qid:
+                    logger.warning(f"Skipping line {line_no} in {wikidata_file_path}: no qid")
+                    continue
+                documents.append(self._wikidata_document(qid, record))
+        return self._load_wikidata_documents(documents, vector_store, wikidata_file_path)
 
     def loadOntologyFile(self, ontology_file_path: str, embedding_function: Embeddings, vector_store):
         """Load ontology file (OWL, TTL, NT) into vector store.
@@ -249,7 +238,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
             doc_content = f"Node Type: {node_type}\n{description}" if description else f"Node Type: {node_type}"
             doc = Document(
                 page_content=doc_content,
-                metadata={"id": node_type, "title": node_type, "source": node_type, "type": "node_type"}
+                metadata={"id": node_type, "title": node_type, "source": node_type, "type": "node_type"},
             )
             documents.append(doc)
 
@@ -270,7 +259,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
             doc_content = f"Edge Type: {edge_type}\n{description}" if description else f"Edge Type: {edge_type}"
             doc = Document(
                 page_content=doc_content,
-                metadata={"id": edge_type, "title": edge_type, "source": edge_type, "type": "edge_type"}
+                metadata={"id": edge_type, "title": edge_type, "source": edge_type, "type": "edge_type"},
             )
             documents.append(doc)
 
@@ -284,17 +273,13 @@ class VectorDBLoaderAgent(GraphAideAgent):
         return documents, [f"Loaded {len(documents)} ontology types from {ontology_file_path}"]
 
     def __call__(self, state: KGGenerationState) -> dict:
-        logger.debug(
-            f"VectorDBLoaderAgent called with state keys: {list(state.keys())}"
-        )
+        logger.debug(f"VectorDBLoaderAgent called with state keys: {list(state.keys())}")
         logger.debug(f"DEFAULT_EXTERNAL_METADATA: {gc.DEFAULT_EXTERNAL_METADATA}")
 
         # 1. Access the Vector Store from the factory-injected settings
         vector_store = self.settings.get("vector_store")
         if not vector_store:
-            raise ValueError(
-                f"Agent '{self.__class__.__name__}' requires a vector_store but none was provided."
-            )
+            raise ValueError(f"Agent '{self.__class__.__name__}' requires a vector_store but none was provided.")
         elif vector_store._collection.count() == 0 or state.get("append", False):
             vector_count = vector_store._collection.count()
             logger.debug(f"vector store has {vector_count} vectors currently")
@@ -315,9 +300,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 if isinstance(file_paths, str):
                     files_to_load = [f.strip() for f in file_paths.split(",")]
                 else:
-                    files_to_load = (
-                        file_paths if isinstance(file_paths, list) else [file_paths]
-                    )
+                    files_to_load = file_paths if isinstance(file_paths, list) else [file_paths]
             elif file_path is not None:
                 if isinstance(file_path, str) and "," in file_path:
                     files_to_load = [f.strip() for f in file_path.split(",")]
@@ -329,9 +312,21 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 )
 
             # Check if any files are ontology files (.ttl, .nt, .owl) or Wikidata JSON files
-            ontology_files = [f for f in files_to_load if f.lower().endswith(('.ttl', '.nt', '.owl'))]
-            wikidata_files = [f for f in files_to_load if f.lower().endswith('.json') and 'wikidata' in f.lower()]
-            regular_files = [f for f in files_to_load if not f.lower().endswith(('.ttl', '.nt', '.owl')) and not (f.lower().endswith('.json') and 'wikidata' in f.lower())]
+            ontology_files = [f for f in files_to_load if f.lower().endswith((".ttl", ".nt", ".owl"))]
+
+            def _is_wikidata_file(f: str) -> bool:
+                name = f.lower()
+                return (
+                    name.endswith(".json")
+                    and "wikidata" in name
+                    or name.endswith(".jsonl")
+                    and ("wikidata" in name or "graphaide_kb" in name)
+                )
+
+            wikidata_files = [f for f in files_to_load if _is_wikidata_file(f)]
+            regular_files = [
+                f for f in files_to_load if not f.lower().endswith((".ttl", ".nt", ".owl")) and not _is_wikidata_file(f)
+            ]
 
             # Process ontology files first
             all_messages = []
@@ -347,7 +342,10 @@ class VectorDBLoaderAgent(GraphAideAgent):
             # Process Wikidata JSON files
             for wikidata_file in wikidata_files:
                 try:
-                    docs, messages = self.loadWikidataJSON(wikidata_file, vector_store)
+                    loader = (
+                        self.loadWikidataJSONL if wikidata_file.lower().endswith(".jsonl") else self.loadWikidataJSON
+                    )
+                    docs, messages = loader(wikidata_file, vector_store)
                     all_messages.extend(messages)
                     # Extract ID→Title mappings
                     id_to_title = self._extract_id_title_mapping(docs)
@@ -374,9 +372,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
             chunking = state.get("chunking", False)
             split_docs = state.get("split_docs", True)
             internal_metadata = state.get("internal_metadata", None)
-            external_metadata = state.get(
-                "external_metadata", gc.DEFAULT_EXTERNAL_METADATA
-            )
+            external_metadata = state.get("external_metadata", gc.DEFAULT_EXTERNAL_METADATA)
             splitter = state.get("splitter", None)
             persist_directory = self.settings.get("persist_directory")
             offset = state.get("offset", 1)
@@ -393,9 +389,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                     all_messages.append(msg)
                     continue
 
-                logger.debug(
-                    f"Loading {file_path} [file {idx + 1}/{len(files_to_load)}]"
-                )
+                logger.debug(f"Loading {file_path} [file {idx + 1}/{len(files_to_load)}]")
 
                 # Load file based on type
                 if str(file_path).endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
@@ -425,12 +419,8 @@ class VectorDBLoaderAgent(GraphAideAgent):
                             section_chunking=section_chunking,
                             max_characters=max_characters,
                         )
-                elif str(file_path).endswith(".yml") or str(file_path).endswith(
-                    ".yaml"
-                ):
-                    docs = self.loadYAMLFile(
-                        file_path, external_metadata=external_metadata
-                    )
+                elif str(file_path).endswith(".yml") or str(file_path).endswith(".yaml"):
+                    docs = self.loadYAMLFile(file_path, external_metadata=external_metadata)
                 elif (
                     str(file_path).endswith("json")
                     or str(file_path).endswith("jsonl")
@@ -443,9 +433,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                         source_column=source_column,
                     )
                 elif state.get("is_raw_embedding", False) is True:
-                    result = self.loadCSV_Embedding(
-                        file_path, persist_directory, offset, header
-                    )
+                    result = self.loadCSV_Embedding(file_path, persist_directory, offset, header)
                     all_messages.append(f"✅ Loaded embeddings from {file_path}")
                     continue
                 elif str(file_path).endswith("tsv") or str(file_path).endswith("tsv."):
@@ -484,19 +472,13 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 # Log the metadata_filter being used
                 if docs:
                     metadata_filter = docs[0].metadata.get("metadata_filter", "")
-                    logger.debug(
-                        f"File '{os.path.basename(file_path)}' → metadata_filter='{metadata_filter}'"
-                    )
+                    logger.debug(f"File '{os.path.basename(file_path)}' → metadata_filter='{metadata_filter}'")
 
                 text_splitter = (
-                    RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
-                    if splitter is None
-                    else splitter
+                    RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150) if splitter is None else splitter
                 )
 
-                splits = (
-                    docs if split_docs is False else text_splitter.split_documents(docs)
-                )
+                splits = docs if split_docs is False else text_splitter.split_documents(docs)
 
                 # First file uses append flag, remaining files always append
                 append_mode = should_append or idx > 0
@@ -514,8 +496,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 document_id_to_title.update(id_to_title)
 
                 if chunking is False:
-                    # Batch documents to avoid ChromaDB max batch size limit (5461)
-                    batch_size = 5000
+                    batch_size = gc.VECTOR_BATCH_SIZE
                     for i in range(0, len(splits), batch_size):
                         batch_splits = splits[i : i + batch_size]
                         vector_store.add_documents(batch_splits)
@@ -528,9 +509,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                     for i in range(0, len(splits), batch_size):
                         try:
                             batch_splits = splits[i : i + batch_size]
-                            embeddings = embedding_function.embed_documents(
-                                [doc.page_content for doc in batch_splits]
-                            )
+                            embeddings = embedding_function.embed_documents([doc.page_content for doc in batch_splits])
                             for idx_batch, doc in enumerate(batch_splits):
                                 collection.add(
                                     documents=[doc.page_content],
@@ -539,9 +518,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                                     ids=[str(i + idx_batch)],
                                 )
                         except Exception as e:
-                            logger.error(
-                                f"Failed to ingest batch {i // batch_size + 1}: {e}"
-                            )
+                            logger.error(f"Failed to ingest batch {i // batch_size + 1}: {e}")
                     msg = f"✅ Loaded {len(splits)} docs from {file_path} (batched)"
                     logger.debug(msg)
                     all_messages.append(msg)
@@ -644,19 +621,14 @@ class VectorDBLoaderAgent(GraphAideAgent):
                                 continue
                             line_text += text + " "
                             # Check if this is a heading (larger font or bold)
-                            if (
-                                span["size"] >= heading_threshold
-                                or "bold" in span["font"].lower()
-                            ):
+                            if span["size"] >= heading_threshold or "bold" in span["font"].lower():
                                 is_heading = True
 
                         line_text = line_text.strip()
                         if not line_text:
                             continue
 
-                        if (
-                            is_heading and len(line_text) < 200
-                        ):  # Headings are usually short
+                        if is_heading and len(line_text) < 200:  # Headings are usually short
                             # Save previous section if it has content
                             if current_section_text:
                                 section_content = "\n".join(current_section_text)
@@ -664,9 +636,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                                 if len(section_content) > max_characters:
                                     chunks = [
                                         section_content[i : i + max_characters]
-                                        for i in range(
-                                            0, len(section_content), max_characters
-                                        )
+                                        for i in range(0, len(section_content), max_characters)
                                     ]
                                     for idx, chunk in enumerate(chunks):
                                         title = (
@@ -697,15 +667,10 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 section_content = "\n".join(current_section_text)
                 if len(section_content) > max_characters:
                     chunks = [
-                        section_content[i : i + max_characters]
-                        for i in range(0, len(section_content), max_characters)
+                        section_content[i : i + max_characters] for i in range(0, len(section_content), max_characters)
                     ]
                     for idx, chunk in enumerate(chunks):
-                        title = (
-                            f"{current_section_title}"
-                            if idx == 0
-                            else f"{current_section_title} (cont. {idx + 1})"
-                        )
+                        title = f"{current_section_title}" if idx == 0 else f"{current_section_title} (cont. {idx + 1})"
                         sections.append(
                             {
                                 "title": title,
@@ -762,15 +727,11 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 )
                 docs.append(doc)
 
-            logger.debug(
-                f"Loaded {len(docs)} section-chunked documents from {file_path} using PyMuPDF"
-            )
+            logger.debug(f"Loaded {len(docs)} section-chunked documents from {file_path} using PyMuPDF")
             return docs
 
         except Exception as e:
-            logger.error(
-                f"Error loading PDF with section chunking at {file_path}: {e}. Falling back to PyPDFLoader"
-            )
+            logger.error(f"Error loading PDF with section chunking at {file_path}: {e}. Falling back to PyPDFLoader")
             return self.loadPDFFile(file_path, section_chunking=False)
 
     def loadYAMLFile(
@@ -810,9 +771,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 data = yaml.safe_load(f)
 
             if not isinstance(data, dict):
-                logger.error(
-                    f"YAML file {file_path} does not contain a dictionary at root level"
-                )
+                logger.error(f"YAML file {file_path} does not contain a dictionary at root level")
                 return []
 
             filename = os.path.basename(file_path)
@@ -853,9 +812,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 )
 
                 # Use matched metadata_filter if found, else fallback to default
-                metadata_filter_value = doc_metadata_filter or getattr(
-                    gc, "YML_METADATA_FILTER", "source"
-                )
+                metadata_filter_value = doc_metadata_filter or getattr(gc, "YML_METADATA_FILTER", "source")
                 doc = Document(
                     page_content=content,
                     metadata={
@@ -871,9 +828,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 )
                 documents.append(doc)
 
-            logger.debug(
-                f"Loaded {len(documents)} control documents from {file_path} using YAML loader"
-            )
+            logger.debug(f"Loaded {len(documents)} control documents from {file_path} using YAML loader")
             return documents
 
         except Exception as e:
@@ -921,9 +876,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                     # Parse JSON object from the line
                     json_object = json.loads(line)
                     # Get metadata_filter: field takes precedence, then filename match
-                    field_metadata = (
-                        json_object.get(metadata_field) if metadata_field else None
-                    )
+                    field_metadata = json_object.get(metadata_field) if metadata_field else None
                     metadata_filter_value = field_metadata or doc_metadata_filter
 
                     if source_column is not None:
@@ -960,18 +913,14 @@ class VectorDBLoaderAgent(GraphAideAgent):
                         if "n" in item:
                             item = item["n"]
                         # Get metadata_filter: field takes precedence, then filename match
-                        field_metadata = (
-                            item.get(metadata_field) if metadata_field else None
-                        )
+                        field_metadata = item.get(metadata_field) if metadata_field else None
                         metadata_filter_value = field_metadata or doc_metadata_filter
 
                         documents.append(
                             Document(
                                 page_content=item.get(
                                     "desc",
-                                    item.get(
-                                        "description", item.get("text", item["id"])
-                                    ),
+                                    item.get("description", item.get("text", item["id"])),
                                 ),
                                 metadata={
                                     "id": item["id"],
@@ -985,9 +934,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                     if len(data) == 1:
                         # If the JSON file contains a single document
                         # Get metadata_filter: field takes precedence, then filename match
-                        field_metadata = (
-                            data.get(metadata_field) if metadata_field else None
-                        )
+                        field_metadata = data.get(metadata_field) if metadata_field else None
                         metadata_filter_value = field_metadata or doc_metadata_filter
 
                         documents.append(
@@ -1014,19 +961,13 @@ class VectorDBLoaderAgent(GraphAideAgent):
                                     kv,
                                 ):  # Match based on the regex
                                     # if re.match(r".*(label)$", kv):  # Match based on the regex
-                                    filtered_values.append(
-                                        str(vv)
-                                    )  # Collect the value (ensure it's string)
+                                    filtered_values.append(str(vv))  # Collect the value (ensure it's string)
 
                             result_string = " ".join(filtered_values) + " "
                             docid = k + "|" + v.get("label", "")
                             # Get metadata_filter: field takes precedence, then filename match
-                            field_metadata = (
-                                v.get(metadata_field) if metadata_field else None
-                            )
-                            metadata_filter_value = (
-                                field_metadata or doc_metadata_filter
-                            )
+                            field_metadata = v.get(metadata_field) if metadata_field else None
+                            metadata_filter_value = field_metadata or doc_metadata_filter
 
                             documents.append(
                                 Document(
@@ -1051,9 +992,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
         embeddings = {}
         for index, row in df.iterrows():
             doc_id = str(row[0])  # Assuming the first column is the document name
-            embedding = row[
-                offset:
-            ].tolist()  # Convert the rest of the columns to a list for the embedding
+            embedding = row[offset:].tolist()  # Convert the rest of the columns to a list for the embedding
             if not embedding:
                 raise ValueError(f"Empty embedding at row {index}")
             documents.append(Document(page_content=doc_id, metadata={"id": doc_id}))
@@ -1142,9 +1081,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
 
                 if source_column not in df.columns:
                     logger.error(f"Column '{source_column}' not found in CSV, available: {list(df.columns)}")
-                    raise ValueError(
-                        f"Source column '{source_column}' not found in CSV file"
-                    )
+                    raise ValueError(f"Source column '{source_column}' not found in CSV file")
 
                 for _, row in df.iterrows():
                     doc_content = str(row[source_column])
@@ -1155,16 +1092,14 @@ class VectorDBLoaderAgent(GraphAideAgent):
                                 metadata[col] = str(row[col])
                     docs.append(Document(page_content=doc_content, metadata=metadata))
 
-                logger.debug(f"Loaded using pandas fallback")
+                logger.debug("Loaded using pandas fallback")
             # sys.stderr.write(len(docs))
 
             # Filter documents based on whether the column is present in content
             filtered_docs = []
             for doc in docs:
                 # Check if the column exists in the document (present in doc.metadata)
-                if (
-                    "source" in doc.metadata and doc.metadata["source"] != ""
-                ):  # Column exists and has value
+                if "source" in doc.metadata and doc.metadata["source"] != "":  # Column exists and has value
                     doc.metadata["metadata_filter"] = doc_metadata_filter
                     filtered_docs.append(doc)
             # sys.stderr.write(len(filtered_docs))
@@ -1177,9 +1112,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
             batchid = 0
             # Process each partition in batches
             for batch in df.to_delayed():
-                batch_df = (
-                    batch.compute()
-                )  # Convert the partition into a Pandas DataFrame
+                batch_df = batch.compute()  # Convert the partition into a Pandas DataFrame
 
                 # Save to a temporary file (needed for CSVLoader)
                 temp_file = "temp_chunk.csv"
@@ -1203,11 +1136,11 @@ class VectorDBLoaderAgent(GraphAideAgent):
 
     def loadImageFiles(
         self,
-        file_paths: List[str],
+        file_paths: list[str],
         use_vision_extraction: bool = False,
         model=None,
-        external_metadata: Optional[dict] = None,
-    ) -> List[Document]:
+        external_metadata: dict | None = None,
+    ) -> list[Document]:
         """Load PNG/JPG images as documents with optional vision model text extraction.
 
         Args:
@@ -1254,13 +1187,8 @@ class VectorDBLoaderAgent(GraphAideAgent):
                 }
 
                 # Add external metadata if available
-                if (
-                    external_metadata
-                    and os.path.basename(file_path) in external_metadata
-                ):
-                    metadata["category"] = external_metadata[
-                        os.path.basename(file_path)
-                    ]
+                if external_metadata and os.path.basename(file_path) in external_metadata:
+                    metadata["category"] = external_metadata[os.path.basename(file_path)]
 
                 doc = Document(page_content=content, metadata=metadata)
                 docs.append(doc)
@@ -1277,7 +1205,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
         file_path: str,
         use_vision_extraction: bool = False,
         model=None,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """Extract images from a PDF and return as documents with optional text extraction.
 
         Args:
@@ -1315,9 +1243,7 @@ class VectorDBLoaderAgent(GraphAideAgent):
                     # Extract text if model available
                     if use_vision_extraction and model:
                         img_base64 = base64.b64encode(image_bytes).decode("utf-8")
-                        content = self._extract_image_text_from_base64(
-                            img_base64, model
-                        )
+                        content = self._extract_image_text_from_base64(img_base64, model)
                     else:
                         content = f"Image from {pdf_name} (page {page_num + 1}, image {img_index + 1})"
 

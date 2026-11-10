@@ -1,13 +1,12 @@
 import json
 import logging
-from typing import List
 
 from pydantic import BaseModel, Field
 
 from ..state import Edge, KGGenerationState, Node
 from .base import GraphAideAgent
 
-logger = logging.getLogger("graphgen.agents.nodesedgefixer")
+logger = logging.getLogger("graphgen.agents.extractorfixer")
 
 UNKNOWN_TYPE = "Unknown"
 UNRESOLVED_TYPES = {"", UNKNOWN_TYPE, "default_type"}
@@ -19,14 +18,14 @@ class NodeTypeAssignment(BaseModel):
 
 
 class NodeTypeAssignments(BaseModel):
-    assignments: List[NodeTypeAssignment]
+    assignments: list[NodeTypeAssignment]
 
 
 def is_unresolved(node: Node) -> bool:
     return (node.node_type or "") in UNRESOLVED_TYPES
 
 
-def fix_unresolved_node_types(nodes: List[Node], allowed: List[str], prompt, model) -> int:
+def fix_unresolved_node_types(nodes: list[Node], allowed: list[str], prompt, model) -> int:
     """Assign types to unresolved nodes in place. Makes at most one LLM call.
 
     Nodes whose LLM-chosen type is outside `allowed` become 'Unknown'.
@@ -53,6 +52,7 @@ def fix_unresolved_node_types(nodes: List[Node], allowed: List[str], prompt, mod
     ]
     chain = prompt | model.with_structured_output(NodeTypeAssignments)
     try:
+        # SP: so it sends one complete list of nodes to the LLM at once
         result = chain.invoke(
             {
                 "allowed_types": ", ".join(sorted(allowed_set)),
@@ -75,33 +75,36 @@ def fix_unresolved_node_types(nodes: List[Node], allowed: List[str], prompt, mod
     return fixed
 
 
-class NodesEdgeFixerToolSchema(BaseModel):
-    """Input schema for NodesEdgeFixerAgent tool."""
+class ExtractorFixerToolSchema(BaseModel):
+    """Input schema for ExtractorFixerAgent tool."""
 
-    nodes: List[Node]
-    edges: List[Edge]
+    nodes: list[Node]
+    edges: list[Edge]
 
 
-class NodesEdgeFixerAgent(GraphAideAgent):
-    """Add stub nodes for edge endpoints and retype unresolved nodes.
+class ExtractorFixerAgent(GraphAideAgent):
+    """Does two things: add stub nodes for edge endpoints and retype unresolved nodes.
 
     Input state keys:
-        nodes (List[Node]): Extracted nodes.
-        edges (List[Edge]): Extracted edges.
+        nodes (List[Node]): Extracted nodes for one chunk.
+        edges (List[Edge]): Extracted edges for one chunk.
         rag_context_summary (RAGContextSummary, optional): Source of ontology node types.
 
     Output state keys:
-        nodes (List[Node]): Only the newly created stub nodes (operator.add reducer).
+        nodes (List[Node]): Full corrected node list (stubs appended, types resolved).
+        edges (List[Edge]): Edge list, unchanged.
         messages, current_agent, agent_status.
+
+    Used inside the smartextractor subgraph, whose nodes/edges keys replace rather than append.
     """
 
-    tool_schema = NodesEdgeFixerToolSchema
-    tool_description = "Add stub nodes for edge endpoints missing from the node list and assign types to nodes whose type is empty, Unknown, or default_type. Call BEFORE parallel NodesLoader and EdgesLoader."
-    tool_output_keys = ["nodes", "messages", "agent_status"]
+    tool_schema = ExtractorFixerToolSchema
+    tool_description = "Add stub nodes for edge endpoints missing from the node list and assign types to nodes whose type is empty, Unknown, or default_type."
+    tool_output_keys = ["nodes", "edges", "messages", "agent_status"]
 
     def __call__(self, state: KGGenerationState) -> dict:
-        nodes = state.get("nodes", [])
-        edges = state.get("edges", [])
+        nodes = list(state.get("nodes", []))
+        edges = list(state.get("edges", []))
 
         stubs = self._build_stubs(nodes, edges)
         all_nodes = nodes + stubs
@@ -114,16 +117,20 @@ class NodesEdgeFixerAgent(GraphAideAgent):
             f"Added {len(stubs)} stub nodes; {unresolved_count} nodes needed a type, "
             f"{fixed} assigned from allowed types."
         )
-        logger.info(f"NodesEdgeFixer: {message}")
+        logger.info(
+            f"SmartExtractor[extractorfixer] chunk={state.get('current_chunk_id')}: {message} "
+            f"Output: {len(all_nodes)} nodes, {len(edges)} edges"
+        )
 
         return {
-            "nodes": stubs,
+            "nodes": all_nodes,
+            "edges": edges,
             "messages": [message],
             "current_agent": [self.__class__.__name__],
             "agent_status": {self.__class__.__name__: True},
         }
 
-    def _build_stubs(self, nodes: List[Node], edges: List[Edge]) -> List[Node]:
+    def _build_stubs(self, nodes: list[Node], edges: list[Edge]) -> list[Node]:
         existing_ids = {n.node_id for n in nodes if n.node_id}
         referenced_ids = set()
         for edge in edges:
@@ -146,7 +153,7 @@ class NodesEdgeFixerAgent(GraphAideAgent):
             for node_id in sorted(referenced_ids - existing_ids)
         ]
 
-    def _allowed_types(self, state: KGGenerationState, nodes: List[Node]) -> List[str]:
+    def _allowed_types(self, state: KGGenerationState, nodes: list[Node]) -> list[str]:
         summary = state.get("rag_context_summary")
         ontology_types = list(getattr(summary, "ontology_node_types", None) or [])
         if ontology_types:

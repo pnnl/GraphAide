@@ -80,7 +80,7 @@ def make_segment_dispatcher(target_node: str):
     """Factory that creates a segment dispatcher for any target node.
 
     Args:
-        target_node: Name of the node to send segments to (e.g., "knowledgegraphloader" or "extractor")
+        target_node: Name of the node to send segments to (e.g., "knowledgegraphloader" or "smartextractor")
 
     Returns:
         A dispatcher function compatible with add_conditional_edges
@@ -99,6 +99,7 @@ def make_segment_dispatcher(target_node: str):
                     "segments": [segment],
                     "rag_context_summary": state.get("rag_context_summary"),  # NEW: static, shared summary (not accumulated)
                     "vector_store_configs": state.get("vector_store_configs"),  # For fresh per-chunk retrieval
+                    "filter_by_ontology": state.get("filter_by_ontology", False),
                     "messages": [
                         f"Successfully sent segment for extraction. total segments: {len(segments)}"
                     ],
@@ -112,67 +113,70 @@ def make_segment_dispatcher(target_node: str):
 
 
 def map_fileloader(state: KGGenerationState) -> list[Send]:
-    """Legacy dispatcher - targets 'extractor' node directly.
+    """Legacy dispatcher - targets 'smartextractor' node directly.
 
     For subgraph workflows, use make_segment_dispatcher('subgraph_name') instead.
     """
-    return make_segment_dispatcher("extractor")(state)
+    return make_segment_dispatcher("smartextractor")(state)
 
 
-def jsonl_segment_dispatcher(state: KGGenerationState) -> list[Send]:
-    """Dispatch JSONL batch lines to parallel extractor workers.
+def make_jsonl_segment_dispatcher(target_node: str):
+    """Factory that dispatches JSONL batch lines to parallel workers at target_node.
 
-    Chunks batch into groups based on max_workers. Each Send contains
+    Chunks batch into groups based on jsonl_lines_per_batch. Each Send contains
     a subset of lines + metadata for parallel extraction.
 
     Returns:
-        List of Send objects, one per worker
+        A dispatcher function compatible with add_conditional_edges
     """
-    jsonl_lines = state.get("jsonl_lines", [])
-    jsonl_line_numbers = state.get("jsonl_line_numbers", [])
-    lines_per_batch = state.get("jsonl_lines_per_batch", 4)
-    jsonl_field_name = state.get("jsonl_field_name", "text")
-    ontology_path = state.get("ontology_path")
 
-    if not jsonl_lines:
-        logger.warning("⚠️ jsonl_segment_dispatcher: No lines to dispatch")
-        return []
+    def dispatch(state: KGGenerationState) -> list[Send]:
+        jsonl_lines = state.get("jsonl_lines", [])
+        jsonl_line_numbers = state.get("jsonl_line_numbers", [])
+        lines_per_batch = state.get("jsonl_lines_per_batch", 4)
+        jsonl_field_name = state.get("jsonl_field_name", "text")
+        ontology_path = state.get("ontology_path")
 
-    # Calculate number of parallel jobs based on lines_per_batch
-    num_parallel_batches = math.ceil(len(jsonl_lines) / lines_per_batch)
-    logger.info(f"🔍 Dispatching {len(jsonl_lines)} lines to {num_parallel_batches} parallel jobs")
-    logger.debug(f"   Lines per job: {lines_per_batch}, num jobs: {num_parallel_batches}")
+        if not jsonl_lines:
+            logger.warning("⚠️ jsonl_segment_dispatcher: No lines to dispatch")
+            return []
 
-    sends = []
-    for i in range(0, len(jsonl_lines), lines_per_batch):
-        chunk_lines = jsonl_lines[i:i+lines_per_batch]
-        chunk_line_nums = jsonl_line_numbers[i:i+lines_per_batch]
+        num_parallel_batches = math.ceil(len(jsonl_lines) / lines_per_batch)
+        logger.info(f"🔍 Dispatching {len(jsonl_lines)} lines to {num_parallel_batches} parallel jobs")
+        logger.debug(f"   Lines per job: {lines_per_batch}, num jobs: {num_parallel_batches}")
 
-        # Combine lines into single text for extraction
-        combined_text = "\n---JSONL_SEPARATOR---\n".join([line.get("content", "") for line in chunk_lines])
+        sends = []
+        for i in range(0, len(jsonl_lines), lines_per_batch):
+            chunk_lines = jsonl_lines[i:i+lines_per_batch]
+            chunk_line_nums = jsonl_line_numbers[i:i+lines_per_batch]
 
-        logger.debug(f"   → Job {i//lines_per_batch}: lines {chunk_line_nums[0]}-{chunk_line_nums[-1]} ({len(chunk_lines)} lines)")
+            combined_text = "\n---JSONL_SEPARATOR---\n".join([line.get("content", "") for line in chunk_lines])
 
-        send_obj = Send(
-            "extractor",
-            {
-                "raw_text": combined_text,
-                "input_text": combined_text,
-                "file_path": f"{state.get('jsonl_file_path')}:lines_{chunk_line_nums[0]}-{chunk_line_nums[-1]}",
-                "ontology_path": ontology_path,
-                "jsonl_lines": chunk_lines,
-                "jsonl_line_numbers": chunk_line_nums,
-                "jsonl_field_name": jsonl_field_name,
-                "jsonl_tracking": state.get("jsonl_tracking", True),
-                "vector_store_configs": state.get("vector_store_configs", []),  # Each chunk retrieves fresh
-                "rag_context_summary": state.get("rag_context_summary"),  # NEW: static, shared summary (not duplicated)
-                "messages": [f"Dispatched {len(chunk_lines)} lines for extraction"],
-            }
-        )
-        sends.append(send_obj)
+            logger.debug(f"   → Job {i//lines_per_batch}: lines {chunk_line_nums[0]}-{chunk_line_nums[-1]} ({len(chunk_lines)} lines)")
 
-    logger.info(f"✅ Created {len(sends)} Send objects for parallel dispatch")
-    return sends
+            send_obj = Send(
+                target_node,
+                {
+                    "raw_text": combined_text,
+                    "input_text": combined_text,
+                    "file_path": f"{state.get('jsonl_file_path')}:lines_{chunk_line_nums[0]}-{chunk_line_nums[-1]}",
+                    "ontology_path": ontology_path,
+                    "jsonl_lines": chunk_lines,
+                    "jsonl_line_numbers": chunk_line_nums,
+                    "jsonl_field_name": jsonl_field_name,
+                    "jsonl_tracking": state.get("jsonl_tracking", True),
+                    "vector_store_configs": state.get("vector_store_configs", []),
+                    "filter_by_ontology": state.get("filter_by_ontology", False),
+                    "rag_context_summary": state.get("rag_context_summary"),
+                    "messages": [f"Dispatched {len(chunk_lines)} lines for extraction"],
+                }
+            )
+            sends.append(send_obj)
+
+        logger.info(f"✅ Created {len(sends)} Send objects for parallel dispatch")
+        return sends
+
+    return dispatch
 
 
 def parse_pdf_file(file_path: str) -> list[str]:
