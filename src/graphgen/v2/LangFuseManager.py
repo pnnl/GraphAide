@@ -141,6 +141,8 @@ def get_langfuse_callback():
         # This is required for CallbackHandler to work properly
         try:
             lf_client = LangfuseClient()
+            if logging.getLogger("graphgen").getEffectiveLevel() > logging.DEBUG:
+                logging.getLogger("langfuse").setLevel(logging.WARNING)
             logger.debug(f"🔍 Langfuse SDK client initialized: {type(lf_client)}")
             logger.debug(f"  Base URL: {lf_client.base_url if hasattr(lf_client, 'base_url') else 'N/A'}")
         except Exception as e:
@@ -201,7 +203,7 @@ class DebugCallback(BaseCallbackHandler):
     """Debug callback to verify LangChain events are firing."""
 
     def on_llm_start(self, serialized, prompts, **kwargs):
-        logger.debug(f"✓ [DEBUG_CALLBACK] LLM START: {serialized.get('name', 'unknown')}")
+        logger.debug(f"✓ [DEBUG_CALLBACK] LLM START: {(serialized or {}).get('name', 'unknown')}")
 
     def on_llm_end(self, response, **kwargs):
         logger.debug("✓ [DEBUG_CALLBACK] LLM END: got response")
@@ -210,7 +212,7 @@ class DebugCallback(BaseCallbackHandler):
         logger.error(f"✗ [DEBUG_CALLBACK] LLM ERROR: {error}")
 
     def on_chain_start(self, serialized, inputs, **kwargs):
-        logger.debug(f"✓ [DEBUG_CALLBACK] CHAIN START: {serialized.get('name', 'unknown')}")
+        logger.debug(f"✓ [DEBUG_CALLBACK] CHAIN START: {(serialized or {}).get('name', 'unknown')}")
 
     def on_chain_end(self, outputs, **kwargs):
         logger.debug("✓ [DEBUG_CALLBACK] CHAIN END")

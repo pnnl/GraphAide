@@ -59,7 +59,7 @@ class SimpleAgent(GraphAideAgent):
                 chain,
                 {
                     "instruction": state.get("instruction", ""),
-                    "document": document,
+                    "file_content": document,
                     "file_name": os.path.basename(file_path),
                 },
             )

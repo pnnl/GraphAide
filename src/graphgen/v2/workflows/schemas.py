@@ -531,6 +531,17 @@ class SimpleAgentOutput(BaseModel):
     response: str = Field(..., description="The agent's response")
 
 
+class SimpleRAGInput(BaseModel):
+    """Input schema for the simple RAG workflow."""
+    question: str = Field(..., description="The question to answer from the vector store")
+
+
+class SimpleRAGOutput(BaseModel):
+    """Output schema for the simple RAG workflow."""
+    question: str = Field(..., description="The question that was answered")
+    answer: str = Field(..., description="The answer generated from retrieved context")
+
+
 class VectorDBVisualizeInput(BaseModel):
     """Input schema for vector store visualization workflow."""
     reuse_embedding: bool = Field(

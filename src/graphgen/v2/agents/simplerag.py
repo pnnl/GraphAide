@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from graphgen.v2 import globalconfig
 from graphgen.v2.agents.base import GraphAideAgent
 from graphgen.v2.state import KGQuestionAnswerState
 
@@ -54,7 +55,7 @@ class SimpleRAGAgent(GraphAideAgent):
             graph_answer_text = state.get("graph_answer_text", "")
             context = ""
             try:
-                docs = vector_store.similarity_search(question, k=3)
+                docs = vector_store.similarity_search(question, k=globalconfig.DEFAULT_K)
             except Exception as e:
                 logger.error(f"SimpleRAG similarity search failed: {e}")
                 docs = []

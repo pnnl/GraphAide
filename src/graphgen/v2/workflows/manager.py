@@ -65,6 +65,8 @@ from graphgen.v2.workflows.schemas import (
     ImageExplainOutput,
     SimpleAgentInput,
     SimpleAgentOutput,
+    SimpleRAGInput,
+    SimpleRAGOutput,
     OntologyGenerateInput,
     OntologyGenerateOutput,
     VectorDBIngestInput,
@@ -209,11 +211,13 @@ class WorkflowManager:
             return self._build_image_explain_workflow(config)
         elif workflow_name == "simple_agent":
             return self._build_simple_agent_workflow(config)
+        elif workflow_name == "simple_rag":
+            return self._build_simple_rag_workflow(config)
         elif workflow_name == "ontology_generate":
             return self._build_ontology_generate_workflow(config)
         else:
             raise KeyError(
-                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, vectordb_ingest, vectordb_visualize, ontology_generate, image_explain, simple_agent"
+                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, vectordb_ingest, vectordb_visualize, ontology_generate, image_explain, simple_agent, simple_rag"
             )
 
     def run(
@@ -498,6 +502,8 @@ class WorkflowManager:
                     "response": None,
                     "messages": [],
                 }
+            elif workflow_name == "simple_rag":
+                initial_state = init_kg_qa_state(validated_inputs.question)
             elif workflow_name == "ontology_generate":
                 initial_state = init_kg_generation_state(file_path="")
                 initial_state["node_types"] = validated_inputs.node_types
@@ -1243,6 +1249,21 @@ class WorkflowManager:
 
         return workflow.compile()
 
+    def _build_simple_rag_workflow(self, config: WorkflowConfig):
+        """Build vector-store RAG workflow without graph retrieval.
+
+        Flow: simplerag → END
+        """
+        agent_factory = get_agent_factory(config, include_graphdb=False)
+        rag_agent = agent_factory.build(SimpleRAGAgent, "simplerag")
+
+        workflow = StateGraph(KGQuestionAnswerState)
+        workflow.add_node("simplerag", rag_agent)
+        workflow.add_edge(START, "simplerag")
+        workflow.add_edge("simplerag", END)
+
+        return workflow.compile()
+
     def _build_ontology_generate_workflow(self, config: WorkflowConfig):
         """Build ontology generation workflow.
 
@@ -1643,6 +1664,19 @@ class WorkflowManager:
                 messages=result_state.get("messages", []),
             )
 
+        elif workflow_name == "simple_rag":
+            return WorkflowResult(
+                success=True,
+                workflow_name=workflow_name,
+                execution_time_seconds=execution_time,
+                answer=result_state.get("answer"),
+                data={
+                    "question": result_state.get("question"),
+                    "answer": result_state.get("answer"),
+                },
+                messages=result_state.get("messages", []),
+            )
+
         elif workflow_name == "simple_agent":
             return WorkflowResult(
                 success=True,
@@ -1920,6 +1954,15 @@ class WorkflowManager:
             input_schema=SimpleAgentInput,
             output_schema=SimpleAgentOutput,
             description="Apply an instruction to a text document using an LLM",
+        )
+
+        # Register Simple RAG
+        self.registry.register(
+            name="simple_rag",
+            workflow_fn=dummy_workflow_fn,
+            input_schema=SimpleRAGInput,
+            output_schema=SimpleRAGOutput,
+            description="Answer a question from the vector store using RAG (no graph query)",
         )
 
         # Register Ontology Generate

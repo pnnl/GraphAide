@@ -11,8 +11,11 @@ from graphgen.core import (
     extract_graph,
     extract_graph_merge,
     ingest_to_neo4j,
+    explain_image,
     ingest_to_vectordb,
     query_graph,
+    simple_agent,
+    simple_rag,
     visualize_vector_store,
 )
 
@@ -534,6 +537,107 @@ async def query(request: QueryRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class SimpleRAGRequest(BaseModel):
+    """Request model for answering from the vector store."""
+
+    question: str = Field(..., description="Question to answer from the vector store")
+
+
+class AnswerResponse(BaseModel):
+    """Response model for simple agent, simple RAG, and image explanation."""
+
+    success: bool
+    answer: str | None = None
+    errors: list = Field(default_factory=list)
+
+
+@app.post("/simple-rag", response_model=AnswerResponse)
+async def simple_rag_endpoint(request: SimpleRAGRequest):
+    """Answer a question from the configured vector store (no graph query)."""
+    try:
+        result = simple_rag(question=request.question)
+        return AnswerResponse(
+            success=result["success"],
+            answer=result.get("answer"),
+            errors=result.get("errors", []),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/simple-agent", response_model=AnswerResponse)
+async def simple_agent_endpoint(
+    file: UploadFile = File(..., description="Text file to process"),
+    instruction: str = Form(..., description="What to do with the document"),
+    template: UploadFile | None = File(None, description="Optional prompt template"),
+):
+    """Apply an instruction to an uploaded text file using the LLM."""
+    file_path = None
+    template_path = None
+    try:
+        suffix = os.path.splitext(file.filename)[1] or ".txt"
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+            f.write(await file.read())
+            file_path = f.name
+
+        if template:
+            with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
+                f.write(await template.read())
+                template_path = f.name
+
+        result = simple_agent(
+            file_path=file_path,
+            instruction=instruction,
+            template_path=template_path,
+        )
+        return AnswerResponse(
+            success=result["success"],
+            answer=result.get("response"),
+            errors=result.get("errors", []),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if file_path and os.path.exists(file_path):
+            os.unlink(file_path)
+        if template_path and os.path.exists(template_path):
+            os.unlink(template_path)
+
+
+@app.post("/explain", response_model=AnswerResponse)
+async def explain_endpoint(
+    file: UploadFile = File(..., description="Image file (PNG, JPG, JPEG, GIF, BMP, WEBP)"),
+    template: UploadFile | None = File(None, description="Optional prompt template"),
+):
+    """Describe the key findings of an uploaded image using a vision LLM."""
+    file_path = None
+    template_path = None
+    try:
+        suffix = os.path.splitext(file.filename)[1] or ".png"
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+            f.write(await file.read())
+            file_path = f.name
+
+        if template:
+            with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
+                f.write(await template.read())
+                template_path = f.name
+
+        result = explain_image(file_path=file_path, template_path=template_path)
+        return AnswerResponse(
+            success=result["success"],
+            answer=result.get("explanation"),
+            errors=result.get("errors", []),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if file_path and os.path.exists(file_path):
+            os.unlink(file_path)
+        if template_path and os.path.exists(template_path):
+            os.unlink(template_path)
 
 
 @app.post("/load-json", response_model=IngestResponse)

@@ -411,3 +411,20 @@ This gives:
 | LLM cache invalidation too aggressive | Make TTL configurable, add cache hit metrics |
 | Plugin system too flexible | Provide strict schema validation, clear docs |
 | Streaming state conflicts with agents | Phase in: read-only streaming first, then opt-in |
+
+---
+
+## FEATURE: Document-grounded RAG (simple_rag with file input) (2026-11-12)
+
+**Goal:** Let `simple_rag` take a document file and answer only from that file, using vector store retrieval only as added background context.
+
+**Proposed approach:**
+1. Add optional `file_path` and `template_path` to `SimpleRAGInput` and the `simple_rag` workflow.
+2. Add a new `simplerag_document.template` with `{document}`, `{question}`, `{context}` and rules: answer from the document; use vector context only as background.
+3. In `SimpleRAGAgent`, use the document template only when a document is supplied; otherwise keep `self.prompt` unchanged.
+
+**Constraint:** `simplerag.template` is shared with `_build_kg_query_workflow` (`manager.py`), so the query endpoint must not change. Do not edit `simplerag.template` for this feature.
+
+**Verification:**
+- Regression test: query-path prompt output is unchanged when no document is passed.
+- End-to-end test: `run_simple_rag` with a file returns an answer grounded in that file.

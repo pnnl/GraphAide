@@ -20,6 +20,8 @@ from graphgen.core import (
     load_json_to_neo4j,
     query_graph,
     ingest_to_vectordb,
+    simple_agent,
+    simple_rag,
     visualize_vector_store,
 )
 from graphgen.v2.utils import setup_logging
@@ -724,6 +726,83 @@ def explain(
         console.print(f"[green]Explanation saved to {output}[/green]")
     elif result.get("explanation"):
         console.print(f"\n[bold]Explanation:[/bold]\n{result['explanation']}")
+    else:
+        print(json.dumps(result, indent=2, default=str))
+
+
+@app.command(name="simple-agent")
+def simple_agent_cmd(
+    file_path: Path = typer.Argument(..., help="Path to the text file to process"),
+    instruction: str = typer.Option(..., "--instruction", "-i", help="What to do with the document"),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-O", help="Output JSON file (default: stdout)"
+    ),
+    config: Optional[Path] = typer.Option(
+        None, "--config", "-c", help="JSON config file for model settings"
+    ),
+    template: Optional[Path] = typer.Option(
+        None, "--template", "-t", help="Prompt template with {instruction}, {file_content}, {file_name}"
+    ),
+):
+    """Apply an instruction to a text document using the LLM.
+
+    Example:
+        graphaide simple-agent notes.txt -i "List action items as bullets"
+        graphaide simple-agent notes.txt -i "Summarize" --template my_template.txt
+    """
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        progress.add_task("Running simple agent...", total=None)
+        result = simple_agent(
+            file_path=str(file_path),
+            instruction=instruction,
+            config_path=str(config) if config else None,
+            template_path=str(template) if template else None,
+        )
+
+    if output:
+        output.write_text(json.dumps(result, indent=2, default=str))
+        console.print(f"[green]Response saved to {output}[/green]")
+    elif result.get("response"):
+        console.print(f"\n[bold]Response:[/bold]\n{result['response']}")
+    else:
+        print(json.dumps(result, indent=2, default=str))
+
+
+@app.command(name="simple-rag")
+def simple_rag_cmd(
+    question: str = typer.Argument(..., help="Question to answer from the vector store"),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-O", help="Output JSON file (default: stdout)"
+    ),
+    config: Optional[Path] = typer.Option(
+        None, "--config", "-c", help="JSON config file (must include vector_configs)"
+    ),
+):
+    """Answer a question from the configured vector store (no graph query).
+
+    Example:
+        graphaide simple-rag "What are all possible QIDs for Georgia?" --config config.json
+    """
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        progress.add_task("Running simple RAG...", total=None)
+        result = simple_rag(
+            question=question,
+            config_path=str(config) if config else None,
+        )
+
+    if output:
+        output.write_text(json.dumps(result, indent=2, default=str))
+        console.print(f"[green]Answer saved to {output}[/green]")
+    elif result.get("answer"):
+        console.print(f"\n[bold]Answer:[/bold]\n{result['answer']}")
     else:
         print(json.dumps(result, indent=2, default=str))
 

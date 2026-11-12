@@ -734,6 +734,90 @@ def explain_image(
     }
 
 
+def simple_agent(
+    file_path: str,
+    instruction: str,
+    config_path: Optional[str] = None,
+    template_path: Optional[str] = None,
+) -> dict[str, Any]:
+    """Apply an instruction to a text document using the LLM.
+
+    Args:
+        file_path: Path to the text file
+        instruction: What the agent should do with the document
+        config_path: Optional path to JSON config file
+        template_path: Optional prompt template with {instruction},
+            {file_content}, and {file_name} placeholders
+
+    Returns:
+        Dictionary with the response text
+    """
+    from graphgen.v2.workflows import WorkflowManager
+
+    workflow_config = None
+    if config_path:
+        config = load_config(config_path)
+        workflow_config = _build_workflow_config(config)
+
+    manager = WorkflowManager(global_config=workflow_config)
+
+    result = manager.run(
+        "simple_agent",
+        inputs={
+            "file_path": file_path,
+            "instruction": instruction,
+            "template_path": template_path,
+        },
+    )
+
+    if not result.success:
+        sys.stderr.write(f"Simple agent failed: {result.errors}\n")
+
+    return {
+        "success": result.success,
+        "file_path": file_path,
+        "response": result.answer,
+        "execution_time_seconds": result.execution_time_seconds,
+        "errors": result.errors,
+    }
+
+
+def simple_rag(
+    question: str,
+    config_path: Optional[str] = None,
+) -> dict[str, Any]:
+    """Answer a question from the configured vector store (no graph query).
+
+    Args:
+        question: The question to answer
+        config_path: Optional path to JSON config file (must include vector_configs)
+
+    Returns:
+        Dictionary with the answer text
+    """
+    from graphgen.v2.workflows import WorkflowManager
+
+    workflow_config = None
+    if config_path:
+        config = load_config(config_path)
+        workflow_config = _build_workflow_config(config)
+
+    manager = WorkflowManager(global_config=workflow_config)
+
+    result = manager.run("simple_rag", inputs={"question": question})
+
+    if not result.success:
+        sys.stderr.write(f"Simple RAG failed: {result.errors}\n")
+
+    return {
+        "success": result.success,
+        "question": question,
+        "answer": result.answer,
+        "execution_time_seconds": result.execution_time_seconds,
+        "errors": result.errors,
+    }
+
+
 def _node_to_dict(node) -> dict:
     """Convert Node to dictionary."""
     if hasattr(node, "model_dump"):
