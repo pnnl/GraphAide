@@ -135,8 +135,6 @@ def get_langfuse_callback():
             logger.debug("✓ Using Langfuse v3 CallbackHandler API")
 
         logger.debug(f"Initializing LangFuse CallbackHandler with base_url={config.base_url}")
-        logger.debug(f"  Public Key: {config.public_key[:20] if config.public_key else 'None'}...")
-        logger.debug(f"  Secret Key: {'***' + config.secret_key[-10:] if config.secret_key else 'None'}")
         logger.debug(f"  Session: {config.session_name}")
 
         # Initialize Langfuse SDK client first to ensure global state is set up
@@ -171,7 +169,6 @@ def get_langfuse_callback():
 
         logger.info(
             f"✓ LangFuse CallbackHandler initialized. "
-            f"Public Key: {config.public_key[:20]}..., "
             f"Base URL: {config.base_url}, "
             f"Session: {config.session_name}"
         )
@@ -204,19 +201,19 @@ class DebugCallback(BaseCallbackHandler):
     """Debug callback to verify LangChain events are firing."""
 
     def on_llm_start(self, serialized, prompts, **kwargs):
-        logger.info(f"✓ [DEBUG_CALLBACK] LLM START: {serialized.get('name', 'unknown')}")
+        logger.debug(f"✓ [DEBUG_CALLBACK] LLM START: {serialized.get('name', 'unknown')}")
 
     def on_llm_end(self, response, **kwargs):
-        logger.info(f"✓ [DEBUG_CALLBACK] LLM END: got response")
+        logger.debug("✓ [DEBUG_CALLBACK] LLM END: got response")
 
     def on_llm_error(self, error, **kwargs):
         logger.error(f"✗ [DEBUG_CALLBACK] LLM ERROR: {error}")
 
     def on_chain_start(self, serialized, inputs, **kwargs):
-        logger.info(f"✓ [DEBUG_CALLBACK] CHAIN START: {serialized.get('name', 'unknown')}")
+        logger.debug(f"✓ [DEBUG_CALLBACK] CHAIN START: {serialized.get('name', 'unknown')}")
 
     def on_chain_end(self, outputs, **kwargs):
-        logger.info(f"✓ [DEBUG_CALLBACK] CHAIN END")
+        logger.debug("✓ [DEBUG_CALLBACK] CHAIN END")
 
     def on_chain_error(self, error, **kwargs):
         logger.error(f"✗ [DEBUG_CALLBACK] CHAIN ERROR: {error}")
@@ -246,7 +243,7 @@ def flush_langfuse_traces():
         lf = Langfuse()
         logger.debug("🔍 Flushing LangFuse traces...")
         lf.flush()
-        logger.info("✓ LangFuse traces flushed to cloud")
+        logger.debug("✓ LangFuse traces flushed to cloud")
     except Exception as e:
         logger.debug(f"Could not flush LangFuse traces: {e}")
 

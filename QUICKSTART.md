@@ -157,7 +157,7 @@ curl http://localhost:8000/health
 
 # 3. Access Neo4j browser
 # http://localhost:17474
-# Credentials: neo4j / graphaide123
+# Credentials: neo4j / <your-neo4j-password>
 ```
 
 ### Services Running
@@ -214,7 +214,7 @@ model_config = ModelConfig(
 graphdb_config = GraphDBConfig(
     uri="neo4j://localhost:7687",
     username="neo4j",
-    password="graphaide123",
+    password="<your-neo4j-password>",
 )
 
 graphaide = GraphAide(model_config=model_config, graphdb_config=graphdb_config)
@@ -251,7 +251,7 @@ model_config = ModelConfig(provider="openai", model_name="gpt-4o")
 graphdb_config = GraphDBConfig(
     uri="neo4j://localhost:7687",
     username="neo4j",
-    password="graphaide123"
+    password="<your-neo4j-password>"
 )
 workflow_config = WorkflowConfig(model_config=model_config, graphdb_config=graphdb_config)
 manager = WorkflowManager(global_config=workflow_config)

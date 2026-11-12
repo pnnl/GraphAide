@@ -147,7 +147,14 @@ class KGExtractOutput(BaseModel):
 
 class KGExtractMergeInput(BaseModel):
     """Input schema for knowledge graph extraction + merging workflow."""
-    file_path: str = Field(..., description="Path to PDF or text file to extract from")
+    file_path: Optional[str] = Field(
+        None,
+        description="Path to PDF or text file to extract from. Either file_path or input_text must be provided.",
+    )
+    input_text: Optional[str] = Field(
+        None,
+        description="Raw text to extract from. Either file_path or input_text must be provided. If provided, file_path is ignored.",
+    )
     ontology_path: Optional[str] = Field(
         None,
         description="Optional path to ontology file (.owl, .ttl, .nt)",
@@ -165,6 +172,13 @@ class KGExtractMergeInput(BaseModel):
         None,
         description="Optional list of vector stores for multi-retriever RAG. If provided, dynamically creates retrievers for each store.",
     )
+
+    @model_validator(mode="after")
+    def validate_input(self):
+        """Validate that at least one of file_path or input_text is provided."""
+        if not self.file_path and not self.input_text:
+            raise ValueError("Either file_path or input_text must be provided")
+        return self
 
     class Config:
         """Pydantic config."""
@@ -500,6 +514,21 @@ class ImageExplainOutput(BaseModel):
     """Output schema for image explanation workflow."""
     file_path: str = Field(..., description="Path to the image that was explained")
     explanation: str = Field(..., description="Text description of key findings in the image")
+
+
+class SimpleAgentInput(BaseModel):
+    """Input schema for the simple agent workflow."""
+    file_path: str = Field(..., description="Path to the text file the agent should read")
+    instruction: str = Field(..., description="What the agent should do with the document")
+    template_path: Optional[str] = Field(
+        None, description="Optional path to a prompt template overriding the default simpleagent template"
+    )
+
+
+class SimpleAgentOutput(BaseModel):
+    """Output schema for the simple agent workflow."""
+    file_path: str = Field(..., description="Path to the document that was processed")
+    response: str = Field(..., description="The agent's response")
 
 
 class VectorDBVisualizeInput(BaseModel):

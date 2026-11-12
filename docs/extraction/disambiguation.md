@@ -40,9 +40,9 @@ texts = {
 
 for label, text in texts.items():
     result = graphaide.extract(input_text=text, merge=True)
-    for node in result.nodes:
-        if "georgia" in (node.english_name or node.node_name or "").lower():
-            print(f"{label:8} {node.node_name!r:12} -> {node.wikidata_id}")
+    for node in result.data["nodes"]:
+        if "georgia" in node.english_name.lower():
+            print(f"{label:8} {node.node_id!r:12} -> {node.wikidata_id}")
 
 # Expected:
 # country  'Georgia'      -> Q230
@@ -58,7 +58,7 @@ Nodes that share a `wikidata_id` refer to the same entity, so merge on the QID r
 
 ```python
 by_qid = {}
-for node in result.nodes:
+for node in result.data["nodes"]:
     key = node.wikidata_id or node.english_name or node.node_name
     by_qid.setdefault(key, []).append(node)
 ```

@@ -30,12 +30,14 @@ from graphgen.v2.agents.nodesloader import NodesLoaderAgent
 from graphgen.v2.agents.ontologygenerator import OntologyGeneratorAgent
 from graphgen.v2.agents.ontologyloader import OntologyLoaderAgent
 from graphgen.v2.agents.questiongraphgenerator import QuestionGraphGeneratorAgent
+from graphgen.v2.agents.simpleagent import SimpleAgent
 from graphgen.v2.agents.simplerag import SimpleRAGAgent
 from graphgen.v2.agents.vectordbloader import VectorDBLoaderAgent
 from graphgen.v2.agents.wikidatagrounder import WikidataGrounderAgent
 from graphgen.v2.functionnode import fileloader, make_jsonl_segment_dispatcher, make_segment_dispatcher
 from graphgen.v2.state import (
     ImageExplainerState,
+    SimpleAgentState,
     KGGenerationState,
     KGQuestionAnswerState,
     SmartExtractorInput,
@@ -61,6 +63,8 @@ from graphgen.v2.workflows.schemas import (
     KGQueryOutput,
     ImageExplainInput,
     ImageExplainOutput,
+    SimpleAgentInput,
+    SimpleAgentOutput,
     OntologyGenerateInput,
     OntologyGenerateOutput,
     VectorDBIngestInput,
@@ -203,11 +207,13 @@ class WorkflowManager:
             return self._build_vectordb_visualize_workflow(config)
         elif workflow_name == "image_explain":
             return self._build_image_explain_workflow(config)
+        elif workflow_name == "simple_agent":
+            return self._build_simple_agent_workflow(config)
         elif workflow_name == "ontology_generate":
             return self._build_ontology_generate_workflow(config)
         else:
             raise KeyError(
-                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, vectordb_ingest, vectordb_visualize, ontology_generate, image_explain"
+                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, vectordb_ingest, vectordb_visualize, ontology_generate, image_explain, simple_agent"
             )
 
     def run(
@@ -482,6 +488,14 @@ class WorkflowManager:
                     "file_path": validated_inputs.file_path,
                     "template_path": validated_inputs.template_path,
                     "explanation": None,
+                    "messages": [],
+                }
+            elif workflow_name == "simple_agent":
+                initial_state = {
+                    "file_path": validated_inputs.file_path,
+                    "instruction": validated_inputs.instruction,
+                    "template_path": validated_inputs.template_path,
+                    "response": None,
                     "messages": [],
                 }
             elif workflow_name == "ontology_generate":
@@ -1214,6 +1228,21 @@ class WorkflowManager:
 
         return workflow.compile()
 
+    def _build_simple_agent_workflow(self, config: WorkflowConfig):
+        """Build simple agent workflow over a text document.
+
+        Flow: simpleagent → END
+        """
+        agent_factory = get_agent_factory(config, include_graphdb=False)
+        simple_agent = agent_factory.build(SimpleAgent, "simpleagent")
+
+        workflow = StateGraph(SimpleAgentState)
+        workflow.add_node("simpleagent", simple_agent)
+        workflow.add_edge(START, "simpleagent")
+        workflow.add_edge("simpleagent", END)
+
+        return workflow.compile()
+
     def _build_ontology_generate_workflow(self, config: WorkflowConfig):
         """Build ontology generation workflow.
 
@@ -1614,6 +1643,19 @@ class WorkflowManager:
                 messages=result_state.get("messages", []),
             )
 
+        elif workflow_name == "simple_agent":
+            return WorkflowResult(
+                success=True,
+                workflow_name=workflow_name,
+                execution_time_seconds=execution_time,
+                answer=result_state.get("response"),
+                data={
+                    "file_path": result_state.get("file_path"),
+                    "response": result_state.get("response"),
+                },
+                messages=result_state.get("messages", []),
+            )
+
         elif workflow_name == "kg_load_json":
             nodes = result_state.get("nodes", [])
             edges = result_state.get("edges", [])
@@ -1869,6 +1911,15 @@ class WorkflowManager:
             input_schema=ImageExplainInput,
             output_schema=ImageExplainOutput,
             description="Describe key findings of an image file using a vision LLM",
+        )
+
+        # Register Simple Agent
+        self.registry.register(
+            name="simple_agent",
+            workflow_fn=dummy_workflow_fn,
+            input_schema=SimpleAgentInput,
+            output_schema=SimpleAgentOutput,
+            description="Apply an instruction to a text document using an LLM",
         )
 
         # Register Ontology Generate
