@@ -133,7 +133,7 @@ config = GraphDBConfig(
     provider="neo4j",
     uri="bolt://localhost:7687",
     username="neo4j",
-    password="graphaide123"
+    password="<your-neo4j-password>"
 )
 factory = GraphDBFactory(config)
 driver = factory.get_driver()

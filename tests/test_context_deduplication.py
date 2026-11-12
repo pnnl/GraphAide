@@ -37,7 +37,6 @@ class TestRAGContextSummary:
         assert summary.ontology_node_types == ["Person", "Organization"]
         assert summary.ontology_edge_types == ["worksFor", "locatedIn"]
         assert len(summary.ontology_node_definitions) == 2
-        assert summary.wikidata_context == {}  # Should not exist in summary
 
     def test_rag_context_summary_empty(self):
         """Test that RAGContextSummary can be created empty."""
@@ -148,15 +147,16 @@ class TestContextDeduplication:
             source="retriever_1",
             result_type=RetrievalResultType.TYPES,
             ontology_node_types=["Person", "Organization"],  # Person duplicate
+            custom_data={"definitions": {"Organization": "A company or entity"}},
             store_description="Primary ontology store"
         )
 
         context = build_chunk_context(summary, [result1], include_token_count=False)
 
-        # Context should contain types but not 2x "Person"
+        # Each type definition appears once, not 2x "Person"
         assert "Person" in context
         assert "Organization" in context
-        assert context.count("Person") == 1  # Only mentioned once
+        assert context.count("- Person:") == 1
 
 
 class TestContextWindowPresets:

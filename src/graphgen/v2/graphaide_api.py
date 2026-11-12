@@ -13,6 +13,7 @@ complexity of WorkflowManager, WorkflowConfig, and workflow orchestration.
 import logging
 from typing import Optional
 
+from graphgen._version import __version__
 from graphgen.v2.GraphDBManager import GraphDBConfig
 from graphgen.v2.ModelManager import ModelConfig, ModelFactory
 from graphgen.v2.VectorStoreManager import VectorDBConfig, VectorFactory
@@ -185,7 +186,7 @@ class GraphAide:
         # Print initialization summary with masked API keys
         from graphgen.v2.utils import mask_api_key
         logger.info("=" * 80)
-        logger.info("GraphAide Initialization - Configuration Summary")
+        logger.info(f"GraphAide Initialization - Configuration Summary (version {__version__})")
         logger.info("=" * 80)
         masked_key = mask_api_key(self.model_config.api_key)
         logger.info(f"LLM: {self.model_config.provider} / {self.model_config.model_name} (key: {masked_key})")
@@ -728,6 +729,49 @@ class GraphAide:
         return self.manager.run(
             "image_explain",
             {"file_path": file_path, "template_path": template_path, **kwargs},
+        )
+
+    def run_agent(
+        self,
+        file_path: str,
+        instruction: str,
+        template_path: Optional[str] = None,
+        **kwargs,
+    ) -> WorkflowResult:
+        """Apply an instruction to a text document using the configured LLM.
+
+        Args:
+            file_path: Path to a text file to read.
+            instruction: What the agent should do with the document.
+            template_path: Optional path to a prompt template file. It must
+                use {instruction}, {document}, and {file_name} placeholders.
+                Defaults to the bundled simpleagent template.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the model's response in result.answer
+            (also available as result.data["response"]).
+
+        Example:
+            result = graphaide.run_agent(
+                file_path="notes.txt",
+                instruction="List the action items as bullet points.",
+            )
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run(
+            "simple_agent",
+            {
+                "file_path": file_path,
+                "instruction": instruction,
+                "template_path": template_path,
+                **kwargs,
+            },
         )
 
     def load_json(self, json_path: str, **kwargs) -> WorkflowResult:

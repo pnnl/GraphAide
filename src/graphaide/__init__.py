@@ -7,7 +7,7 @@ Simple Usage:
 
     graphaide = GraphAide(
         model_config=ModelConfig(provider="openai", model_name="gpt-4o"),
-        graphdb_config=GraphDBConfig(uri="neo4j://localhost:7687", username="neo4j", password="pwd"),
+        graphdb_config=GraphDBConfig(uri="neo4j://localhost:7687", username="neo4j", password=os.environ["NEO4J_PASSWORD"]),
     )
     result = graphaide.extract(file_path="doc.pdf", ontology_path="ont.ttl")
 
