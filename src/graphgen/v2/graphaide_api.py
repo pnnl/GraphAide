@@ -731,7 +731,31 @@ class GraphAide:
             {"file_path": file_path, "template_path": template_path, **kwargs},
         )
 
-    def run_agent(
+    def run_simple_rag(self, question: str, **kwargs) -> WorkflowResult:
+        """Answer a question from the configured vector store (no graph query).
+
+        Retrieves the top matches from the vector store and generates an answer
+        from them with the LLM. Requires vector_configs in the constructor.
+
+        Args:
+            question: The question to answer.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the answer in result.answer.
+
+        Example:
+            result = graphaide.run_simple_rag("What is the project budget?")
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run("simple_rag", {"question": question, **kwargs})
+
+    def run_simple_agent(
         self,
         file_path: str,
         instruction: str,
@@ -744,7 +768,7 @@ class GraphAide:
             file_path: Path to a text file to read.
             instruction: What the agent should do with the document.
             template_path: Optional path to a prompt template file. It must
-                use {instruction}, {document}, and {file_name} placeholders.
+                use {instruction}, {file_content}, and {file_name} placeholders.
                 Defaults to the bundled simpleagent template.
             **kwargs: Additional workflow parameters (e.g., log_level).
 
@@ -753,7 +777,7 @@ class GraphAide:
             (also available as result.data["response"]).
 
         Example:
-            result = graphaide.run_agent(
+            result = graphaide.run_simple_agent(
                 file_path="notes.txt",
                 instruction="List the action items as bullet points.",
             )

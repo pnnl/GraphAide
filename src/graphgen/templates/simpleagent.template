@@ -4,7 +4,7 @@ Instruction:
 {instruction}
 
 Document ({file_name}):
-{document}
+{file_content}
 
 Rules:
 - Base your answer on the document. If the document does not contain the answer, say so.
