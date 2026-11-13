@@ -11,7 +11,7 @@ include data/business.nt
 
 # Include web demo source (but not node_modules - users run npm install)
 recursive-include src/graphgen/web_demo *.md *.sh *.html *.json *.ts *.tsx *.css *.png
-exclude src/graphgen/web_demo/frontend/node_modules
+prune src/graphgen/web_demo/frontend/node_modules
 
 # Exclude large test data files from PyPI
 exclude wd_UKR14_dict_structured.json

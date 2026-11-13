@@ -70,8 +70,8 @@ VECTOR_STORE_BASEDIR=./chroma
 
 ### Observability: Langfuse
 ```env
-LANGFUSE_PUBLIC_KEY=pk-lf-279aeaf3-ca53-4cd5-a185-c3c387292aa5
-LANGFUSE_SECRET_KEY=sk-lf-7be19877-9dda-412f-9dd2-38e8150869dc
+LANGFUSE_PUBLIC_KEY=pk-lf-your-public-key
+LANGFUSE_SECRET_KEY=sk-lf-your-secret-key
 LANGFUSE_BASE_URL=https://us.cloud.langfuse.com
 LANGFUSE_DEBUG=true
 OTEL_SERVICE_NAME=graphaide
@@ -276,8 +276,8 @@ NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=mypassword
 
 # Langfuse
-LANGFUSE_PUBLIC_KEY=pk-lf-279aeaf3-ca53-4cd5-a185-c3c387292aa5
-LANGFUSE_SECRET_KEY=sk-lf-7be19877-9dda-412f-9dd2-38e8150869dc
+LANGFUSE_PUBLIC_KEY=pk-lf-your-public-key
+LANGFUSE_SECRET_KEY=sk-lf-your-secret-key
 LANGFUSE_BASE_URL=https://us.cloud.langfuse.com
 LANGFUSE_DEBUG=true
 EOF
