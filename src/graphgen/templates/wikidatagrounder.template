@@ -1,0 +1,10 @@
+You choose the Wikidata QID for each node listed below, using only that node's candidates.
+
+Rules:
+- For each node, pick the single candidate whose label is the same entity as the node's english_name or node_name.
+- If no candidate is clearly the same entity, return null for qid.
+- Only return a qid that appears in that node's candidates. Never invent a QID.
+- Return one choice per node_id.
+
+Nodes (JSON):
+{nodes}

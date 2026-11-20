@@ -133,7 +133,7 @@ config = GraphDBConfig(
     provider="neo4j",
     uri="bolt://localhost:7687",
     username="neo4j",
-    password="graphaide123"
+    password="<your-neo4j-password>"
 )
 factory = GraphDBFactory(config)
 driver = factory.get_driver()
@@ -749,7 +749,7 @@ Result: **Scalable, maintainable, extensible** multi-agent KG construction syste
             ┌─────────────┴────────────┐
             │                          │
      ┌──────▼──────────┐        ┌─────▼──────────┐
-     │ ExtractMerger   │        │ Nodes4Edges    │
+     │ ExtractMerger   │        │ ExtractorFixer│
      │ (Optional)      │        │ LinkCreator    │
      │ - Dedup nodes   │        │ - Link nodes   │
      │ - Merge edges   │        │ - for edges    │
@@ -989,7 +989,7 @@ EdgesLoaderAgent    │ edges[]        │ -                  │ GraphDB
 Neo4jPostProcessor  │ -              │ -                  │ GraphDB
 ExtractMerger       │ nodes[],       │ nodes[],           │ -
                     │ edges[]        │ edges[] (merged)   │
-Nodes4Edges         │ nodes[]        │ edges[]            │ -
+ExtractorFixer     │ nodes[]        │ edges[]            │ -
 SimpleRAGAgent      │ question,      │ answer             │ Model,
                     │ rag_context    │                    │ VectorDB,
                     │                │                    │ GraphDB

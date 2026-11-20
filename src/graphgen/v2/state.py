@@ -73,15 +73,15 @@ class Node(BaseModel):
     node_id: Optional[str] = Field(
         default=None,
         description="""
-        Canonical disambiguation key for entity identity resolution. ALWAYS equals english_name.
+        Canonical disambiguation key for entity identity resolution.
 
-        LOGIC: node_id = english_name (always)
-        - If Wikidata available: english_name = Wikidata's English label
-        - If no Wikidata: english_name = normalized/canonical name
+        LOGIC:
+        - If wikidata_id is set: node_id = Wikidata's English label
+        - Otherwise: node_id = english_name
 
         PURPOSE:
         - Consolidates multilingual/variant mentions of same entity into one canonical identity
-        - Enables edge-to-node matching: edges reference source/target by english_name, nodes keyed by node_id
+        - Enables edge-to-node matching: edges reference source/target by node_id
         - Used by ExtractMerger to group and deduplicate nodes across documents/segments
 
         EXAMPLES:
@@ -100,10 +100,10 @@ class Node(BaseModel):
            → Edges reference: source_id="John Smith" ✓ matches node_id
 
         ROLE FOR AGENTS:
-        - Extractor: Set english_name from Wikidata label or normalize; node_id auto-matches english_name
+        - Extractor: Set english_name from Wikidata label or normalize; node_id follows the rule above
         - ExtractMerger: Group by node_id to consolidate duplicates
         - NodesLoader: Use node_id as UNIQUE constraint in graph database
-        - EdgesLoader: Match edges by source_id/target_id which point to node_ids (=english_names) ✓
+        - EdgesLoader: Match edges by source_id/target_id which point to node_ids
         """,
     )
     raw_source: Optional[str] = Field(
@@ -377,6 +377,41 @@ class RAGContext(BaseModel):
     )
 
 
+# Chunk-local state for the smartextractor subgraph (extractor → extractorfixer).
+# nodes/edges are replaced, not appended, so the fixer can rewrite the chunk's full list.
+class SmartExtractorInput(TypedDict, total=False):
+    raw_text: str
+    file_path: Optional[str]
+    current_chunk_id: Optional[str]
+    vector_store_configs: List
+    rag_context_summary: Optional[RAGContextSummary]
+    filter_by_ontology: bool
+    batch_index: Optional[int]
+    messages: Annotated[list, add_messages]
+
+
+_replace_list = lambda a, b: b  # noqa: E731
+
+
+class SmartExtractorState(SmartExtractorInput, total=False):
+    nodes: Annotated[List[Node], _replace_list]
+    edges: Annotated[List[Edge], _replace_list]
+    filter_stats: Dict[str, Any]
+    unstructured_response: Annotated[List[str], operator.add]
+    current_agent: Annotated[List[str], operator.add]
+    agent_status: Annotated[Dict[str, bool], lambda a, b: {**a, **b}]
+
+
+class SmartExtractorOutput(TypedDict, total=False):
+    nodes: Annotated[List[Node], _replace_list]
+    edges: Annotated[List[Edge], _replace_list]
+    filter_stats: Dict[str, Any]
+    messages: Annotated[list, add_messages]
+    unstructured_response: Annotated[List[str], operator.add]
+    current_agent: Annotated[List[str], operator.add]
+    agent_status: Annotated[Dict[str, bool], lambda a, b: {**a, **b}]
+
+
 # 5. The Central State
 # Using Annotated + operator.add ensures that each of your 10 agents
 # appends their findings to the list rather than overwriting previous work.
@@ -514,6 +549,21 @@ class IntentSchema(BaseModel):
     causality: float = Field(
         ..., ge=0.0, le=1.0, description="Reasons/causes/explanations"
     )
+
+
+class ImageExplainerState(TypedDict):
+    file_path: str
+    template_path: Optional[str]
+    explanation: Optional[str]
+    messages: Annotated[list, add_messages]
+
+
+class SimpleAgentState(TypedDict):
+    file_path: str
+    instruction: str
+    template_path: Optional[str]
+    response: Optional[str]
+    messages: Annotated[list, add_messages]
 
 
 class KGQuestionAnswerState(TypedDict):

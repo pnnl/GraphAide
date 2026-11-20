@@ -7,8 +7,27 @@ from langgraph.types import Command
 
 from graphgen.v2.state import KGGenerationState, Node, Edge, MergedNode, MergedEdge, Span
 from .base import GraphAideAgent
+from .extractorfixer import UNRESOLVED_TYPES
 
 logger = logging.getLogger("graphgen.agents.extractmerger")
+
+DEFAULT_ENGLISH_NAME = "default_english_name"
+
+
+def _first_informative(values: list, placeholder=None):
+    """Return the first value that is neither None, empty, nor the placeholder."""
+    for value in values:
+        if value is None or value == "" or value == placeholder:
+            continue
+        return value
+    return None
+
+
+def _informative_types(nodes: list[Node]) -> list[str]:
+    """Distinct node types, dropping unresolved ones when a resolved type exists."""
+    types = list(dict.fromkeys(n.node_type for n in nodes if n.node_type is not None))
+    resolved = [t for t in types if t not in UNRESOLVED_TYPES]
+    return resolved or types
 
 
 class ExtractMergerAgent(GraphAideAgent):
@@ -73,9 +92,8 @@ class ExtractMergerAgent(GraphAideAgent):
         merged_nodes = []
         for node_id, node_group in grouped.items():
             try:
-                # Extract consolidated fields
                 node_names = list(set(n.node_name for n in node_group))
-                node_types = list(set(n.node_type for n in node_group))
+                node_types = _informative_types(node_group)
                 character_spans = [
                     n.character_span for n in node_group if n.character_span is not None
                 ]
@@ -84,15 +102,12 @@ class ExtractMergerAgent(GraphAideAgent):
                 ]
                 raw_sources = list(set(n.raw_source for n in node_group if n.raw_source))
 
-                # Use first node's attributes as primary (or most common)
-                primary_node = node_group[0]
-                english_name = primary_node.english_name
-                wikidata_id = primary_node.wikidata_id
-
                 merged_node = MergedNode(
                     node_id=node_id,
-                    english_name=english_name,
-                    wikidata_id=wikidata_id,
+                    english_name=_first_informative(
+                        [n.english_name for n in node_group], DEFAULT_ENGLISH_NAME
+                    ),
+                    wikidata_id=_first_informative([n.wikidata_id for n in node_group]),
                     node_names=node_names,
                     node_types=node_types,
                     character_spans=character_spans,

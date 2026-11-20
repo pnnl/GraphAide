@@ -118,6 +118,64 @@ result = graphaide.extract(file_path="document.pdf")
 # GraphAide_KG_Extract_YYYYMMDD_HHMMSS.json
 ```
 
+## Use a Knowledge Base for Disambiguation
+
+GraphAide comes with a default knowledge base snapshot of Wikidata out of the box. It contains entries for common entities such as countries, US states, companies, weekdays, months, and government departments. During extraction, each entity is matched against this knowledge base to get a stable Wikidata QID, so that "Georgia" the country and "Georgia" the state are kept apart. You can extend the knowledge base with your own entities for your domain.
+
+### Load the Bundled Knowledge Base
+
+```python
+from graphaide import GraphAide, ModelConfig, VectorDBConfig, get_sample_data_path
+
+graphaide = GraphAide(
+    model_config=ModelConfig(provider="openai", model_name="gpt-4o", api_key="..."),
+    vector_configs=VectorDBConfig(provider="chromadb", store_name="GA_VDB"),
+)
+
+kb_file = get_sample_data_path("graphaide_KB.jsonl")
+graphaide.ingest_vectors(file_paths=[str(kb_file)], append=False)
+
+result = graphaide.extract(input_text="Nvidia released new GPUs. Anthropic builds Claude.", merge=True)
+for node in result.nodes:
+    print(node.node_name, node.wikidata_id)
+```
+
+### Add Your Own Entities
+
+Write a JSONL file with one object per line. Each object needs a `qid`, a `label`, and optionally a `description`, `aliases`, and `edges`:
+
+```json
+{"qid": "Q9000001", "label": "Acme Robotics", "description": "American robotics company", "aliases": ["Acme"], "edges": []}
+{"qid": "Q9000002", "label": "Project Helix", "description": "internal battery research program", "aliases": ["Helix"], "edges": []}
+```
+
+Use real Wikidata QIDs when they exist, and make up stable IDs (for example `X0001`) for internal entities. Load your file alongside the bundled one:
+
+```python
+graphaide.ingest_vectors(
+    file_paths=[
+        str(get_sample_data_path("graphaide_KB.jsonl")),
+        "my_entities.jsonl",
+    ],
+    append=False,
+)
+```
+
+Files whose name contains `graphaide_kb` or `wikidata` and end in `.jsonl` are loaded as Wikidata entities. Name your file accordingly, or it will be loaded as a regular document.
+
+### Extract with Your Knowledge Base
+
+```python
+result = graphaide.extract(
+    input_text="Acme Robotics and Project Helix announced a partnership with Nvidia.",
+    merge=True,
+)
+for node in result.nodes:
+    print(f"{node.node_name:20} {node.wikidata_id}")
+```
+
+Entities that match one of your entries get its QID. Entities with no match stay without `wikidata_id`. See [Disambiguation](disambiguation.md) for how matches are chosen.
+
 ## Advanced Options
 
 ### Control Context Window

@@ -1,10 +1,12 @@
-"""ChunkTrackerAgent - Wraps ExtractorAgent to add chunk tracking and deduplication."""
+"""ChunkTrackerAgent - Wraps the smartextractor subgraph to add chunk tracking and deduplication."""
 
 import hashlib
 import logging
 import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+from langchain_core.runnables import Runnable
 
 from ..state import ChunkMetadata, Edge, Node, SourceDocumentMetadata
 from .base import GraphAideAgent
@@ -13,12 +15,12 @@ logger = logging.getLogger("graphgen.agents.chunktrackeragent")
 
 
 class ChunkTrackerAgent(GraphAideAgent):
-    """Wraps ExtractorAgent to add chunk tracking and deduplication support.
+    """Wraps the smartextractor subgraph to add chunk tracking and deduplication support.
 
     Responsibilities:
     1. Compute global chunk_id from raw_text (SHA256[:12]) for deduplication across files
     2. Track chunk metadata (sequence, file_path, token count, content preview)
-    3. Call wrapped ExtractorAgent to extract KG nodes/edges
+    3. Invoke the wrapped smartextractor subgraph (extractor → extractorfixer) to extract KG nodes/edges
     4. Enhance extracted nodes/edges with chunk_id and raw_source_line
     5. Create SourceDocumentMetadata and ChunkMetadata for Neo4j graph loading
     6. Enable queries like: "Show all entities from document.pdf chunk#3"
@@ -49,19 +51,15 @@ class ChunkTrackerAgent(GraphAideAgent):
         messages (List[str]): Status messages from extractor + chunk tracking info
     """
 
-    def __init__(self, wrapped_extractor: GraphAideAgent, **kwargs):
-        """Initialize ChunkTrackerAgent with wrapped ExtractorAgent.
+    def __init__(self, wrapped_extractor: Runnable, **kwargs):
+        """Initialize ChunkTrackerAgent with the compiled smartextractor subgraph.
 
         Args:
-            wrapped_extractor: ExtractorAgent instance to wrap
+            wrapped_extractor: Compiled smartextractor subgraph (extractor → extractorfixer)
             **kwargs: Additional args passed to parent GraphAideAgent
         """
-        # ChunkTrackerAgent is a wrapper that doesn't extract directly.
-        # Use wrapped extractor's model and inherit its settings.
-        # The wrapped_extractor will handle all LLM operations.
-        model = wrapped_extractor.model
-        settings = kwargs.pop("settings", None) or wrapped_extractor.settings
-        super().__init__(model=model, template_str="", settings=settings)
+        settings = kwargs.pop("settings", None)
+        super().__init__(model=None, template_str="", settings=settings)
         self.wrapped_extractor = wrapped_extractor
 
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
@@ -127,11 +125,19 @@ class ChunkTrackerAgent(GraphAideAgent):
                 created_at=datetime.now().isoformat(),
             )
 
-            # 6. Enhance state with chunk context for extractor
-            enhanced_state = {**state, "current_chunk_id": chunk_id}
-
-            # 7. Call wrapped ExtractorAgent
-            extractor_output = self.wrapped_extractor(enhanced_state)
+            # 6. Run smartextractor subgraph (extractor → extractorfixer) for this chunk
+            extractor_output = self.wrapped_extractor.invoke(
+                {
+                    "raw_text": raw_text,
+                    "file_path": file_path,
+                    "current_chunk_id": chunk_id,
+                    "vector_store_configs": state.get("vector_store_configs"),
+                    "rag_context_summary": state.get("rag_context_summary"),
+                    "filter_by_ontology": state.get("filter_by_ontology", False),
+                    "batch_index": state.get("batch_index"),
+                    "messages": [],
+                }
+            )
 
             # 8. Enhance extracted nodes with chunk_id and raw_source_line
             enhanced_nodes = []

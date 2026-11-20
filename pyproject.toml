@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "graphaide"
-version = "0.6.7"
+dynamic = ["version"]
 description = "Multi-agentic knowledge graph construction and reasoning system"
 readme = "README.md"
 requires-python = ">=3.11,<3.16"
@@ -75,6 +75,7 @@ dependencies = [
     "langchain-qdrant>=0.1.0",
     "pillow>=10.0.0",
     "pdf2image>=1.16.0",
+    "ijson>=3.2.0",
 ]
 
 [project.optional-dependencies]
@@ -106,10 +107,10 @@ include = ["graphaide*", "graphgen*"]
 [tool.setuptools.package-data]
 graphgen = ["data/*", "templates/*"]
 
+[tool.setuptools.dynamic]
+version = {attr = "graphgen._version.__version__"}
+
 [tool.pytest.ini_options]
 addopts = "--cov graphaide --cov-report term-missing --verbose"
 norecursedirs = ["dist", "build", ".tox"]
 testpaths = ["tests"]
-
-# Versioning handled by importlib.metadata at runtime
-# No need for generated _version.py file

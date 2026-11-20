@@ -75,15 +75,20 @@ class EmbeddingProjectorAgent(GraphAideAgent):
         logger.debug(f"UMAP: computing projection -> {umap_persist_file_path}")
 
         t0 = time.time()
-        documents = vector_store._collection.get(
-            include=["embeddings", "metadatas", "documents"]
-        )
+        collection = vector_store._collection
+        total = collection.count()
+        embedding_vectors, metadata, matched_documents_content = [], [], []
+        for offset in range(0, total, gc.VECTOR_BATCH_SIZE):
+            page = collection.get(
+                include=["embeddings", "metadatas", "documents"],
+                limit=gc.VECTOR_BATCH_SIZE,
+                offset=offset,
+            )
+            embedding_vectors.extend(page["embeddings"])
+            metadata.extend(page["metadatas"])
+            matched_documents_content.extend(page["documents"])
         t1 = time.time()
         logger.debug(f"ChromaDB retrieval: {t1-t0:.2f}s")
-
-        embedding_vectors = documents["embeddings"]
-        metadata = documents["metadatas"]
-        matched_documents_content = documents["documents"]
 
         logger.debug(f"UMAP: {len(embedding_vectors)} embeddings retrieved")
 

@@ -4,6 +4,7 @@ from typing import List
 import openai
 from pydantic import BaseModel, Field
 
+from .. import globalconfig
 from ..state import Edge, Node
 from .base import GraphAideAgent
 
@@ -62,7 +63,7 @@ class Neo4jLoaderAgent(GraphAideAgent):
         # 2. Perform Retrieval
         # We use the raw_text (or 'question') to find relevant LONGROOM context
         query = state.get("raw_text", "")
-        docs = vector_store.similarity_search(query, k=3)
+        docs = vector_store.similarity_search(query, k=globalconfig.DEFAULT_K)
         context = "\n "
         for doc in docs:
             # Safe parsing

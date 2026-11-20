@@ -100,8 +100,8 @@ Then the callback initialization failed.
 2. **Create new first cell:**
    ```python
    import os
-   os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-279aeaf3-ca53-..."
-   os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-7be19877-9dda-..."
+   os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-your-public-key"
+   os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-your-secret-key"
    os.environ["LANGFUSE_BASE_URL"] = "https://us.cloud.langfuse.com"
    print("✓ Env vars set")
    ```

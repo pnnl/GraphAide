@@ -65,11 +65,13 @@ nav:
   - Extraction:
       - Getting Started: extraction/index.md
       - Using Ontology: extraction/ontology.md
+      - Disambiguation: extraction/disambiguation.md
   - Vector Stores:
       - Setup & Loading: vector-stores/setup.md
       - Using in Extraction: vector-stores/usage.md
   - Ingestion: ingestion/index.md
   - Query: query/index.md
+  - Custom Agents: custom-agents/index.md
   - Resources: resources.md
   - Legal: legal/index.md
 

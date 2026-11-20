@@ -1,0 +1,17 @@
+name: Protect Main Branch
+                                             
+on:             
+  pull_request:
+    types: [opened]
+    branches:
+      - main
+
+jobs:
+  protect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch
+        if: github.head_ref != 'develop'
+        run: |
+          echo "ERROR: Only develop can merge to main"
+          exit 1

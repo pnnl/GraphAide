@@ -57,7 +57,7 @@ graphaide ingest <file> [OPTIONS]
 graphaide ingest document.pdf \
   --neo4j-uri bolt://localhost:7687 \
   --neo4j-username neo4j \
-  --neo4j-password graphaide123
+  --neo4j-password <your-neo4j-password>
 ```
 
 ### Load Pre-extracted JSON
@@ -323,7 +323,7 @@ LMSTUDIO_EMBEDDING_MODEL_NAME=text-embedding-nomic-embed-text-v1.5
 ```bash
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=graphaide123
+NEO4J_PASSWORD=<your-neo4j-password>
 NEO4J_DATABASE=neo4j
 ```
 

@@ -1,0 +1,13 @@
+You assign a node type to each node listed below.
+
+Allowed node types (use only these exact strings):
+{allowed_types}
+
+Rules:
+- For each node, choose the single allowed type that best fits the node's name and context.
+- If no allowed type fits, use "Unknown".
+- Do not invent new types. Do not change the spelling or case of an allowed type.
+- Return one assignment per node_id.
+
+Nodes (JSON):
+{nodes}

@@ -18,20 +18,32 @@ from graphgen.v2.agents.edgesloader import EdgesLoaderAgent
 from graphgen.v2.agents.embeddingprojector import EmbeddingProjectorAgent
 from graphgen.v2.agents.embeddingvisualizer import EmbeddingVisualizerAgent
 from graphgen.v2.agents.extractmerger import ExtractMergerAgent
+from graphgen.v2.agents.ontologyfilter import ontology_filter
 from graphgen.v2.agents.extractor import ExtractorAgent
+from graphgen.v2.agents.imageexplainer import ImageExplainerAgent
 from graphgen.v2.agents.intentpredictor import IntentPredictorAgent
 from graphgen.v2.agents.jsonlloader import JSONLLoaderAgent
 from graphgen.v2.agents.neo4jpostprocessor import Neo4jPostProcessorAgent
 from graphgen.v2.agents.neo4jqueryrunner import Neo4jQueryRunnerAgent
-from graphgen.v2.agents.nodes4edgesloader import Nodes4EdgesLoaderAgent
+from graphgen.v2.agents.extractorfixer import ExtractorFixerAgent
 from graphgen.v2.agents.nodesloader import NodesLoaderAgent
 from graphgen.v2.agents.ontologygenerator import OntologyGeneratorAgent
 from graphgen.v2.agents.ontologyloader import OntologyLoaderAgent
 from graphgen.v2.agents.questiongraphgenerator import QuestionGraphGeneratorAgent
+from graphgen.v2.agents.simpleagent import SimpleAgent
 from graphgen.v2.agents.simplerag import SimpleRAGAgent
 from graphgen.v2.agents.vectordbloader import VectorDBLoaderAgent
-from graphgen.v2.functionnode import fileloader, jsonl_segment_dispatcher, make_segment_dispatcher
-from graphgen.v2.state import KGGenerationState, KGQuestionAnswerState
+from graphgen.v2.agents.wikidatagrounder import WikidataGrounderAgent
+from graphgen.v2.functionnode import fileloader, make_jsonl_segment_dispatcher, make_segment_dispatcher
+from graphgen.v2.state import (
+    ImageExplainerState,
+    SimpleAgentState,
+    KGGenerationState,
+    KGQuestionAnswerState,
+    SmartExtractorInput,
+    SmartExtractorOutput,
+    SmartExtractorState,
+)
 from graphgen.v2.workflows.base import (
     WorkflowConfig,
     WorkflowInfo,
@@ -49,6 +61,12 @@ from graphgen.v2.workflows.schemas import (
     KGLoadJsonOutput,
     KGQueryInput,
     KGQueryOutput,
+    ImageExplainInput,
+    ImageExplainOutput,
+    SimpleAgentInput,
+    SimpleAgentOutput,
+    SimpleRAGInput,
+    SimpleRAGOutput,
     OntologyGenerateInput,
     OntologyGenerateOutput,
     VectorDBIngestInput,
@@ -100,7 +118,7 @@ class WorkflowManager:
 
         Args:
             workflow: StateGraph instance
-            source_node: Node to dispatch from (e.g., "nodes4edgesloader")
+            source_node: Node to dispatch from (e.g., "extractorfixer")
             target_nodes: List of nodes to dispatch to (e.g., ["nodesloader", "edgesloader"])
             merger_node: Node to merge results back to (e.g., "neo4jpostprocessor")
         """
@@ -189,11 +207,17 @@ class WorkflowManager:
             return self._build_vectordb_ingest_workflow(config)
         elif workflow_name == "vectordb_visualize":
             return self._build_vectordb_visualize_workflow(config)
+        elif workflow_name == "image_explain":
+            return self._build_image_explain_workflow(config)
+        elif workflow_name == "simple_agent":
+            return self._build_simple_agent_workflow(config)
+        elif workflow_name == "simple_rag":
+            return self._build_simple_rag_workflow(config)
         elif workflow_name == "ontology_generate":
             return self._build_ontology_generate_workflow(config)
         else:
             raise KeyError(
-                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, vectordb_ingest, vectordb_visualize, ontology_generate"
+                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, vectordb_ingest, vectordb_visualize, ontology_generate, image_explain, simple_agent, simple_rag"
             )
 
     def run(
@@ -463,6 +487,23 @@ class WorkflowManager:
                 )
                 initial_state["save_png"] = validated_inputs.save_png
                 initial_state["category_field"] = validated_inputs.category_field
+            elif workflow_name == "image_explain":
+                initial_state = {
+                    "file_path": validated_inputs.file_path,
+                    "template_path": validated_inputs.template_path,
+                    "explanation": None,
+                    "messages": [],
+                }
+            elif workflow_name == "simple_agent":
+                initial_state = {
+                    "file_path": validated_inputs.file_path,
+                    "instruction": validated_inputs.instruction,
+                    "template_path": validated_inputs.template_path,
+                    "response": None,
+                    "messages": [],
+                }
+            elif workflow_name == "simple_rag":
+                initial_state = init_kg_qa_state(validated_inputs.question)
             elif workflow_name == "ontology_generate":
                 initial_state = init_kg_generation_state(file_path="")
                 initial_state["node_types"] = validated_inputs.node_types
@@ -606,43 +647,70 @@ class WorkflowManager:
             "messages": [f"✓ JSONL extraction ready for JSON save (merge={merge_output})"],
         }
 
+    def _build_smart_extractor_subgraph(self, agent_factory):
+        """Build per-chunk smartextractor subgraph: extractor → extractorfixer.
+
+        Chunk-local nodes/edges are replaced (not appended) so the fixer can add stubs
+        and retype nodes on the full chunk list. Output appends one finished list per chunk
+        to the parent state.
+
+        Flow: START → extractor → extractorfixer → ontologyfilter → wikidatagrounder → END
+        """
+        extractor = agent_factory.build(ExtractorAgent, "extractor")
+        extractor_fixer = agent_factory.build(ExtractorFixerAgent, "extractorfixer")
+        wikidata_grounder = agent_factory.build(WikidataGrounderAgent, "wikidatagrounder")
+
+        workflow = StateGraph(
+            SmartExtractorState,
+            input_schema=SmartExtractorInput,
+            output_schema=SmartExtractorOutput,
+        )
+        workflow.add_node("extractor", extractor, input_schema=SmartExtractorState)
+        workflow.add_node("extractorfixer", extractor_fixer, input_schema=SmartExtractorState)
+        workflow.add_node("ontologyfilter", ontology_filter, input_schema=SmartExtractorState)
+        workflow.add_node("wikidatagrounder", wikidata_grounder, input_schema=SmartExtractorState)
+
+        workflow.add_edge(START, "extractor")
+        workflow.add_edge("extractor", "extractorfixer")
+        workflow.add_edge("extractorfixer", "ontologyfilter")
+        workflow.add_edge("ontologyfilter", "wikidatagrounder")
+        workflow.add_edge("wikidatagrounder", END)
+
+        return workflow.compile()
+
     def _build_kg_extract_workflow(self, config: WorkflowConfig):
         """Build KG extraction workflow.
 
         Extracts nodes/edges from document segments without loading to database.
-        Flow: ontologyloader → fileloader → [extractor per segment] → END
+        Flow: ontologyloader → fileloader → [smartextractor per segment] → END
 
         Multi-retriever pattern: if vector_store_configs are in state, ExtractorAgent
         will query each retriever sequentially and accumulate context.
         """
         agent_factory = get_agent_factory(config)
 
-        # Build agents
         ontology_loader = agent_factory.build(
             OntologyLoaderAgent,
             "ontologyloader",
             partials={"format_instructions": "format_instructions"},
         )
-        extractor = agent_factory.build(ExtractorAgent, "extractor")
+        smart_extractor = self._build_smart_extractor_subgraph(agent_factory)
 
-        # Create workflow
         workflow = StateGraph(KGGenerationState)
         workflow.add_node("ontologyloader", ontology_loader)
         workflow.add_node("fileloader", fileloader)
-        workflow.add_node("extractor", extractor)
+        workflow.add_node("smartextractor", smart_extractor)
 
-        # ontologyloader loads ontology types first
         workflow.add_edge(START, "ontologyloader")
         workflow.add_edge("ontologyloader", "fileloader")
 
-        # Dispatch each segment to extractor in parallel
         workflow.add_conditional_edges(
             "fileloader",
-            make_segment_dispatcher("extractor"),
-            ["extractor"],
+            make_segment_dispatcher("smartextractor"),
+            ["smartextractor"],
         )
 
-        workflow.add_edge("extractor", END)
+        workflow.add_edge("smartextractor", END)
 
         return workflow.compile()
 
@@ -650,39 +718,34 @@ class WorkflowManager:
         """Build KG extraction + merging workflow.
 
         Extracts nodes/edges and consolidates duplicates by node_id.
-        Flow: ontologyloader → fileloader → [extractor per segment] → extractmerger → END
+        Flow: ontologyloader → fileloader → [smartextractor per segment] → extractmerger → END
         """
         agent_factory = get_agent_factory(config)
 
-        # Build agents
         ontology_loader = agent_factory.build(
             OntologyLoaderAgent,
             "ontologyloader",
             partials={"format_instructions": "format_instructions"},
         )
-        extractor = agent_factory.build(ExtractorAgent, "extractor")
+        smart_extractor = self._build_smart_extractor_subgraph(agent_factory)
         extract_merger = agent_factory.build(ExtractMergerAgent, "extractmerger")
 
-        # Create workflow
         workflow = StateGraph(KGGenerationState)
         workflow.add_node("ontologyloader", ontology_loader)
         workflow.add_node("fileloader", fileloader)
-        workflow.add_node("extractor", extractor)
+        workflow.add_node("smartextractor", smart_extractor)
         workflow.add_node("extractmerger", extract_merger)
 
-        # ontologyloader loads ontology types first
         workflow.add_edge(START, "ontologyloader")
         workflow.add_edge("ontologyloader", "fileloader")
 
-        # Dispatch each segment to extractor in parallel
         workflow.add_conditional_edges(
             "fileloader",
-            make_segment_dispatcher("extractor"),
-            ["extractor"],
+            make_segment_dispatcher("smartextractor"),
+            ["smartextractor"],
         )
 
-        # After extraction, merge nodes and edges
-        workflow.add_edge("extractor", "extractmerger")
+        workflow.add_edge("smartextractor", "extractmerger")
         workflow.add_edge("extractmerger", END)
 
         return workflow.compile()
@@ -702,8 +765,8 @@ class WorkflowManager:
             "ontologyloader",
             partials={"format_instructions": "format_instructions"},
         )
-        extractor = agent_factory.build(ExtractorAgent, "extractor")
-        chunk_tracker = ChunkTrackerAgent(wrapped_extractor=extractor)
+        smart_extractor = self._build_smart_extractor_subgraph(agent_factory)
+        chunk_tracker = ChunkTrackerAgent(wrapped_extractor=smart_extractor)
 
         # Create workflow
         workflow = StateGraph(KGGenerationState)
@@ -842,28 +905,22 @@ class WorkflowManager:
 
         Reads JSONL batch (prepared by Python caller), dispatches lines to
         parallel extractors, then loads to Neo4j.
-        Flow: ontologyloader → jsonlloader → jsonl_segment_dispatcher → [parallel extractors]
-              → extract_merger → kg_loader_subgraph → END
+        Flow: ontologyloader → jsonlloader → [smartextractor per batch] → extractmerger? → kg_loader_subgraph → END
+        Extraction runs inside the loader subgraph, so the batch is dispatched directly to it.
         """
         agent_factory = get_agent_factory(config)
 
-        # Build ontology loader
         ontology_loader = agent_factory.build(
             OntologyLoaderAgent,
             "ontologyloader",
             partials={"format_instructions": "format_instructions"},
         )
-
-        # Build JSONL loader
         jsonl_loader = agent_factory.build(
             JSONLLoaderAgent,
             "jsonlloader",
         )
-
-        # Build KG loader subgraph (parallel extraction + loading)
         kg_loader_subgraph = self._build_kg_loader_subgraph(agent_factory)
 
-        # Retry policy for robustness
         retry_policy = RetryPolicy(
             initial_interval=1.0,
             backoff_factor=2.0,
@@ -872,29 +929,22 @@ class WorkflowManager:
             jitter=True,
         )
 
-        # Main workflow
         workflow = StateGraph(KGGenerationState)
-
-        # Add nodes
         workflow.add_node("ontologyloader", ontology_loader)
         workflow.add_node("jsonlloader", jsonl_loader, retry_policy=retry_policy)
-        workflow.add_node("extractor", agent_factory.build(ExtractorAgent, "extractor"), retry_policy=retry_policy)
         workflow.add_node(
             "knowledgegraphloader", kg_loader_subgraph, retry_policy=retry_policy
         )
 
-        # Define sequence with conditional routing
         workflow.add_edge(START, "ontologyloader")
         workflow.add_edge("ontologyloader", "jsonlloader")
 
-        # Conditional edge: dispatch JSONL lines to extractors in parallel
         workflow.add_conditional_edges(
             "jsonlloader",
-            jsonl_segment_dispatcher,
-            ["extractor"],
+            make_jsonl_segment_dispatcher("knowledgegraphloader"),
+            ["knowledgegraphloader"],
         )
 
-        workflow.add_edge("extractor", "knowledgegraphloader")
         workflow.add_edge("knowledgegraphloader", END)
 
         logger.info("✅ kg_ingest_jsonl_batch workflow compiled")
@@ -905,28 +955,23 @@ class WorkflowManager:
 
         Reads JSONL batch (prepared by Python caller), dispatches lines to
         parallel extractors, merges results, and returns extracted nodes/edges.
-        Flow: ontologyloader → jsonlloader → jsonl_segment_dispatcher → [parallel extractors]
+        Flow: ontologyloader → jsonlloader → [smartextractor per batch]
               → extract_merger → result_packer → END
 
         Similar to kg_ingest_jsonl_batch but WITHOUT Neo4j loading.
         """
         agent_factory = get_agent_factory(config)
 
-        # Build ontology loader (same as regular extraction)
         ontology_loader = agent_factory.build(
             OntologyLoaderAgent,
             "ontologyloader",
             partials={"format_instructions": "format_instructions"},
         )
-
-        # Build JSONL loader
         jsonl_loader = agent_factory.build(
             JSONLLoaderAgent,
             "jsonlloader",
         )
-
-        # Build extractor and merger
-        extractor = agent_factory.build(ExtractorAgent, "extractor")
+        smart_extractor = self._build_smart_extractor_subgraph(agent_factory)
         extract_merger = agent_factory.build(ExtractMergerAgent, "extractmerger")
 
         # Retry policy for robustness
@@ -944,22 +989,20 @@ class WorkflowManager:
         # Add nodes
         workflow.add_node("ontologyloader", ontology_loader, retry_policy=retry_policy)
         workflow.add_node("jsonlloader", jsonl_loader, retry_policy=retry_policy)
-        workflow.add_node("extractor", extractor, retry_policy=retry_policy)
+        workflow.add_node("smartextractor", smart_extractor, retry_policy=retry_policy)
         workflow.add_node("extractmerger", extract_merger, retry_policy=retry_policy)
         workflow.add_node("result_packer", self._jsonl_extract_result_packer)
 
-        # Define sequence with conditional routing
         workflow.add_edge(START, "ontologyloader")
         workflow.add_edge("ontologyloader", "jsonlloader")
 
-        # Conditional edge: dispatch JSONL lines to extractors in parallel
         workflow.add_conditional_edges(
             "jsonlloader",
-            jsonl_segment_dispatcher,
-            ["extractor"],
+            make_jsonl_segment_dispatcher("smartextractor"),
+            ["smartextractor"],
         )
 
-        workflow.add_edge("extractor", "extractmerger")
+        workflow.add_edge("smartextractor", "extractmerger")
         workflow.add_edge("extractmerger", "result_packer")
         workflow.add_edge("result_packer", END)
 
@@ -992,41 +1035,32 @@ class WorkflowManager:
     def _build_chunk_aware_loader_subgraph(self, agent_factory):
         """Build chunk-aware KG loader subgraph with chunk provenance tracking.
 
-        Flow: chunktracker → chunkgraphload → nodes4edgesloader → [nodesloader, edgesloader] → postprocessor
+        Flow: chunktracker(smartextractor per chunk) → chunkgraphload → [nodesloader → edgesloader] → postprocessor
         """
-        # Build agents
-        extractor = agent_factory.build(ExtractorAgent, "extractor")
-        chunk_tracker = ChunkTrackerAgent(wrapped_extractor=extractor)
+        smart_extractor = self._build_smart_extractor_subgraph(agent_factory)
+        chunk_tracker = ChunkTrackerAgent(wrapped_extractor=smart_extractor)
         chunk_graph_load = agent_factory.build(ChunkGraphLoadAgent, "chunkgraphload")
         nodes_loader = agent_factory.build(NodesLoaderAgent, "nodesloader")
         edges_loader = agent_factory.build(EdgesLoaderAgent, "edgesloader")
-        nodes4edges_loader = agent_factory.build(
-            Nodes4EdgesLoaderAgent, "nodes4edgesloader"
-        )
         neo4j_postprocessor = agent_factory.build(
             Neo4jPostProcessorAgent, "neo4jpostprocessor"
         )
 
-        # Create subgraph
         workflow = StateGraph(KGGenerationState)
 
-        # Add nodes
         workflow.add_node("chunktracker", chunk_tracker)
         workflow.add_node("chunkgraphload", chunk_graph_load)
-        workflow.add_node("nodes4edgesloader", nodes4edges_loader)
         workflow.add_node("nodesloader", nodes_loader)
         workflow.add_node("edgesloader", edges_loader)
         workflow.add_node("neo4jpostprocessor", neo4j_postprocessor)
 
-        # Sequential: chunk tracker → chunk graph load
         workflow.add_edge(START, "chunktracker")
         workflow.add_edge("chunktracker", "chunkgraphload")
 
-        # Sequential: chunkgraphload → nodes4edgesloader (validate edge->node references)
-        workflow.add_edge("chunkgraphload", "nodes4edgesloader")
-
-        # Parallel execution: Send to both loaders after nodes4edges → post-process
-        self._add_parallel_loaders(workflow, "nodes4edgesloader", ["nodesloader", "edgesloader"], "neo4jpostprocessor")
+        # Sequential: nodesloader must finish before edgesloader (edges reference nodes)
+        workflow.add_edge("chunkgraphload", "nodesloader")
+        workflow.add_edge("nodesloader", "edgesloader")
+        workflow.add_edge("edgesloader", "neo4jpostprocessor")
 
         workflow.add_edge("neo4jpostprocessor", END)
 
@@ -1035,35 +1069,26 @@ class WorkflowManager:
     def _build_kg_loader_subgraph(self, agent_factory):
         """Build KG loader subgraph with parallel node/edge loading.
 
-        Flow: extractor → nodes4edgesloader → [nodesloader, edgesloader] → postprocessor
+        Flow: smartextractor → [nodesloader → edgesloader] → postprocessor
         """
-        # Build agents
-        extractor = agent_factory.build(ExtractorAgent, "extractor")
+        smart_extractor = self._build_smart_extractor_subgraph(agent_factory)
         nodes_loader = agent_factory.build(NodesLoaderAgent, "nodesloader")
         edges_loader = agent_factory.build(EdgesLoaderAgent, "edgesloader")
-        nodes4edges_loader = agent_factory.build(
-            Nodes4EdgesLoaderAgent, "nodes4edgesloader"
-        )
         neo4j_postprocessor = agent_factory.build(
             Neo4jPostProcessorAgent, "neo4jpostprocessor"
         )
 
-        # Create subgraph
         workflow = StateGraph(KGGenerationState)
 
-        # Add nodes (removed redundant neo4jloader)
-        workflow.add_node("extractor", extractor)
-        workflow.add_node("nodes4edgesloader", nodes4edges_loader)
+        workflow.add_node("smartextractor", smart_extractor)
         workflow.add_node("nodesloader", nodes_loader)
         workflow.add_node("edgesloader", edges_loader)
         workflow.add_node("neo4jpostprocessor", neo4j_postprocessor)
 
-        # Sequential: extract → nodes4edges (prepare nodes for edges)
-        workflow.add_edge(START, "extractor")
-        workflow.add_edge("extractor", "nodes4edgesloader")
-
-        # Parallel execution: Send to both loaders after nodes4edges → post-process
-        self._add_parallel_loaders(workflow, "nodes4edgesloader", ["nodesloader", "edgesloader"], "neo4jpostprocessor")
+        workflow.add_edge(START, "smartextractor")
+        workflow.add_edge("smartextractor", "nodesloader")
+        workflow.add_edge("nodesloader", "edgesloader")
+        workflow.add_edge("edgesloader", "neo4jpostprocessor")
 
         workflow.add_edge("neo4jpostprocessor", END)
 
@@ -1077,8 +1102,7 @@ class WorkflowManager:
 
         Flow: nodesloader → edgesloader → neo4jpostprocessor → END
 
-        NOTE: Nodes4EdgesLoaderAgent removed from workflow (see TODO.md).
-              Bring back later when edge source/target node creation is needed.
+        NOTE: ExtractorFixerAgent is not used here; JSON input is assumed already fixed.
         """
         # Build agents (no extractor needed, JSON already has nodes/edges)
         nodes_loader = agent_factory.build(NodesLoaderAgent, "nodesloader")
@@ -1195,6 +1219,51 @@ class WorkflowManager:
 
         return workflow.compile()
 
+    def _build_image_explain_workflow(self, config: WorkflowConfig):
+        """Build image explanation workflow.
+
+        Flow: imageexplainer → END
+        """
+        agent_factory = get_agent_factory(config, include_graphdb=False)
+        image_explainer = agent_factory.build(ImageExplainerAgent, "imageexplainer")
+
+        workflow = StateGraph(ImageExplainerState)
+        workflow.add_node("imageexplainer", image_explainer)
+        workflow.add_edge(START, "imageexplainer")
+        workflow.add_edge("imageexplainer", END)
+
+        return workflow.compile()
+
+    def _build_simple_agent_workflow(self, config: WorkflowConfig):
+        """Build simple agent workflow over a text document.
+
+        Flow: simpleagent → END
+        """
+        agent_factory = get_agent_factory(config, include_graphdb=False)
+        simple_agent = agent_factory.build(SimpleAgent, "simpleagent")
+
+        workflow = StateGraph(SimpleAgentState)
+        workflow.add_node("simpleagent", simple_agent)
+        workflow.add_edge(START, "simpleagent")
+        workflow.add_edge("simpleagent", END)
+
+        return workflow.compile()
+
+    def _build_simple_rag_workflow(self, config: WorkflowConfig):
+        """Build vector-store RAG workflow without graph retrieval.
+
+        Flow: simplerag → END
+        """
+        agent_factory = get_agent_factory(config, include_graphdb=False)
+        rag_agent = agent_factory.build(SimpleRAGAgent, "simplerag")
+
+        workflow = StateGraph(KGQuestionAnswerState)
+        workflow.add_node("simplerag", rag_agent)
+        workflow.add_edge(START, "simplerag")
+        workflow.add_edge("simplerag", END)
+
+        return workflow.compile()
+
     def _build_ontology_generate_workflow(self, config: WorkflowConfig):
         """Build ontology generation workflow.
 
@@ -1279,6 +1348,8 @@ class WorkflowManager:
                             "ontology_file_path": result_state.get(
                                 "ontology_file_path"
                             ),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["segments_processed"],
                             "filtering_applied": has_filtering,
                             "filter_stats": filter_stats if has_filtering else None,
@@ -1334,6 +1405,8 @@ class WorkflowManager:
                             "ontology_file_path": result_state.get(
                                 "ontology_file_path"
                             ),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["segments_processed"],
                             "chunks_tracked": stats["chunks_tracked"],
                             "nodes": nodes_data,
@@ -1377,6 +1450,8 @@ class WorkflowManager:
                             "source_file": os.path.basename(file_path),
                             "file_path": file_path,
                             "ontology_file_path": result_state.get("ontology_path"),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["nodes_extracted"],
                             "nodes": nodes_data,
                             "edges": edges_data,
@@ -1454,6 +1529,8 @@ class WorkflowManager:
                             "ontology_file_path": result_state.get(
                                 "ontology_file_path"
                             ),
+                            "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
+                            "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["segments_processed"],
                             "nodes": merged_nodes_data,
                             "edges": merged_edges_data,
@@ -1570,6 +1647,45 @@ class WorkflowManager:
                         "embedding_file_path", ""
                     )
                     + ".metadata.json",
+                },
+                messages=result_state.get("messages", []),
+            )
+
+        elif workflow_name == "image_explain":
+            return WorkflowResult(
+                success=True,
+                workflow_name=workflow_name,
+                execution_time_seconds=execution_time,
+                answer=result_state.get("explanation"),
+                data={
+                    "file_path": result_state.get("file_path"),
+                    "explanation": result_state.get("explanation"),
+                },
+                messages=result_state.get("messages", []),
+            )
+
+        elif workflow_name == "simple_rag":
+            return WorkflowResult(
+                success=True,
+                workflow_name=workflow_name,
+                execution_time_seconds=execution_time,
+                answer=result_state.get("answer"),
+                data={
+                    "question": result_state.get("question"),
+                    "answer": result_state.get("answer"),
+                },
+                messages=result_state.get("messages", []),
+            )
+
+        elif workflow_name == "simple_agent":
+            return WorkflowResult(
+                success=True,
+                workflow_name=workflow_name,
+                execution_time_seconds=execution_time,
+                answer=result_state.get("response"),
+                data={
+                    "file_path": result_state.get("file_path"),
+                    "response": result_state.get("response"),
                 },
                 messages=result_state.get("messages", []),
             )
@@ -1820,6 +1936,33 @@ class WorkflowManager:
             input_schema=VectorDBVisualizeInput,
             output_schema=VectorDBVisualizeOutput,
             description="Create 2D UMAP visualization of vector embeddings",
+        )
+
+        # Register Image Explain
+        self.registry.register(
+            name="image_explain",
+            workflow_fn=dummy_workflow_fn,
+            input_schema=ImageExplainInput,
+            output_schema=ImageExplainOutput,
+            description="Describe key findings of an image file using a vision LLM",
+        )
+
+        # Register Simple Agent
+        self.registry.register(
+            name="simple_agent",
+            workflow_fn=dummy_workflow_fn,
+            input_schema=SimpleAgentInput,
+            output_schema=SimpleAgentOutput,
+            description="Apply an instruction to a text document using an LLM",
+        )
+
+        # Register Simple RAG
+        self.registry.register(
+            name="simple_rag",
+            workflow_fn=dummy_workflow_fn,
+            input_schema=SimpleRAGInput,
+            output_schema=SimpleRAGOutput,
+            description="Answer a question from the vector store using RAG (no graph query)",
         )
 
         # Register Ontology Generate

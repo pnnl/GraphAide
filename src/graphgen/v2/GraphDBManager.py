@@ -22,20 +22,16 @@ class GraphDBConfig(BaseModel):
 
 class GraphDBFactory:
     def __init__(self, graphdb_config: Optional[GraphDBConfig] = None):
-        # Load .env file if exists (for local dev), then try env vars
-        if os.path.exists(globalconfig.ENV_PATH):
-            load_dotenv(globalconfig.ENV_PATH, override=True)
-
-        # Always try to load from environment variables
         self._graphdb_configs: Dict[str, GraphDBConfig] = {}
-        self._load_config_from_env()
-
-        # If no config found from env and explicit config provided, use it
-        if not self._graphdb_configs and graphdb_config:
+        if graphdb_config:
             logger.info(f"Using runtime config [{graphdb_config.provider}]")
             self._graphdb_configs = {graphdb_config.provider: graphdb_config}
-        elif not self._graphdb_configs:
-            logger.warning("No config provided")
+        else:
+            if os.path.exists(globalconfig.ENV_PATH):
+                load_dotenv(globalconfig.ENV_PATH, override=True)
+            self._load_config_from_env()
+            if not self._graphdb_configs:
+                logger.warning("No config provided")
         self._gdb_singlton_driver: Any = None  # We have driver to be a singleton, but we also want to support runtime config in the future if needed, so we initialize it as None here and will set it in get_driver() when we have the config available.
         self._graphdb_drivers: Dict[
             str, Any
@@ -90,6 +86,8 @@ class GraphDBFactory:
             self._graphdb_configs[myconfig.provider] = myconfig
             if "neo4j" in myconfig.provider:
                 try:
+                    # Note: Neo4jGraph connection is lazy-loaded here (not in __init__)
+                    # Connection timeout is handled by Neo4j driver defaults
                     self._graphdb_drivers["neo4j"] = Neo4jGraph(
                         myconfig.uri,
                         myconfig.username,

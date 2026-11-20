@@ -11,7 +11,9 @@ complexity of WorkflowManager, WorkflowConfig, and workflow orchestration.
 """
 
 import logging
+from typing import Optional
 
+from graphgen._version import __version__
 from graphgen.v2.GraphDBManager import GraphDBConfig
 from graphgen.v2.ModelManager import ModelConfig, ModelFactory
 from graphgen.v2.VectorStoreManager import VectorDBConfig, VectorFactory
@@ -178,10 +180,13 @@ class GraphAide:
         # Initialize internal WorkflowManager
         self.manager = WorkflowManager(global_config=self.workflow_config)
 
+        # Create Neo4j indexes if needed (idempotent, safe to call always)
+        self._ensure_neo4j_indexes()
+
         # Print initialization summary with masked API keys
         from graphgen.v2.utils import mask_api_key
         logger.info("=" * 80)
-        logger.info("GraphAide Initialization - Configuration Summary")
+        logger.info(f"GraphAide Initialization - Configuration Summary (version {__version__})")
         logger.info("=" * 80)
         masked_key = mask_api_key(self.model_config.api_key)
         logger.info(f"LLM: {self.model_config.provider} / {self.model_config.model_name} (key: {masked_key})")
@@ -195,8 +200,7 @@ class GraphAide:
                 else:
                     full_path = vconf.store_name
                 collection_name = vconf.collection_name or "langchain"
-                doc_count = self._get_vector_store_doc_count(vconf)
-                logger.info(f"  [{i}] {vconf.provider} ({doc_count} docs) @ {full_path}")
+                logger.info(f"  [{i}] {vconf.provider} @ {full_path}")
         logger.info("=" * 80)
 
     def _get_vector_store_doc_count(self, vconf: VectorDBConfig) -> int:
@@ -259,6 +263,43 @@ class GraphAide:
             import traceback
             logger.debug(f"Traceback: {traceback.format_exc()}")
         return 0
+
+    def _ensure_neo4j_indexes(self):
+        """Create essential Neo4j indexes for knowledge graph operations.
+
+        Idempotent: safe to call multiple times. Gracefully handles cases where:
+        - No graphdb_config provided (extract-only workflows)
+        - Neo4j not running
+        - Indexes already exist
+
+        Index created:
+        - idx_node_id: On Node.node_id (canonical key for node identity/deduplication)
+          Used by: MERGE (n {node_id: X}), edge matching in edgesloader
+
+        This index works across all node/edge types and significantly improves
+        ingest performance by speeding up MERGE and relationship creation operations.
+        """
+        if not self.graphdb_config:
+            logger.debug("No Neo4j config, skipping index creation")
+            return
+
+        try:
+            from graphgen.v2.GraphDBManager import GraphDBFactory
+
+            driver = GraphDBFactory(graphdb_config=self.graphdb_config).get_driver()
+            if not driver:
+                logger.debug("Neo4j driver unavailable, skipping index creation")
+                return
+
+            # Create index (idempotent - IF NOT EXISTS prevents errors)
+            # node_id is the canonical key for all node lookups and edge matching
+            driver.query(
+                "CREATE INDEX idx_node_id IF NOT EXISTS FOR (n:Node) ON (n.node_id)"
+            )
+            logger.debug("Neo4j index verified/created (idx_node_id)")
+
+        except Exception as e:
+            logger.warning(f"Could not create Neo4j indexes: {e}")
 
     def extract(
         self,
@@ -659,6 +700,102 @@ class GraphAide:
         return self.manager.run(
             "kg_query",
             {"question": question, **kwargs},
+        )
+
+    def explain(
+        self, file_path: str, template_path: Optional[str] = None, **kwargs
+    ) -> WorkflowResult:
+        """Describe the key findings of an image file using a vision LLM.
+
+        Args:
+            file_path: Path to the image file (PNG, JPG, JPEG, GIF, BMP, WEBP).
+            template_path: Optional path to a text file whose contents replace
+                the default imageexplainer prompt template.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the text description in result.answer
+            (also available as result.data["explanation"]).
+
+        Example:
+            result = graphaide.explain("photo.jpg")
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run(
+            "image_explain",
+            {"file_path": file_path, "template_path": template_path, **kwargs},
+        )
+
+    def run_simple_rag(self, question: str, **kwargs) -> WorkflowResult:
+        """Answer a question from the configured vector store (no graph query).
+
+        Retrieves the top matches from the vector store and generates an answer
+        from them with the LLM. Requires vector_configs in the constructor.
+
+        Args:
+            question: The question to answer.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the answer in result.answer.
+
+        Example:
+            result = graphaide.run_simple_rag("What is the project budget?")
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run("simple_rag", {"question": question, **kwargs})
+
+    def run_simple_agent(
+        self,
+        file_path: str,
+        instruction: str,
+        template_path: Optional[str] = None,
+        **kwargs,
+    ) -> WorkflowResult:
+        """Apply an instruction to a text document using the configured LLM.
+
+        Args:
+            file_path: Path to a text file to read.
+            instruction: What the agent should do with the document.
+            template_path: Optional path to a prompt template file. It must
+                use {instruction}, {file_content}, and {file_name} placeholders.
+                Defaults to the bundled simpleagent template.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the model's response in result.answer
+            (also available as result.data["response"]).
+
+        Example:
+            result = graphaide.run_simple_agent(
+                file_path="notes.txt",
+                instruction="List the action items as bullet points.",
+            )
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run(
+            "simple_agent",
+            {
+                "file_path": file_path,
+                "instruction": instruction,
+                "template_path": template_path,
+                **kwargs,
+            },
         )
 
     def load_json(self, json_path: str, **kwargs) -> WorkflowResult:

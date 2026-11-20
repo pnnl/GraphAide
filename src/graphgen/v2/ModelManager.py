@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from graphgen.v2 import globalconfig
 from graphgen.v2.LangFuseManager import get_langfuse_callback
+from graphgen.v2.utils import mask_sensitive_value
 
 logger = logging.getLogger("graphgen.v2.modelmanager")
 
@@ -68,13 +69,20 @@ class ModelFactory:
             str, Any
         ] = {}  # Cache for initialized model instances
 
-        # Initialize LangFuse client for tracing (optional)
+        # Defer LangFuse initialization to first model call (lazy-loading for faster init)
         # LangFuse 4.15.4+ auto-instruments LangChain via env vars
-        self._langfuse_client = get_langfuse_callback()
-        if self._langfuse_client:
-            logger.debug(f"🔍 [ModelFactory] LangFuse callback initialized: {self._langfuse_client}")
-        else:
-            logger.debug("🔍 [ModelFactory] LangFuse not available for this session")
+        self._langfuse_client = None
+        self._langfuse_initialized = False
+
+    def _ensure_langfuse_initialized(self):
+        """Lazy-initialize LangFuse callback on first model call."""
+        if not self._langfuse_initialized:
+            self._langfuse_client = get_langfuse_callback()
+            self._langfuse_initialized = True
+            if self._langfuse_client:
+                logger.debug(f"🔍 [ModelFactory] LangFuse callback initialized: {self._langfuse_client}")
+            else:
+                logger.debug("🔍 [ModelFactory] LangFuse not available for this session")
 
     def _load_config_from_env(self):
         """
@@ -114,6 +122,9 @@ class ModelFactory:
 
         if MODEL_OBJECT_KEY not in self._model_configs:
             logger.warning(f"Model not configured: {provider}/{model_name}")
+
+        # Lazy-initialize LangFuse on first model call (performance optimization)
+        self._ensure_langfuse_initialized()
 
         try:
             if model_config is None:
@@ -196,7 +207,8 @@ class ModelFactory:
                     model = model.with_config(callbacks=[self._langfuse_client])
                 self._model_objects[MODEL_OBJECT_KEY] = model
 
-            logger.debug(f"🔍 [ModelFactory] Model ready: provider={model_config.provider}")
+            masked_key = mask_sensitive_value(model_config.api_key) if model_config.api_key else "not set"
+            logger.debug(f"🔍 [ModelFactory] Model ready: provider={model_config.provider}, api_key={masked_key}")
             return self._model_objects[MODEL_OBJECT_KEY]
         except Exception as e:
             raise ValueError(f"Error initializing model for provider '{provider}': {e}")
