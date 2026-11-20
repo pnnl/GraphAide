@@ -33,6 +33,7 @@ class JSONLLoaderAgent(GraphAideAgent):
         jsonl_path = state.get("file_path")
         field_name = state.get("jsonl_field_name", "text")
         lines_per_batch = state.get("jsonl_lines_per_batch", 4)
+        raw_source_field = state.get("raw_source_field")
 
         if not jsonl_path:
             logger.error("❌ file_path not provided")
@@ -60,7 +61,7 @@ class JSONLLoaderAgent(GraphAideAgent):
                         all_lines.append({
                             "line_number": line_num,
                             "content": str(obj[field_name]),
-                            "raw_json": obj
+                            "raw_source": str(obj[raw_source_field]) if raw_source_field and raw_source_field in obj else None,
                         })
                     except json.JSONDecodeError as e:
                         logger.warning(f"   ⚠️ Line {line_num}: Invalid JSON - {e}")
@@ -74,7 +75,7 @@ class JSONLLoaderAgent(GraphAideAgent):
                 })
 
             # Prepare state for dispatch
-            jsonl_lines = [{"content": l["content"]} for l in all_lines]
+            jsonl_lines = [{"content": l["content"], "raw_source": l["raw_source"]} for l in all_lines]
             jsonl_line_numbers = [l["line_number"] for l in all_lines]
 
             logger.debug(f"✅ Loaded {len(jsonl_lines)} lines from JSONL")

@@ -107,7 +107,7 @@ class Node(BaseModel):
         """,
     )
     raw_source: Optional[str] = Field(
-        default=None, description="Source reference string"
+        default=None, description="Source reference: the source file name or JSONL source ID given in the prompt"
     )
     character_span: Optional[Span] = Field(
         default=None,
@@ -152,7 +152,7 @@ class Edge(BaseModel):
         default=None, description="End time if available"
     )
     raw_source: Optional[str] = Field(
-        default=None, description="Name of the input source file"
+        default=None, description="Source reference: the source file name or JSONL source ID given in the prompt"
     )
     character_span: Optional[Span] = Field(
         default=None,
@@ -387,6 +387,7 @@ class SmartExtractorInput(TypedDict, total=False):
     rag_context_summary: Optional[RAGContextSummary]
     filter_by_ontology: bool
     batch_index: Optional[int]
+    raw_source: Optional[str]
     messages: Annotated[list, add_messages]
 
 
@@ -499,12 +500,15 @@ class KGGenerationState(TypedDict):
     agent_status: Annotated[Dict[str, bool], lambda a, b: {**a, **b}]
 
     # JSONL ingestion fields (file_path is reused for JSONL files - auto-detected by .jsonl extension)
-    jsonl_field_name: str = "text"  # Field to extract per line
+    jsonl_field_name: Annotated[str, lambda a, b: b]  # Field to extract per line (parallel-safe)
     jsonl_lines: Annotated[List[Dict], operator.add]  # Lines in current batch
     jsonl_line_numbers: Annotated[List[int], operator.add]  # Corresponding line numbers
     jsonl_failed_lines: Annotated[List[Dict], operator.add]  # Failed lines (with error details)
-    jsonl_tracking: bool = True  # Enable provenance tracking
+    jsonl_tracking: Annotated[bool, lambda a, b: b] = True  # Enable provenance tracking (parallel-safe)
+    ontology_path: Annotated[Optional[str], lambda a, b: b] = None  # Ontology file passed to each batch (parallel-safe)
     jsonl_lines_per_batch: int = 4  # Lines per batch sent to each extractor
+    raw_source_field: Optional[str] = None  # JSONL field copied to raw_source on extracted nodes/edges
+    raw_source: Annotated[Optional[str], lambda a, b: b] = None  # Source ID stamped on every node/edge in the current batch (parallel-safe)
 
     # Merge output flag (output only merged nodes/edges when merge=True)
     merge_output: Annotated[bool, lambda a, b: b] = False  # If True, skip raw nodes/edges, output merged only

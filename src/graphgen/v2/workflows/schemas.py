@@ -94,9 +94,13 @@ class KGExtractInput(BaseModel):
         "text",
         description="For JSONL files only. Field to extract per line.",
     )
-    jsonl_lines_per_batch: int = Field(
-        4,
-        description="For JSONL files only. Number of lines per batch sent to each extractor. Parallelism auto-scales: ceil(total_lines / lines_per_batch).",
+    jsonl_lines_per_batch: Optional[int] = Field(
+        None,
+        description="For JSONL files only. Number of lines per batch sent to each extractor. Defaults to 4, or 1 when raw_source_field is set. Must be 1 when raw_source_field is set.",
+    )
+    raw_source_field: Optional[str] = Field(
+        None,
+        description="For JSONL files only. Field whose value is stored as raw_source on each extracted node and edge (e.g. 'origin_id'). Requires jsonl_lines_per_batch=1.",
     )
     merge_output: bool = Field(
         False,
@@ -108,6 +112,13 @@ class KGExtractInput(BaseModel):
         """Validate that at least one of file_path or input_text is provided."""
         if not self.file_path and not self.input_text:
             raise ValueError("Either file_path or input_text must be provided")
+        if self.raw_source_field:
+            if self.jsonl_lines_per_batch is None:
+                self.jsonl_lines_per_batch = 1
+            elif self.jsonl_lines_per_batch != 1:
+                raise ValueError("raw_source_field requires jsonl_lines_per_batch=1")
+        elif self.jsonl_lines_per_batch is None:
+            self.jsonl_lines_per_batch = 4
         return self
 
     class Config:
@@ -240,9 +251,13 @@ class KGIngestInput(BaseModel):
         "text",
         description="Field name to extract from each JSONL line (used only if jsonl_file_path is provided)"
     )
-    jsonl_lines_per_batch: int = Field(
-        4,
-        description="Lines per batch sent to each extractor. Parallelism auto-scales: ceil(total_lines / lines_per_batch)."
+    jsonl_lines_per_batch: Optional[int] = Field(
+        None,
+        description="Lines per batch sent to each extractor. Defaults to 4, or 1 when raw_source_field is set. Must be 1 when raw_source_field is set."
+    )
+    raw_source_field: Optional[str] = Field(
+        None,
+        description="JSONL only. Field whose value is stored as raw_source on each extracted node and edge (e.g. 'origin_id'). Requires jsonl_lines_per_batch=1."
     )
     ontology_path: Optional[str] = Field(
         None,
@@ -275,6 +290,13 @@ class KGIngestInput(BaseModel):
         """Validate that at least one of file_path, input_text, or jsonl_file_path is provided."""
         if not self.file_path and not self.input_text and not self.jsonl_file_path:
             raise ValueError("Either file_path, input_text, or jsonl_file_path must be provided")
+        if self.raw_source_field:
+            if self.jsonl_lines_per_batch is None:
+                self.jsonl_lines_per_batch = 1
+            elif self.jsonl_lines_per_batch != 1:
+                raise ValueError("raw_source_field requires jsonl_lines_per_batch=1")
+        elif self.jsonl_lines_per_batch is None:
+            self.jsonl_lines_per_batch = 4
         return self
 
     class Config:

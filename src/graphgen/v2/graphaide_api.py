@@ -311,7 +311,8 @@ class GraphAide:
         filter_by_ontology: bool = False,
         merge: bool = False,
         jsonl_field_name: str = "text",
-        jsonl_lines_per_batch: int = 4,
+        jsonl_lines_per_batch: int | None = None,
+        raw_source_field: str | None = None,
         **kwargs,
     ) -> WorkflowResult:
         # DEBUG: Log what we have at the start
@@ -353,7 +354,8 @@ class GraphAide:
                 Merging is automatic for JSONL but must be explicitly requested for other formats.
                 Default False.
             jsonl_field_name: For JSONL files only. Field to extract per line. Default "text".
-            jsonl_lines_per_batch: For JSONL files only. Lines per batch sent to each extractor. Parallelism auto-scales. Default 4.
+            jsonl_lines_per_batch: For JSONL files only. Lines per batch sent to each extractor. Parallelism auto-scales. Default 4, or 1 when raw_source_field is set.
+            raw_source_field: For JSONL files only. Field whose value is stored as raw_source on each extracted node and edge (e.g. "origin_id"). Requires jsonl_lines_per_batch=1.
             **kwargs: Additional workflow parameters, e.g.:
                 - log_level (str): Logging level (DEBUG, INFO, WARNING, ERROR)
                 - section_chunking (bool): Use section-based PDF chunking
@@ -447,6 +449,7 @@ class GraphAide:
                     "file_path": file_path,
                     "jsonl_field_name": jsonl_field_name,
                     "jsonl_lines_per_batch": jsonl_lines_per_batch,
+                    "raw_source_field": raw_source_field,
                     "ontology_path": ontology_path,
                     "filter_by_ontology": filter_by_ontology,
                     "max_tokens_per_segment": max_tokens_per_segment,
@@ -508,7 +511,8 @@ class GraphAide:
         filter_by_ontology: bool = False,
         merge: bool = False,
         jsonl_field_name: str = "text",
-        jsonl_lines_per_batch: int = 4,
+        jsonl_lines_per_batch: int | None = None,
+        raw_source_field: str | None = None,
         **kwargs,
     ) -> WorkflowResult:
         """Extract knowledge graph and load directly to Neo4j.
@@ -542,7 +546,10 @@ class GraphAide:
                 If False (default), load raw extracted nodes (duplicates possible).
                 Applies to both regular files and JSONL. Default False.
             jsonl_field_name: For JSONL files only. Field to extract per line. Default "text".
-            jsonl_lines_per_batch: For JSONL files only. Lines per batch sent to each extractor. Parallelism auto-scales. Default 4.
+            jsonl_lines_per_batch: For JSONL files only. Lines per batch sent to each extractor.
+                Default 4, or 1 when raw_source_field is set. Must be 1 with raw_source_field.
+            raw_source_field: For JSONL files only. Field whose value is stored as raw_source
+                on every node and edge extracted from that line (e.g. "origin_id").
             **kwargs: Additional workflow parameters, e.g.:
                 - log_level (str): Logging level (DEBUG, INFO, WARNING, ERROR)
                 - section_chunking (bool): Use section-based PDF chunking
@@ -627,7 +634,7 @@ class GraphAide:
         if file_path and str(file_path).lower().endswith(".jsonl"):
             logger.info(f"Detected JSONL file: {file_path}")
             logger.debug(
-                f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}"
+                f"  Field: {jsonl_field_name}, Lines per batch: {jsonl_lines_per_batch}, raw_source_field: {raw_source_field}"
             )
 
             return self.manager.run(
@@ -636,6 +643,7 @@ class GraphAide:
                     "file_path": file_path,
                     "jsonl_field_name": jsonl_field_name,
                     "jsonl_lines_per_batch": jsonl_lines_per_batch,
+                    "raw_source_field": raw_source_field,
                     "ontology_path": ontology_path,
                     "filter_by_ontology": filter_by_ontology,
                     "vector_stores": vector_stores,
@@ -863,7 +871,8 @@ class GraphAide:
         self,
         jsonl_path: str,
         field_name: str = "text",
-        lines_per_batch: int = 4,
+        lines_per_batch: int | None = None,
+        raw_source_field: str | None = None,
         ontology_path: str | None = None,
         use_jsonl_tracking: bool = True,
         **kwargs,
@@ -880,7 +889,9 @@ class GraphAide:
         Args:
             jsonl_path: Path to JSONL file (one JSON object per line)
             field_name: Field name to extract per line (default: "text")
-            lines_per_batch: Lines per batch sent to each extractor (default: 4)
+            lines_per_batch: Lines per batch sent to each extractor (default: 4, or 1 with raw_source_field)
+            raw_source_field: Field whose value is stored as raw_source on each extracted
+                node/edge (requires lines_per_batch=1)
             ontology_path: Path to ontology for filtering (optional)
             use_jsonl_tracking: Create SourceDocument/ChunkParagraph nodes (default: True)
             **kwargs: Additional workflow parameters
@@ -909,6 +920,7 @@ class GraphAide:
             file_path=jsonl_path,
             jsonl_field_name=field_name,
             jsonl_lines_per_batch=lines_per_batch,
+            raw_source_field=raw_source_field,
             ontology_path=ontology_path,
             **kwargs,
         )

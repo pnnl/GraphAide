@@ -96,6 +96,7 @@ def make_segment_dispatcher(target_node: str):
                 {
                     "raw_text": segment,
                     "file_path": file_path,
+                    "raw_source": os.path.basename(file_path) if file_path and file_path != "<input_text>" else None,
                     "segments": [segment],
                     "rag_context_summary": state.get("rag_context_summary"),  # NEW: static, shared summary (not accumulated)
                     "vector_store_configs": state.get("vector_store_configs"),  # For fresh per-chunk retrieval
@@ -135,6 +136,7 @@ def make_jsonl_segment_dispatcher(target_node: str):
         jsonl_line_numbers = state.get("jsonl_line_numbers", [])
         lines_per_batch = state.get("jsonl_lines_per_batch", 4)
         jsonl_field_name = state.get("jsonl_field_name", "text")
+        raw_source_field = state.get("raw_source_field")
         ontology_path = state.get("ontology_path")
 
         if not jsonl_lines:
@@ -164,6 +166,7 @@ def make_jsonl_segment_dispatcher(target_node: str):
                     "jsonl_lines": chunk_lines,
                     "jsonl_line_numbers": chunk_line_nums,
                     "jsonl_field_name": jsonl_field_name,
+                    "raw_source": chunk_lines[0].get("raw_source") if raw_source_field else None,
                     "jsonl_tracking": state.get("jsonl_tracking", True),
                     "vector_store_configs": state.get("vector_store_configs", []),
                     "filter_by_ontology": state.get("filter_by_ontology", False),

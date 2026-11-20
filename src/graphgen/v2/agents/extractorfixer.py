@@ -109,6 +109,11 @@ class ExtractorFixerAgent(GraphAideAgent):
         stubs = self._build_stubs(nodes, edges)
         all_nodes = nodes + stubs
 
+        raw_source = state.get("raw_source")
+        if raw_source:
+            for item in all_nodes + edges:
+                item.raw_source = raw_source
+
         allowed = self._allowed_types(state, all_nodes)
         unresolved_count = sum(1 for n in all_nodes if is_unresolved(n))
         fixed = fix_unresolved_node_types(all_nodes, allowed, self.prompt, self.model)

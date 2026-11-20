@@ -173,16 +173,17 @@ def build_chunk_context(
     node_examples = summary.ontology_node_examples if summary else {}
     edge_examples = summary.ontology_edge_examples if summary else {}
 
-    # 2. Node and Edge Types with Definitions and Examples (no separate list)
-    if node_definitions or edge_definitions:
+    # 2. Node and Edge Types with Definitions and Examples
+    if node_types or edge_types:
         context_parts.append("# Node and Edge Types")
         context_parts.append("Below are the node and edge types with their definitions and examples. Extract entities and relationships using ONLY these types.")
         context_parts.append("Note: Type names are listed without brackets. In examples, text in [brackets] represents specific instances of that type.\n")
 
-    if node_definitions:
+    if node_types:
         context_parts.append("## Node Types")
-        for node_type, definition in sorted(node_definitions.items()):
-            line = f"- {node_type}: {definition}"
+        for node_type in sorted(node_types):
+            definition = node_definitions.get(node_type, "")
+            line = f"- {node_type}: {definition}" if definition else f"- {node_type}"
             # Append examples (text snippets with bracketed entity names)
             if node_type in node_examples:
                 examples_text = "; ".join(node_examples[node_type][:3])
@@ -190,10 +191,11 @@ def build_chunk_context(
             context_parts.append(line)
         context_parts.append("")
 
-    if edge_definitions:
+    if edge_types:
         context_parts.append("## Edge Types")
-        for edge_type, definition in sorted(edge_definitions.items()):
-            line = f"- {edge_type}: {definition}"
+        for edge_type in sorted(edge_types):
+            definition = edge_definitions.get(edge_type, "")
+            line = f"- {edge_type}: {definition}" if definition else f"- {edge_type}"
             # Append examples (text snippets showing relationships)
             if edge_type in edge_examples:
                 examples_text = "; ".join(edge_examples[edge_type][:3])

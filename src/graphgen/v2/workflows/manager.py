@@ -346,6 +346,7 @@ class WorkflowManager:
                     jsonl_lines_per_batch = getattr(validated_inputs, "jsonl_lines_per_batch", 4)
                     initial_state["jsonl_field_name"] = jsonl_field_name
                     initial_state["jsonl_lines_per_batch"] = jsonl_lines_per_batch
+                    initial_state["raw_source_field"] = getattr(validated_inputs, "raw_source_field", None)
                     logger.debug(f"Added JSONL fields: field_name='{jsonl_field_name}', lines_per_batch={jsonl_lines_per_batch}")
 
                 # Add merge_output flag if provided (for both JSONL and regular workflows)
@@ -1449,7 +1450,7 @@ class WorkflowManager:
                         output_data = {
                             "source_file": os.path.basename(file_path),
                             "file_path": file_path,
-                            "ontology_file_path": result_state.get("ontology_path"),
+                            "ontology_file_path": result_state.get("ontology_file_path"),
                             "model_name": f"{self.global_config.model_config.provider}/{self.global_config.model_config.model_name}",
                             "embedding_model_name": self.global_config.model_config.embedding_model_name,
                             "segments_processed": stats["nodes_extracted"],

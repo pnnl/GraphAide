@@ -85,7 +85,7 @@ class ExtractorAgent(GraphAideAgent):
     tool_output_keys = ["nodes", "edges", "messages"]
 
     def _extract_single_chunk(
-        self, text: str, context: str, structured_llm, chain, callbacks=None
+        self, text: str, context: str, source: str | None, structured_llm, chain, callbacks=None
     ) -> tuple[list[Node], list[Edge]]:
         """Extract nodes and edges from a single text chunk.
 
@@ -105,6 +105,7 @@ class ExtractorAgent(GraphAideAgent):
         inputs = {
             "question": text,
             "context": context,
+            "source": source or "none",
             **self.settings.get("partials", {}),
         }
 
@@ -173,7 +174,7 @@ class ExtractorAgent(GraphAideAgent):
         return extracted_nodes, extracted_edges
 
     def _extract_with_fallback(
-        self, text: str, context: str, structured_llm, chain, callbacks=None
+        self, text: str, context: str, source: str | None, structured_llm, chain, callbacks=None
     ) -> tuple[list[Node], list[Edge], list[str]]:
         """Extract with progressive chunk size reduction on failure.
 
@@ -196,7 +197,7 @@ class ExtractorAgent(GraphAideAgent):
         # Try with original text first
         try:
             nodes, edges = self._extract_single_chunk(
-                text, context, structured_llm, chain, callbacks
+                text, context, source, structured_llm, chain, callbacks
             )
             return nodes, edges, [f"Extracted {len(nodes)} nodes, {len(edges)} edges"]
         except Exception:
@@ -220,7 +221,7 @@ class ExtractorAgent(GraphAideAgent):
                 for i, chunk in enumerate(chunks):
                     logger.debug(f"  Chunk {i + 1}/{len(chunks)}: {len(chunk)} chars")
                     nodes, edges = self._extract_single_chunk(
-                        chunk, context, structured_llm, chain, callbacks
+                        chunk, context, source, structured_llm, chain, callbacks
                     )
                     logger.debug(
                         f"    → {len(nodes)} nodes, {len(edges)} edges extracted"
@@ -339,9 +340,6 @@ class ExtractorAgent(GraphAideAgent):
         # Build optimized, deduplicated context for this chunk
         context = build_chunk_context(summary, chunk_retrieval_results, include_token_count=True)
 
-        logger.debug(f"Context ready ({len(context)} chars)")
-        logger.debug(f"ExtractorAgent: Full Context = {context}")
-
         # 4. Fallback: if no retrieval results, use single default store
         if not chunk_retrieval_results:
             logger.warning("No retrieval results, falling back to default vector store")
@@ -395,6 +393,14 @@ class ExtractorAgent(GraphAideAgent):
                     if len(qid_label) >= 2:
                         context += f"QID={qid_label[0]} Label={qid_label[1]}\n"
 
+        per_source = {}
+        for result in chunk_retrieval_results:
+            per_source[result.source] = per_source.get(result.source, 0) + 1
+        logger.debug(
+            f"FINAL LLM CONTEXT ({len(context)} chars) | retrieved per source: {per_source or 'none'}\n"
+            f"{'=' * 80}\n{context}\n{'=' * 80}"
+        )
+
         # 3. Setup LLM chain
         structured_llm = self.model.with_structured_output(ExtractorSchema)
         chain = self.prompt | structured_llm
@@ -414,6 +420,7 @@ class ExtractorAgent(GraphAideAgent):
             extracted_nodes, extracted_edges, messages = self._extract_with_fallback(
                 text=state.get("raw_text", ""),
                 context=context,
+                source=state.get("raw_source"),
                 structured_llm=structured_llm,
                 chain=chain,
                 callbacks=callbacks,
@@ -460,6 +467,7 @@ class ExtractorAgent(GraphAideAgent):
                 inputs = {
                     "question": state.get("raw_text", ""),
                     "context": context,
+                    "source": state.get("raw_source") or "none",
                     **self.settings.get("partials", {}),
                 }
                 config = {"callbacks": callbacks}

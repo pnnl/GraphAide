@@ -56,17 +56,36 @@ docs/_build/
 # Data files (will be mounted as volumes)
 *.npy
 *.duckdb
-*.pdf
+/*.pdf
 
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb
-tests/notebooks/
+tests/
+
+# Frontend build artifacts and dependencies
+**/node_modules/
+src/graphgen/web_demo/frontend/dist/
+
+# Notebook output images and local secrets
+*.png
+*.jpg
+*.env
+*.log
+*.json.bak
+graphaide_run_*.log
+**/GraphAide_KG_Extract_*.json
+**/UKR*_Export.json
+**/wikidata_map_*.json
+src/graphgen/data/DWD_trimmed_subset_ontology_v3.json
+src/graphgen/data/wikidata_combined.json
+src/graphgen/data/biotech_wikidata_ontology_*.json
+src/graphgen/data/focused_wikidata_ontology_*.json
 
 # OS
 .DS_Store
 Thumbs.db
 
 # Local data
-data/
+/data/
 chroma/

@@ -260,7 +260,7 @@ def make_vectorstore_retriever(
                     node_results = collection.query(
                         query_embeddings=None,
                         query_texts=[query],
-                        n_results=globalconfig.DEFAULT_K,
+                        n_results=globalconfig.DEFAULT_K_ONTOLOGY,
                         where={"type": "node_type"},
                     )
                     if node_results and node_results.get("ids"):
@@ -275,21 +275,21 @@ def make_vectorstore_retriever(
                 except Exception:
                     # Fallback: get more results and filter
                     all_docs = vector_store.similarity_search(
-                        query, k=globalconfig.DEFAULT_K * 3
+                        query, k=globalconfig.DEFAULT_K_ONTOLOGY * 3
                     )
                     for doc in all_docs:
                         if doc.metadata.get("type") == "node_type":
                             type_id = doc.metadata.get("id", "")
                             if type_id:
                                 ontology_node_types.append(type_id)
-                    ontology_node_types = ontology_node_types[: globalconfig.DEFAULT_K]
+                    ontology_node_types = ontology_node_types[: globalconfig.DEFAULT_K_ONTOLOGY]
 
                 # Search for edge types with where filter
                 try:
                     edge_results = collection.query(
                         query_embeddings=None,
                         query_texts=[query],
-                        n_results=globalconfig.DEFAULT_K,
+                        n_results=globalconfig.DEFAULT_K_ONTOLOGY,
                         where={"type": "edge_type"},
                     )
                     if edge_results and edge_results.get("ids"):
@@ -304,32 +304,32 @@ def make_vectorstore_retriever(
                 except Exception:
                     # Fallback: get more results and filter
                     all_docs = vector_store.similarity_search(
-                        query, k=globalconfig.DEFAULT_K * 3
+                        query, k=globalconfig.DEFAULT_K_ONTOLOGY * 3
                     )
                     for doc in all_docs:
                         if doc.metadata.get("type") == "edge_type":
                             type_id = doc.metadata.get("id", "")
                             if type_id:
                                 ontology_edge_types.append(type_id)
-                    ontology_edge_types = ontology_edge_types[: globalconfig.DEFAULT_K]
+                    ontology_edge_types = ontology_edge_types[: globalconfig.DEFAULT_K_ONTOLOGY]
             else:
                 # Fallback for non-ChromaDB stores
                 all_docs = vector_store.similarity_search(
-                    query, k=globalconfig.DEFAULT_K * 3
+                    query, k=globalconfig.DEFAULT_K_ONTOLOGY * 3
                 )
                 for doc in all_docs:
                     if doc.metadata.get("type") == "node_type":
                         type_id = doc.metadata.get("id", "")
                         if type_id and type_id not in ontology_node_types:
                             ontology_node_types.append(type_id)
-                            if len(ontology_node_types) >= globalconfig.DEFAULT_K:
+                            if len(ontology_node_types) >= globalconfig.DEFAULT_K_ONTOLOGY:
                                 break
                 for doc in all_docs:
                     if doc.metadata.get("type") == "edge_type":
                         type_id = doc.metadata.get("id", "")
                         if type_id and type_id not in ontology_edge_types:
                             ontology_edge_types.append(type_id)
-                            if len(ontology_edge_types) >= globalconfig.DEFAULT_K:
+                            if len(ontology_edge_types) >= globalconfig.DEFAULT_K_ONTOLOGY:
                                 break
 
             result = RetrievalResult(

@@ -428,3 +428,41 @@ This gives:
 **Verification:**
 - Regression test: query-path prompt output is unchanged when no document is passed.
 - End-to-end test: `run_simple_rag` with a file returns an answer grounded in that file.
+
+---
+
+## FEATURE: Node disambiguation agent for Neo4j graph (2026-11-18)
+
+**Goal:** After all ingestion finishes, find nodes that refer to the same entity and output a review file. Nothing in the graph changes in this step.
+
+**Position:** Post-load, run once after all slices, not per chunk or per slice. Duplicates across chunks and slices are only visible in Neo4j.
+
+**Input:** Neo4j graph. Per node: `elementId`, `node_id`, `node_name` (list), `english_name`, `node_type` (scalar or list), `wikidata_id`, aliases, and source fields (`raw_source`) when present.
+
+**Normalization:** lowercase, trim, collapse whitespace, strip punctuation, drop empty strings. Keep word order, so "Lu Xuan" and "Xuan Lu" remain separate keys.
+
+**Blocking:** Every element of `node_name` is a key. Compare only nodes that share a key and overlap on `node_type`. Skip keys above a frequency cap (for example "China", "Lu") and log what was skipped.
+
+**Rules, in order:**
+1. Different non-null `wikidata_id`: never merge.
+2. Same non-null `wikidata_id`: merge (`auto_merge`, reason `shared_wikidata_id`).
+3. No QID on either node: never auto-merge. Score from all descriptive fields (name-key overlap, `english_name`, `node_type`, `node_id`, aliases, source) and send only the middle band to the LLM.
+4. No QID-to-QID bridging: a no-QID node never joins a QID cluster automatically.
+
+**LLM scope:** Pairs only, never N x M. Groups larger than a cap are split into small subsets before any LLM call.
+
+**Output:** JSON Lines. One line per cluster with two or more members. The last line is a placeholder: `cluster_id: "PENDING"`, `status: "pending_decision"`, `decided_by: null` (set to `"user"` or `"llm"`), and `candidates` for the unresolved groups.
+
+**Open questions:**
+- Can `wikidata_id` ever hold more than one QID per node?
+- Frequency cap value: decide from a read-only key-count on the graph.
+
+**Proposed approach:**
+1. Read-only script: query the graph, compute key frequencies and candidate blocks, print counts.
+2. Add the scoring and cluster rules; write the JSONL output.
+3. Only after review, add a separate merge step using `apoc.refactor.mergeNodes`, with a log of every merge.
+
+**Verification:**
+- Read-only run writes the file and changes no nodes or relationships (compare counts before and after).
+- Every cluster in the auto-merge section has one shared non-null `wikidata_id`.
+- No cluster contains two different non-null QIDs.

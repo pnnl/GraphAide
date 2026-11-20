@@ -20,17 +20,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy ONLY dependency files and source (needed for package discovery)
-COPY setup.py setup.cfg pyproject.toml README.md LICENSE.txt ./
+# Copy only what the package build needs (no tests, notebooks, or secrets)
+COPY pyproject.toml MANIFEST.in README.md LICENSE.txt ./
 COPY src/ src/
-COPY templates/ templates/
 
-# Install Python dependencies (cached unless setup.py changes)
+# Install Python dependencies (cached unless pyproject.toml changes)
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install .
-
-# Copy tests (optional, for testing in container)
-COPY tests/ tests/
+    pip install . && \
+    rm -rf /app/build /app/src/*.egg-info
 
 # Create directories for volumes
 RUN mkdir -p /app/chroma
