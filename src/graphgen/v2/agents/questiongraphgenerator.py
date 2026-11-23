@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from ..state import KGQuestionAnswerState
 from .base import GraphAideAgent
+from .neo4jqueryrunner import find_write_operation
 
 logger = logging.getLogger("graphgen.agents.questiongraphgenerator")
 
@@ -40,8 +41,13 @@ class QuestionGraphGeneratorAgent(GraphAideAgent):
         try:
             chain = self.prompt | self.model
             response = self._invoke_chain(chain, {"raw_text": state.get("question", "")})
+            cypher = response.content.strip()
+            blocked = find_write_operation(cypher)
+            if blocked:
+                logger.warning(f"QueryGraphGen blocked non-read-only query ({blocked})")
+                return {"messages": [f"Generated query blocked: {blocked} is not read-only."]}
             logger.debug("QueryGraphGen: query generated")
-            return {"messages": [response], "graph_question": response.content}
+            return {"messages": [response], "graph_question": cypher}
         except Exception as e:
             logger.error(f"QueryGraphGen failed: {e}")
             return {

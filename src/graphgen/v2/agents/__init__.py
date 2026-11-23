@@ -42,6 +42,7 @@ from .imageexplainer import ImageExplainerAgent, ImageExplainerToolSchema
 from .intentpredictor import IntentPredictorAgent, IntentPredictorToolSchema
 from .ontologyloader import OntologyLoaderAgent, OntologyLoaderToolSchema
 from .questiongraphgenerator import QuestionGraphGeneratorAgent, QuestionGraphGeneratorToolSchema
+from .questiongraphwalker import QuestionGraphWalkerAgent, QuestionGraphWalkerToolSchema
 from .simpleagent import SimpleAgent, SimpleAgentToolSchema
 from .simplerag import SimpleRAGAgent, SimpleRAGToolSchema
 from .textaugmentor import TextAugmentorAgent, TextAugmentorToolSchema

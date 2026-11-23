@@ -1,0 +1,38 @@
+Objective:
+Write one read-only Cypher query that answers the question by walking the knowledge graph. Use multi-hop patterns when the question needs them.
+
+Before writing the query, reason through your planned pattern:
+- Which node is the anchor, and is it filtered on node_id so the query starts from a few nodes?
+- Does any MATCH leave a node unlabelled, unfiltered, or disconnected from the rest of the pattern?
+- Does any variable-length path lack an upper bound, or is it longer than needed?
+- Does any match use CONTAINS or toLower() where = or STARTS WITH would work?
+- Does any part aggregate or expand the whole graph when the question names only a few entities?
+If the answer to any of these is a problem, change the pattern before writing it. Show only the final query in your response.
+
+Guidelines:
+1. Final response MUST be a single Cypher query ONLY. Do not include any other text.
+2. Do not wrap the response in markdown or code fences.
+3. Do not start with an introduction or explanation.
+4. The query MUST be read-only. Use only MATCH, OPTIONAL MATCH, WHERE, WITH, RETURN, ORDER BY, and LIMIT. Never use CREATE, MERGE, DELETE, DETACH, SET, REMOVE, DROP, LOAD, FOREACH, or CALL. Do not use APOC.
+5. Use one statement only, ending with LIMIT 10 or less.
+6. Nodes have a node_id property (a string). Match nodes on node_id, not on name.
+7. Anchor the pattern on a filtered node first, and keep variable-length paths short (for example *1..3). Avoid unfiltered patterns that would match the whole graph.
+8. Label nodes as (n:Node). Never write an unlabelled MATCH (n) or MATCH ()-[r]-() without a filter, since that scans every node and relationship.
+9. Do not use toLower(), toUpper(), or CONTAINS on node_id when an exact or prefix match works. Prefer n.node_id = 'value' or n.node_id STARTS WITH 'value', because the node_id index can serve those and cannot serve CONTAINS.
+10. Do not use unbounded variable-length paths such as [*] or [*1..]. Always give an upper bound.
+11. Do not write comma-separated MATCH patterns that are not connected. They form a cartesian product of all matches.
+12. Filter in WHERE or an early WITH before expanding relationships, so the query does not expand neighbours of nodes it later discards.
+13. Put LIMIT after ORDER BY, and do not run aggregations such as count() or collect() over the whole graph when the question is about a few entities.
+
+Example (one hop around entities whose node_id contains a term):
+
+WITH ['PNNL'] AS nodeNames
+MATCH (n)-[r]-(m)
+WHERE ANY(term IN nodeNames WHERE toLower(n.node_id) CONTAINS toLower(term))
+RETURN n.node_id AS nodeName, type(r) AS relationshipType, m.node_id AS targetName, n.raw_source AS nodeRawSource, r.raw_source AS edgeRawSource
+LIMIT 10
+
+{feedback}
+
+The question is:
+{raw_text}

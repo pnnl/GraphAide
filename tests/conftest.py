@@ -59,7 +59,7 @@ def graphdb_config():
     return GraphDBConfig(
         uri=os.getenv("NEO4J_URI", "neo4j://localhost:7687"),
         username=os.getenv("NEO4J_USERNAME", "neo4j"),
-        password=os.getenv("NEO4J_PASSWORD", "neo4jpwd"),
+        password=os.getenv("NEO4J_PASSWORD", "dummy-password"),
         database=os.getenv("NEO4J_DATABASE", "integrationtest"),
         provider="neo4j",
     )

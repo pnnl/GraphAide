@@ -30,6 +30,7 @@ from graphgen.v2.agents.nodesloader import NodesLoaderAgent
 from graphgen.v2.agents.ontologygenerator import OntologyGeneratorAgent
 from graphgen.v2.agents.ontologyloader import OntologyLoaderAgent
 from graphgen.v2.agents.questiongraphgenerator import QuestionGraphGeneratorAgent
+from graphgen.v2.agents.questiongraphwalker import QuestionGraphWalkerAgent
 from graphgen.v2.agents.simpleagent import SimpleAgent
 from graphgen.v2.agents.simplerag import SimpleRAGAgent
 from graphgen.v2.agents.vectordbloader import VectorDBLoaderAgent
@@ -203,6 +204,10 @@ class WorkflowManager:
             return self._build_kg_load_json_workflow(config)
         elif workflow_name == "kg_query":
             return self._build_kg_query_workflow(config)
+        elif workflow_name == "graph_query":
+            return self._build_graph_query_workflow(config)
+        elif workflow_name == "graph_walk":
+            return self._build_graph_walk_workflow(config)
         elif workflow_name == "vectordb_ingest":
             return self._build_vectordb_ingest_workflow(config)
         elif workflow_name == "vectordb_visualize":
@@ -217,7 +222,7 @@ class WorkflowManager:
             return self._build_ontology_generate_workflow(config)
         else:
             raise KeyError(
-                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, vectordb_ingest, vectordb_visualize, ontology_generate, image_explain, simple_agent, simple_rag"
+                f"Workflow '{workflow_name}' not found. Available: kg_extract, kg_extract_merge, kg_extract_chunk_aware, kg_extract_jsonl_batch, kg_ingest, kg_ingest_chunk_aware, kg_ingest_jsonl_batch, kg_load_json, kg_query, graph_query, graph_walk, vectordb_ingest, vectordb_visualize, ontology_generate, image_explain, simple_agent, simple_rag"
             )
 
     def run(
@@ -464,7 +469,7 @@ class WorkflowManager:
                 initial_state = None
             # NOTE: kg_extract_jsonl_batch and kg_ingest_jsonl_batch are now handled in the first if block above
             # These elif blocks are kept for backwards compatibility but should not execute
-            elif workflow_name == "kg_query":
+            elif workflow_name in ("kg_query", "graph_query", "graph_walk"):
                 initial_state = init_kg_qa_state(validated_inputs.question)
             elif workflow_name == "vectordb_ingest":
                 initial_state = init_kg_generation_state(file_path="")
@@ -1129,6 +1134,40 @@ class WorkflowManager:
 
         return workflow.compile()
 
+    def _build_graph_query_workflow(self, config: WorkflowConfig):
+        """Build a workflow that generates a Cypher query from a question without running it.
+
+        Flow: questiongraphgenerator → END
+        """
+        agent_factory = get_agent_factory(config, include_graphdb=False)
+        graph_generator = agent_factory.build(
+            QuestionGraphGeneratorAgent, "questiongraphgenerator"
+        )
+
+        workflow = StateGraph(KGQuestionAnswerState)
+        workflow.add_node("questiongraphgenerator", graph_generator)
+        workflow.add_edge(START, "questiongraphgenerator")
+        workflow.add_edge("questiongraphgenerator", END)
+
+        return workflow.compile()
+
+    def _build_graph_walk_workflow(self, config: WorkflowConfig):
+        """Build a workflow that generates and validates a free-form Cypher query (not executed).
+
+        Flow: questiongraphwalker → END
+        """
+        agent_factory = get_agent_factory(config, include_graphdb=True)
+        graph_walker = agent_factory.build(
+            QuestionGraphWalkerAgent, "questiongraphwalker"
+        )
+
+        workflow = StateGraph(KGQuestionAnswerState)
+        workflow.add_node("questiongraphwalker", graph_walker)
+        workflow.add_edge(START, "questiongraphwalker")
+        workflow.add_edge("questiongraphwalker", END)
+
+        return workflow.compile()
+
     def _build_kg_query_workflow(self, config: WorkflowConfig):
         """Build KG query workflow with parallel vector retrieval and graph query.
 
@@ -1587,6 +1626,19 @@ class WorkflowManager:
                     messages=messages,
                 )
 
+        elif workflow_name in ("graph_query", "graph_walk"):
+            return WorkflowResult(
+                success=True,
+                workflow_name=workflow_name,
+                execution_time_seconds=execution_time,
+                answer=result_state.get("graph_question"),
+                data={
+                    "question": result_state.get("question"),
+                    "cypher": result_state.get("graph_question"),
+                },
+                messages=result_state.get("messages", []),
+            )
+
         elif workflow_name == "kg_query":
             return WorkflowResult(
                 success=True,
@@ -1910,6 +1962,24 @@ class WorkflowManager:
             input_schema=KGLoadJsonInput,
             output_schema=KGLoadJsonOutput,
             description="Load pre-extracted JSON into Neo4j database with postprocessing",
+        )
+
+        # Register Graph Query
+        self.registry.register(
+            name="graph_query",
+            workflow_fn=dummy_workflow_fn,
+            input_schema=KGQueryInput,
+            output_schema=KGQueryOutput,
+            description="Generate a Cypher query from a natural language question (not executed)",
+        )
+
+        # Register Graph Walk
+        self.registry.register(
+            name="graph_walk",
+            workflow_fn=dummy_workflow_fn,
+            input_schema=KGQueryInput,
+            output_schema=KGQueryOutput,
+            description="Generate and validate a free-form read-only Cypher query (not executed)",
         )
 
         # Register KG Query

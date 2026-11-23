@@ -50,7 +50,7 @@ class GraphAide:
             graphdb_config=GraphDBConfig(
                 uri="neo4j://localhost:7687",
                 username="neo4j",
-                password="neo4jpwd",
+                password="your-neo4j-password",
             ),
         )
 
@@ -709,6 +709,49 @@ class GraphAide:
             "kg_query",
             {"question": question, **kwargs},
         )
+
+    def graphquery(self, question: str, **kwargs) -> WorkflowResult:
+        """Generate a Cypher query for a question. The query is returned, not executed.
+
+        Args:
+            question: Natural language question about the graph.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the generated Cypher in result.answer
+            (also available as result.data["cypher"]).
+
+        Example:
+            result = graphaide.graphquery("What processes use copper?")
+            print(result.answer)
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run("graph_query", {"question": question, **kwargs})
+
+    def graphwalk(self, question: str, **kwargs) -> WorkflowResult:
+        """Generate and validate a free-form read-only Cypher query without executing it.
+
+        The LLM writes the query, then it is checked for read-only keywords, a LIMIT
+        of 10 or less, and Neo4j EXPLAIN validation. Rejected attempts are retried.
+
+        Args:
+            question: Natural language question about the graph.
+            **kwargs: Additional workflow parameters (e.g., log_level).
+
+        Returns:
+            WorkflowResult with the validated Cypher in result.answer
+            (also available as result.data["cypher"]).
+        """
+        log_level = kwargs.pop("log_level", None)
+        if log_level:
+            from graphgen.v2.utils import setup_logging
+            setup_logging(log_level=log_level)
+
+        return self.manager.run("graph_walk", {"question": question, **kwargs})
 
     def explain(
         self, file_path: str, template_path: Optional[str] = None, **kwargs

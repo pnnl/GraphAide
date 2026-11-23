@@ -1,5 +1,6 @@
 import logging
-from typing import List
+import re
+from typing import List, Optional
 
 import openai
 from pydantic import BaseModel, Field
@@ -8,6 +9,22 @@ from ..state import Edge, KGQuestionAnswerState, Node
 from .base import GraphAideAgent
 
 logger = logging.getLogger("graphgen.agents.neo4jqueryrunner")
+
+_LITERAL_OR_COMMENT = re.compile(
+    r"'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|`[^`]*`|//[^\n]*|/\*.*?\*/", re.S
+)
+_WRITE_KEYWORD = re.compile(
+    r"\b(CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|LOAD|FOREACH|CALL)\b", re.I
+)
+
+
+def find_write_operation(cypher: str) -> Optional[str]:
+    """Return the reason a Cypher query is not read-only, or None if it is."""
+    code = _LITERAL_OR_COMMENT.sub(" ", cypher).strip().rstrip(";").strip()
+    if ";" in code:
+        return "multiple statements"
+    match = _WRITE_KEYWORD.search(code)
+    return match.group(1).upper() if match else None
 
 
 class Neo4jPostProcessorSchema(BaseModel):
@@ -61,6 +78,15 @@ class Neo4jQueryRunnerAgent(GraphAideAgent):
                     "messages": [
                         "No graph question found in state to run against Neo4j."
                     ]
+                }
+            blocked = find_write_operation(query)
+            if blocked:
+                logger.warning(f"Neo4jQuery blocked non-read-only query ({blocked})")
+                return {
+                    "messages": [
+                        f"Blocked query: {blocked} is not allowed, only read-only Cypher can run."
+                    ],
+                    "agent_status": {self.__class__.__name__: False},
                 }
             logger.debug("Neo4jQuery: executing query")
             result = graph_store.query(query)
